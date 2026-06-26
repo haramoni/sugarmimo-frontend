@@ -16,6 +16,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+type IbgeState = {
+  id: number;
+  sigla: string;
+  nome: string;
+};
+
+type IbgeCity = {
+  id: number;
+  nome: string;
+};
+
 export default function RegisterAccountForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [birthDay, setBirthDay] = useState("");
@@ -52,8 +63,8 @@ export default function RegisterAccountForm() {
     console.log("SugarMimo register payload:", payload);
   }
 
-  const [states, setStates] = useState<string[]>([]);
-  const [cities, setCities] = useState<string[]>([]);
+  const [states, setStates] = useState<IbgeState[]>([]);
+  const [cities, setCities] = useState<IbgeCity[]>([]);
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
 
