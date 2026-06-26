@@ -52,8 +52,8 @@ export default function RegisterAccountForm() {
     console.log("SugarMimo register payload:", payload);
   }
 
-  const [states, setStates] = useState<any[]>([]);
-  const [cities, setCities] = useState<any[]>([]);
+  const [states, setStates] = useState<string[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
 
