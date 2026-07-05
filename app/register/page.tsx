@@ -1,13 +1,26 @@
- "use client";
+"use client";
 
-import { type FormEvent } from "react";
+import { type FormEvent, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { getSavedRegisterStep, setRegisterStep } from "./register-flow";
+import { RegisterStepDots } from "./RegisterStepDots";
 
 export default function Register() {
   const router = useRouter();
+
+  useEffect(() => {
+    const savedStep = getSavedRegisterStep();
+
+    if (savedStep && savedStep !== "/register") {
+      router.replace(savedStep);
+      return;
+    }
+
+    setRegisterStep("/register");
+  }, [router]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -21,9 +34,10 @@ export default function Register() {
       JSON.stringify({
         profileType,
         interest,
-      })
+      }),
     );
 
+    setRegisterStep("/register/basic-info");
     router.push("/register/basic-info");
   }
 
@@ -33,13 +47,15 @@ export default function Register() {
         <div className="w-full max-w-125 space-y-6">
           <div className="rounded-sm bg-[color-mix(in_srgb,var(--surface)_94%,transparent)] shadow-[0_22px_60px_rgba(20,17,14,0.24)] backdrop-blur-sm">
             <div className="space-y-7 px-4 py-9 sm:px-6">
+              <RegisterStepDots currentStep="/register" />
+
               <div className="space-y-2">
                 <h1 className="text-2xl font-bold leading-tight text-black-jewel">
                   Comece seu cadastro SugarMimo
                 </h1>
                 <p className="text-sm font-medium text-emerald">
                   Entre para um grupo seleto de encontros exclusivos e
-                  experiencias unicas.
+                  experiências únicas.
                 </p>
               </div>
 
@@ -61,7 +77,9 @@ export default function Register() {
                     <option value="" disabled>
                       Selecione seu perfil
                     </option>
-                    <option value="sugar-baby-woman">Sugar Baby (Mulher)</option>
+                    <option value="sugar-baby-woman">
+                      Sugar Baby (Mulher)
+                    </option>
                     <option value="sugar-baby-man">Sugar Baby (Homem)</option>
                     <option value="sugar-daddy">Sugar Daddy</option>
                     <option value="sugar-mommy">Sugar Mommy</option>
@@ -83,7 +101,7 @@ export default function Register() {
                     className="h-11 w-full border-0 border-b border-[color-mix(in_srgb,var(--silver)_80%,var(--black))] bg-transparent px-0 text-base text-black-jewel outline-none transition focus:border-gold focus:ring-0"
                   >
                     <option value="" disabled>
-                      Escolha uma preferencia
+                      Escolha uma preferência
                     </option>
                     <option value="women">Mulheres</option>
                     <option value="men">Homens</option>
@@ -93,9 +111,9 @@ export default function Register() {
 
                 <Button
                   type="submit"
-                  className="h-12 w-full rounded-sm bg-gold text-base font-bold text-white shadow-[0_16px_34px_rgba(185,138,56,0.28)] hover:bg-[color-mix(in_srgb,var(--gold)_86%,var(--black))] hover:text-surface"
+                  className="h-12 w-full rounded-md bg-emerald text-base font-bold text-white shadow-[0_16px_34px_rgba(185,138,56,0.28)] hover:bg-emerald/80 hover:text-white"
                 >
-                  Continuar cadastro
+                  Continuar Cadastro
                 </Button>
               </form>
             </div>
@@ -103,7 +121,7 @@ export default function Register() {
 
           <div className="space-y-5 rounded-sm bg-[color-mix(in_srgb,var(--surface)_90%,transparent)] p-5 text-xs leading-relaxed text-black-jewel shadow-[0_18px_48px_rgba(20,17,14,0.18)] backdrop-blur-sm sm:text-sm">
             <p>
-              Ao prosseguir, voce confirma que leu e aceita os nossos{" "}
+              Ao prosseguir, você confirma que leu e aceita os nossos{" "}
               <Link
                 href="/terms"
                 className="font-bold underline decoration-gold underline-offset-2"
@@ -114,19 +132,19 @@ export default function Register() {
             </p>
 
             <p>
-              O SugarMimo e exclusivo para pessoas maiores de 18 anos. Podemos
-              solicitar validacao de idade para manter a seguranca da
+              O SugarMimo é exclusivo para pessoas maiores de 18 anos. Podemos
+              solicitar validação de idade para manter a segurança da
               comunidade.
             </p>
 
             <p>
               A plataforma foi criada para encontros consensuais entre adultos e
-              não permite atividades ilegais, exploracao, comercio sexual ou
+              não permite atividades ilegais, exploração, comércio sexual ou
               qualquer conduta que coloque outras pessoas em risco.
             </p>
 
             <p className="pt-4">
-              Ja possui uma conta?{" "}
+              Já possui uma conta?{" "}
               <Link
                 href="/login"
                 className="font-bold text-ruby transition hover:text-gold"

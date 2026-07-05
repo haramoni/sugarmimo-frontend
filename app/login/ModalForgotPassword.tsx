@@ -21,7 +21,7 @@ export function ModalForgotPassword() {
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Recuperar Senha</DialogTitle>
+          <DialogTitle>Recuperar senha</DialogTitle>
           <DialogDescription>
             Digite seu e-mail para receber instruções de recuperação.
           </DialogDescription>

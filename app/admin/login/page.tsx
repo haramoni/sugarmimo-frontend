@@ -1,18 +1,18 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Shield } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Link from "next/link";
-import Image from "next/image";
-import { ModalForgotPassword } from "./ModalForgotPassword";
 
-export function LoginForm() {
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
+export default function AdminLoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -26,13 +26,13 @@ export function LoginForm() {
     const formData = new FormData(event.currentTarget);
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(`${API_URL}/admin/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          identifier: String(formData.get("identifier") ?? ""),
+          username: String(formData.get("identifier") ?? ""),
           password: String(formData.get("password") ?? ""),
         }),
       });
@@ -40,27 +40,16 @@ export function LoginForm() {
       const result = await response.json().catch(() => null);
 
       if (!response.ok) {
-        const message = String(result?.message ?? "");
-
-        if (message.toLowerCase().includes("pending")) {
-          throw new Error("Seu perfil ainda está em análise.");
-        }
-
-        throw new Error("Usuário, e-mail ou senha inválidos.");
+        throw new Error(result?.message ?? "Login administrativo inválido.");
       }
 
-      if (!result?.user) {
-        throw new Error("Resposta de login inválida.");
-      }
-
-      localStorage.setItem("sugarmimo:user", JSON.stringify(result.user));
-      window.dispatchEvent(new Event("sugarmimo-auth"));
-      router.push("/perfil");
+      localStorage.setItem("sugarmimo:admin-token", result.accessToken);
+      router.push("/admin/approvals");
     } catch (loginError) {
       setError(
         loginError instanceof Error
           ? loginError.message
-          : "Não foi possível entrar.",
+          : "Login administrativo inválido.",
       );
     } finally {
       setIsSubmitting(false);
@@ -68,35 +57,38 @@ export function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background-vanilla/20 px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="flex flex-col items-center gap-2">
+    <main className="flex min-h-screen items-center justify-center bg-[url('/register-wallpaper-marble.jpg')] bg-cover bg-center px-4 py-10">
+      <Card className="w-full max-w-sm rounded-sm border-0 bg-[color-mix(in_srgb,var(--surface)_94%,transparent)] shadow-[0_22px_60px_rgba(20,17,14,0.24)] backdrop-blur-sm">
+        <CardHeader className="flex flex-col items-center gap-3">
           <Image
             src="/sm-image.png"
             alt="SugarMimo"
-            width={300}
-            height={100}
+            width={260}
+            height={87}
             priority
             style={{ height: "auto" }}
           />
+          <div className="flex items-center gap-2 text-sm font-bold text-[var(--black)]">
+            <Shield className="h-4 w-4 text-[var(--gold)]" />
+            Acesso administrativo
+          </div>
         </CardHeader>
 
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <Label htmlFor="username">Nome de usuário ou e-mail</Label>
+              <Label htmlFor="identifier">Usuário ou e-mail</Label>
               <Input
-                id="username"
+                id="identifier"
                 name="identifier"
                 type="text"
                 required
-                placeholder="Digite seu nome de usuário ou e-mail"
+                placeholder="Digite seu acesso administrativo"
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
-
               <div className="relative">
                 <Input
                   id="password"
@@ -106,11 +98,11 @@ export function LoginForm() {
                   placeholder="Digite sua senha"
                   className="pr-10"
                 />
-
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
+                  aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
                   className="absolute right-0 top-0 h-full px-3"
                   onClick={() => setShowPassword((value) => !value)}
                 >
@@ -130,24 +122,15 @@ export function LoginForm() {
             )}
 
             <Button
-              className="bg-emerald w-full rounded-md"
               type="submit"
               disabled={isSubmitting}
+              className="h-11 w-full rounded-sm bg-[var(--black)] font-bold text-white hover:bg-[var(--gold)]"
             >
               {isSubmitting ? "Entrando..." : "Entrar"}
             </Button>
           </form>
-          <div className="flex flex-row items-center justify-between">
-            <ModalForgotPassword />
-            <Link
-              href="/register"
-              className="flex w-fit items-center gap-3 rounded-md mt-3 underline hover:text-gold font-semibold text-gold"
-            >
-              <span>Cadastre-se agora!</span>
-            </Link>
-          </div>
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 }
