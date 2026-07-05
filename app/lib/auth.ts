@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 
 export const SESSION_COOKIE = "sugarmimo_session";
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
 
 export type AuthUser = {
   id?: string;

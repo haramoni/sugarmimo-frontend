@@ -10,7 +10,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
 
 export default function AdminLoginPage() {
   const router = useRouter();

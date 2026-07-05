@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
 
 type PendingPhoto = {
   id: string;
