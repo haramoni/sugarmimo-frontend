@@ -34,9 +34,9 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       Authorization: `Bearer ${token}`,
     },
     cache: "no-store",
-  });
+  }).catch(() => null);
 
-  if (!response.ok) {
+  if (!response?.ok) {
     return null;
   }
 

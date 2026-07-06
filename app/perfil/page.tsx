@@ -40,6 +40,10 @@ import {
 } from "@/components/ui/select";
 import { Navbar } from "../components/ui/Navbar";
 import {
+  ProfileApprovalGuard,
+  shouldShowPendingApproval,
+} from "./ProfileApprovalGuard";
+import {
   bodyTypes,
   childrenOptions,
   drinkOptions,
@@ -215,6 +219,7 @@ export default function PerfilPage() {
   }, [savedUser]);
 
   const user = remoteProfile ?? storedUser;
+  const isApprovalPending = shouldShowPendingApproval(user);
 
   function hydrateProfile(profile: ProfileUser) {
     setForm(formFromUser(profile));
@@ -233,6 +238,11 @@ export default function PerfilPage() {
       .then((profile) => {
         window.localStorage.setItem("sugarmimo:user", JSON.stringify(profile));
         setRemoteProfile(profile);
+        if (shouldShowPendingApproval(profile)) {
+          router.replace("/register/pending-approval");
+          return;
+        }
+
         hydrateProfile(profile);
       })
       .catch(() => {
@@ -242,8 +252,8 @@ export default function PerfilPage() {
       });
   }, [router]);
 
-  if (!user) {
-    return null;
+  if (!user || isApprovalPending) {
+    return <ProfileApprovalGuard user={user} />;
   }
 
   const profilePhoto = photos[0];
@@ -492,7 +502,8 @@ export default function PerfilPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_18%_12%,color-mix(in_srgb,var(--emerald)_13%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--gold-soft)_22%,transparent),transparent_30%),url('/wallpaper-marble.png')] bg-cover bg-fixed bg-center text-black-jewel">
+    <ProfileApprovalGuard user={user}>
+      <main className="min-h-screen bg-[radial-gradient(circle_at_18%_12%,color-mix(in_srgb,var(--emerald)_13%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--gold-soft)_22%,transparent),transparent_30%),url('/wallpaper-marble.png')] bg-cover bg-fixed bg-center text-black-jewel">
       <Navbar />
 
       <section className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8 lg:px-8">
@@ -811,7 +822,8 @@ export default function PerfilPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </ProfileApprovalGuard>
   );
 }
 

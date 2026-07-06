@@ -1,0 +1,1313 @@
+⨯ [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+⨯ [TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Image with src "/sm-image.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Image with src "/sm-image.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[browser] Image with src "/sm-image.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Image with src "/sm-image.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+⨯ ./app/admin/login/page.tsx:138:13
+Expression expected
+  [90m136 |[0m }
+  [90m137 |[0m
+[31m[1m>[0m [90m138 |[0m             </[33mButton[0m>
+  [90m    |[0m             [31m[1m^[0m
+  [90m139 |[0m           </form>
+  [90m140 |[0m         </[33mCardContent[0m>
+  [90m141 |[0m       </[33mCard[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+
+./app/admin/login/page.tsx:138:14
+Unterminated regexp literal
+  [90m136 |[0m }
+  [90m137 |[0m
+[31m[1m>[0m [90m138 |[0m             </[33mButton[0m>
+  [90m    |[0m              [31m[1m^^^^^^^^[0m
+  [90m139 |[0m           </form>
+  [90m140 |[0m         </[33mCardContent[0m>
+  [90m141 |[0m       </[33mCard[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+⨯ ./app/admin/login/page.tsx:138:13
+Expression expected
+  [90m136 |[0m }
+  [90m137 |[0m
+[31m[1m>[0m [90m138 |[0m             </[33mButton[0m>
+  [90m    |[0m             [31m[1m^[0m
+  [90m139 |[0m           </form>
+  [90m140 |[0m         </[33mCardContent[0m>
+  [90m141 |[0m       </[33mCard[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+
+./app/admin/login/page.tsx:138:14
+Unterminated regexp literal
+  [90m136 |[0m }
+  [90m137 |[0m
+[31m[1m>[0m [90m138 |[0m             </[33mButton[0m>
+  [90m    |[0m              [31m[1m^^^^^^^^[0m
+  [90m139 |[0m           </form>
+  [90m140 |[0m         </[33mCardContent[0m>
+  [90m141 |[0m       </[33mCard[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+[browser] ./app/admin/login/page.tsx:138:13
+Expression expected
+  136 | }
+  137 |
+> 138 |             </Button>
+      |             ^
+  139 |           </form>
+  140 |         </CardContent>
+  141 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:138:14
+Unterminated regexp literal
+  136 | }
+  137 |
+> 138 |             </Button>
+      |              ^^^^^^^^
+  139 |           </form>
+  140 |         </CardContent>
+  141 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:138:13
+Expression expected
+  136 | }
+  137 |
+> 138 |             </Button>
+      |             ^
+  139 |           </form>
+  140 |         </CardContent>
+  141 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:138:14
+Unterminated regexp literal
+  136 | }
+  137 |
+> 138 |             </Button>
+      |              ^^^^^^^^
+  139 |           </form>
+  140 |         </CardContent>
+  141 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:138:13
+Expression expected
+  136 | }
+  137 |
+> 138 |             </Button>
+      |             ^
+  139 |           </form>
+  140 |         </CardContent>
+  141 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:138:14
+Unterminated regexp literal
+  136 | }
+  137 |
+> 138 |             </Button>
+      |              ^^^^^^^^
+  139 |           </form>
+  140 |         </CardContent>
+  141 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+⨯ ./app/admin/login/page.tsx:138:13
+Expression expected
+  [90m136 |[0m }
+  [90m137 |[0m
+[31m[1m>[0m [90m138 |[0m             </[33mButton[0m>
+  [90m    |[0m             [31m[1m^[0m
+  [90m139 |[0m           </form>
+  [90m140 |[0m         </[33mCardContent[0m>
+  [90m141 |[0m       </[33mCard[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+
+./app/admin/login/page.tsx:138:14
+Unterminated regexp literal
+  [90m136 |[0m }
+  [90m137 |[0m
+[31m[1m>[0m [90m138 |[0m             </[33mButton[0m>
+  [90m    |[0m              [31m[1m^^^^^^^^[0m
+  [90m139 |[0m           </form>
+  [90m140 |[0m         </[33mCardContent[0m>
+  [90m141 |[0m       </[33mCard[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+[browser] ./app/admin/login/page.tsx:138:13
+Expression expected
+  136 | }
+  137 |
+> 138 |             </Button>
+      |             ^
+  139 |           </form>
+  140 |         </CardContent>
+  141 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:138:14
+Unterminated regexp literal
+  136 | }
+  137 |
+> 138 |             </Button>
+      |              ^^^^^^^^
+  139 |           </form>
+  140 |         </CardContent>
+  141 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] Uncaught Error: ./app/admin/login/page.tsx:138:13
+Expression expected
+  136 | }
+  137 |
+> 138 |             </Button>
+      |             ^
+  139 |           </form>
+  140 |         </CardContent>
+  141 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./app/admin/login/page.tsx:138:13)
+    at <unknown> (Error: (./app/admin/login/page.tsx:138:13)
+[browser] Uncaught Error: ./app/admin/login/page.tsx:138:13
+Expression expected
+  136 | }
+  137 |
+> 138 |             </Button>
+      |             ^
+  139 |           </form>
+  140 |         </CardContent>
+  141 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./app/admin/login/page.tsx:138:13)
+    at <unknown> (Error: (./app/admin/login/page.tsx:138:13)
+[browser] Uncaught Error: ./app/admin/login/page.tsx:138:13
+Expression expected
+  136 | }
+  137 |
+> 138 |             </Button>
+      |             ^
+  139 |           </form>
+  140 |         </CardContent>
+  141 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./app/admin/login/page.tsx:138:13)
+    at <unknown> (Error: (./app/admin/login/page.tsx:138:13)
+[browser] ./app/admin/login/page.tsx:138:13
+Expression expected
+  136 | }
+  137 |
+> 138 |             </Button>
+      |             ^
+  139 |           </form>
+  140 |         </CardContent>
+  141 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:138:14
+Unterminated regexp literal
+  136 | }
+  137 |
+> 138 |             </Button>
+      |              ^^^^^^^^
+  139 |           </form>
+  140 |         </CardContent>
+  141 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[browser] Image with src "/sm-image.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+⨯ ./app/admin/login/page.tsx:132:19
+Expected '</', got '='
+  [90m130 |[0m             </[33mButton[0m>
+  [90m131 |[0m             <
+[31m[1m>[0m [90m132 |[0m               [36mtype[0m=[32m"submit"[0m
+  [90m    |[0m                   [31m[1m^[0m
+  [90m133 |[0m               disabled={isSubmitting}
+  [90m134 |[0m               className=[32m"h-11 w-full rounded-sm bg-[var(--black)] font-bold text-white ho...[0m
+  [90m135 |[0m             >
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+⨯ ./app/admin/login/page.tsx:132:19
+Expected '</', got '='
+  [90m130 |[0m             </[33mButton[0m>
+  [90m131 |[0m             <
+[31m[1m>[0m [90m132 |[0m               [36mtype[0m=[32m"submit"[0m
+  [90m    |[0m                   [31m[1m^[0m
+  [90m133 |[0m               disabled={isSubmitting}
+  [90m134 |[0m               className=[32m"h-11 w-full rounded-sm bg-[var(--black)] font-bold text-white ho...[0m
+  [90m135 |[0m             >
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+[browser] ./app/admin/login/page.tsx:132:19
+Expected '</', got '='
+  130 |             </Button>
+  131 |             <
+> 132 |               type="submit"
+      |                   ^
+  133 |               disabled={isSubmitting}
+  134 |               className="h-11 w-full rounded-sm bg-[var(--black)] font-bold text-white ho...
+  135 |             >
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:132:19
+Expected '</', got '='
+  130 |             </Button>
+  131 |             <
+> 132 |               type="submit"
+      |                   ^
+  133 |               disabled={isSubmitting}
+  134 |               className="h-11 w-full rounded-sm bg-[var(--black)] font-bold text-white ho...
+  135 |             >
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:132:19
+Expected '</', got '='
+  130 |             </Button>
+  131 |             <
+> 132 |               type="submit"
+      |                   ^
+  133 |               disabled={isSubmitting}
+  134 |               className="h-11 w-full rounded-sm bg-[var(--black)] font-bold text-white ho...
+  135 |             >
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+⨯ ./app/admin/login/page.tsx:132:19
+Expected '</', got '='
+  [90m130 |[0m             </[33mButton[0m>
+  [90m131 |[0m             <
+[31m[1m>[0m [90m132 |[0m               [36mtype[0m=[32m"submit"[0m
+  [90m    |[0m                   [31m[1m^[0m
+  [90m133 |[0m               disabled={isSubmitting}
+  [90m134 |[0m               className=[32m"h-11 w-full rounded-sm bg-[var(--black)] font-bold text-white ho...[0m
+  [90m135 |[0m             >
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+[browser] ./app/admin/login/page.tsx:132:19
+Expected '</', got '='
+  130 |             </Button>
+  131 |             <
+> 132 |               type="submit"
+      |                   ^
+  133 |               disabled={isSubmitting}
+  134 |               className="h-11 w-full rounded-sm bg-[var(--black)] font-bold text-white ho...
+  135 |             >
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] Uncaught Error: ./app/admin/login/page.tsx:132:19
+Expected '</', got '='
+  130 |             </Button>
+  131 |             <
+> 132 |               type="submit"
+      |                   ^
+  133 |               disabled={isSubmitting}
+  134 |               className="h-11 w-full rounded-sm bg-[var(--black)] font-bold text-white ho...
+  135 |             >
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./app/admin/login/page.tsx:132:19)
+    at <unknown> (Error: (./app/admin/login/page.tsx:132:19)
+[browser] Uncaught Error: ./app/admin/login/page.tsx:132:19
+Expected '</', got '='
+  130 |             </Button>
+  131 |             <
+> 132 |               type="submit"
+      |                   ^
+  133 |               disabled={isSubmitting}
+  134 |               className="h-11 w-full rounded-sm bg-[var(--black)] font-bold text-white ho...
+  135 |             >
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./app/admin/login/page.tsx:132:19)
+    at <unknown> (Error: (./app/admin/login/page.tsx:132:19)
+[browser] Uncaught Error: ./app/admin/login/page.tsx:132:19
+Expected '</', got '='
+  130 |             </Button>
+  131 |             <
+> 132 |               type="submit"
+      |                   ^
+  133 |               disabled={isSubmitting}
+  134 |               className="h-11 w-full rounded-sm bg-[var(--black)] font-bold text-white ho...
+  135 |             >
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./app/admin/login/page.tsx:132:19)
+    at <unknown> (Error: (./app/admin/login/page.tsx:132:19)
+[browser] ./app/admin/login/page.tsx:132:19
+Expected '</', got '='
+  130 |             </Button>
+  131 |             <
+> 132 |               type="submit"
+      |                   ^
+  133 |               disabled={isSubmitting}
+  134 |               className="h-11 w-full rounded-sm bg-[var(--black)] font-bold text-white ho...
+  135 |             >
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:132:19
+Expected '</', got '='
+  130 |             </Button>
+  131 |             <
+> 132 |               type="submit"
+      |                   ^
+  133 |               disabled={isSubmitting}
+  134 |               className="h-11 w-full rounded-sm bg-[var(--black)] font-bold text-white ho...
+  135 |             >
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[browser] Image with src "/sm-image.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+⨯ ./app/admin/login/page.tsx:137:13
+Expression expected
+  [90m135 |[0m             >
+  [90m136 |[0m             <aRROW
+[31m[1m>[0m [90m137 |[0m             </[33mButton[0m>
+  [90m    |[0m             [31m[1m^[0m
+  [90m138 |[0m           </form>
+  [90m139 |[0m         </[33mCardContent[0m>
+  [90m140 |[0m       </[33mCard[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+
+./app/admin/login/page.tsx:137:14
+Unterminated regexp literal
+  [90m135 |[0m             >
+  [90m136 |[0m             <aRROW
+[31m[1m>[0m [90m137 |[0m             </[33mButton[0m>
+  [90m    |[0m              [31m[1m^^^^^^^^[0m
+  [90m138 |[0m           </form>
+  [90m139 |[0m         </[33mCardContent[0m>
+  [90m140 |[0m       </[33mCard[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+⨯ ./app/admin/login/page.tsx:137:13
+Expression expected
+  [90m135 |[0m             >
+  [90m136 |[0m             <aRROW
+[31m[1m>[0m [90m137 |[0m             </[33mButton[0m>
+  [90m    |[0m             [31m[1m^[0m
+  [90m138 |[0m           </form>
+  [90m139 |[0m         </[33mCardContent[0m>
+  [90m140 |[0m       </[33mCard[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+
+./app/admin/login/page.tsx:137:14
+Unterminated regexp literal
+  [90m135 |[0m             >
+  [90m136 |[0m             <aRROW
+[31m[1m>[0m [90m137 |[0m             </[33mButton[0m>
+  [90m    |[0m              [31m[1m^^^^^^^^[0m
+  [90m138 |[0m           </form>
+  [90m139 |[0m         </[33mCardContent[0m>
+  [90m140 |[0m       </[33mCard[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+[browser] ./app/admin/login/page.tsx:137:13
+Expression expected
+  135 |             >
+  136 |             <aRROW
+> 137 |             </Button>
+      |             ^
+  138 |           </form>
+  139 |         </CardContent>
+  140 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:137:14
+Unterminated regexp literal
+  135 |             >
+  136 |             <aRROW
+> 137 |             </Button>
+      |              ^^^^^^^^
+  138 |           </form>
+  139 |         </CardContent>
+  140 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+⨯ ./app/admin/login/page.tsx:137:13
+Expression expected
+  [90m135 |[0m             >
+  [90m136 |[0m             <aRROW
+[31m[1m>[0m [90m137 |[0m             </[33mButton[0m>
+  [90m    |[0m             [31m[1m^[0m
+  [90m138 |[0m           </form>
+  [90m139 |[0m         </[33mCardContent[0m>
+  [90m140 |[0m       </[33mCard[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+
+./app/admin/login/page.tsx:137:14
+Unterminated regexp literal
+  [90m135 |[0m             >
+  [90m136 |[0m             <aRROW
+[31m[1m>[0m [90m137 |[0m             </[33mButton[0m>
+  [90m    |[0m              [31m[1m^^^^^^^^[0m
+  [90m138 |[0m           </form>
+  [90m139 |[0m         </[33mCardContent[0m>
+  [90m140 |[0m       </[33mCard[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+[browser] ./app/admin/login/page.tsx:137:13
+Expression expected
+  135 |             >
+  136 |             <aRROW
+> 137 |             </Button>
+      |             ^
+  138 |           </form>
+  139 |         </CardContent>
+  140 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:137:14
+Unterminated regexp literal
+  135 |             >
+  136 |             <aRROW
+> 137 |             </Button>
+      |              ^^^^^^^^
+  138 |           </form>
+  139 |         </CardContent>
+  140 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] Uncaught Error: ./app/admin/login/page.tsx:137:13
+Expression expected
+  135 |             >
+  136 |             <aRROW
+> 137 |             </Button>
+      |             ^
+  138 |           </form>
+  139 |         </CardContent>
+  140 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./app/admin/login/page.tsx:137:13)
+    at <unknown> (Error: (./app/admin/login/page.tsx:137:13)
+[browser] Uncaught Error: ./app/admin/login/page.tsx:137:13
+Expression expected
+  135 |             >
+  136 |             <aRROW
+> 137 |             </Button>
+      |             ^
+  138 |           </form>
+  139 |         </CardContent>
+  140 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./app/admin/login/page.tsx:137:13)
+    at <unknown> (Error: (./app/admin/login/page.tsx:137:13)
+[browser] Uncaught Error: ./app/admin/login/page.tsx:137:13
+Expression expected
+  135 |             >
+  136 |             <aRROW
+> 137 |             </Button>
+      |             ^
+  138 |           </form>
+  139 |         </CardContent>
+  140 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./app/admin/login/page.tsx:137:13)
+    at <unknown> (Error: (./app/admin/login/page.tsx:137:13)
+[browser] ./app/admin/login/page.tsx:137:13
+Expression expected
+  135 |             >
+  136 |             <aRROW
+> 137 |             </Button>
+      |             ^
+  138 |           </form>
+  139 |         </CardContent>
+  140 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:137:14
+Unterminated regexp literal
+  135 |             >
+  136 |             <aRROW
+> 137 |             </Button>
+      |              ^^^^^^^^
+  138 |           </form>
+  139 |         </CardContent>
+  140 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:137:13
+Expression expected
+  135 |             >
+  136 |             <aRROW
+> 137 |             </Button>
+      |             ^
+  138 |           </form>
+  139 |         </CardContent>
+  140 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:137:14
+Unterminated regexp literal
+  135 |             >
+  136 |             <aRROW
+> 137 |             </Button>
+      |              ^^^^^^^^
+  138 |           </form>
+  139 |         </CardContent>
+  140 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:137:13
+Expression expected
+  135 |             >
+  136 |             <ArrowBigLeft
+> 137 |             </Button>
+      |             ^
+  138 |           </form>
+  139 |         </CardContent>
+  140 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:137:14
+Unterminated regexp literal
+  135 |             >
+  136 |             <ArrowBigLeft
+> 137 |             </Button>
+      |              ^^^^^^^^
+  138 |           </form>
+  139 |         </CardContent>
+  140 |       </Card>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[browser] Image with src "/sm-image.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+⨯ ./app/admin/login/page.tsx:146:1
+Expected '}', got '<eof>'
+  [90m144 |[0m   );
+  [90m145 |[0m }
+[31m[1m>[0m [90m146 |[0m
+  [90m    |[0m [31m[1m^[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+⨯ ./app/admin/login/page.tsx:146:1
+Expected '}', got '<eof>'
+  [90m144 |[0m   );
+  [90m145 |[0m }
+[31m[1m>[0m [90m146 |[0m
+  [90m    |[0m [31m[1m^[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+[browser] ./app/admin/login/page.tsx:146:1
+Expected '}', got '<eof>'
+  144 |   );
+  145 | }
+> 146 |
+      | ^
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:146:1
+Expected '}', got '<eof>'
+  144 |   );
+  145 | }
+> 146 |
+      | ^
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+⨯ ./app/admin/login/page.tsx:146:1
+Expected '}', got '<eof>'
+  [90m144 |[0m   );
+  [90m145 |[0m }
+[31m[1m>[0m [90m146 |[0m
+  [90m    |[0m [31m[1m^[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+[browser] Uncaught Error: ./app/admin/login/page.tsx:146:1
+Expected '}', got '<eof>'
+  144 |   );
+  145 | }
+> 146 |
+      | ^
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./app/admin/login/page.tsx:146:1)
+    at <unknown> (Error: (./app/admin/login/page.tsx:146:1)
+[browser] Uncaught Error: ./app/admin/login/page.tsx:146:1
+Expected '}', got '<eof>'
+  144 |   );
+  145 | }
+> 146 |
+      | ^
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./app/admin/login/page.tsx:146:1)
+    at <unknown> (Error: (./app/admin/login/page.tsx:146:1)
+[browser] ./app/admin/login/page.tsx:146:1
+Expected '}', got '<eof>'
+  144 |   );
+  145 | }
+> 146 |
+      | ^
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] Uncaught Error: ./app/admin/login/page.tsx:146:1
+Expected '}', got '<eof>'
+  144 |   );
+  145 | }
+> 146 |
+      | ^
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./app/admin/login/page.tsx:146:1)
+    at <unknown> (Error: (./app/admin/login/page.tsx:146:1)
+[browser] ./app/admin/login/page.tsx:146:1
+Expected '}', got '<eof>'
+  144 |   );
+  145 | }
+> 146 |
+      | ^
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+[browser] ./app/admin/login/page.tsx:146:1
+Expected '}', got '<eof>'
+  144 |   );
+  145 | }
+> 146 |
+      | ^
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./app/admin/login/page.tsx [Client Component Browser]
+    ./app/admin/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/admin/login/page.tsx [Client Component SSR]
+    ./app/admin/login/page.tsx [Server Component] 
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[browser] Image with src "/sm-image.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[browser] Image with src "/sm-image.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Image with src "/sm-image.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior

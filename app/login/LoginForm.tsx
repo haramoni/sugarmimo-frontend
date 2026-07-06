@@ -11,6 +11,10 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import Image from "next/image";
 import { ModalForgotPassword } from "./ModalForgotPassword";
+import {
+  PENDING_APPROVAL_ROUTE,
+  shouldShowPendingApproval,
+} from "../perfil/ProfileApprovalGuard";
 
 export function LoginForm() {
   const router = useRouter();
@@ -46,6 +50,12 @@ export function LoginForm() {
           throw new Error("Seu perfil ainda está em análise.");
         }
 
+        if (response.status >= 500) {
+          throw new Error(
+            message || "Nao foi possivel conectar ao servidor agora.",
+          );
+        }
+
         throw new Error("Usuário, e-mail ou senha inválidos.");
       }
 
@@ -55,6 +65,11 @@ export function LoginForm() {
 
       localStorage.setItem("sugarmimo:user", JSON.stringify(result.user));
       window.dispatchEvent(new Event("sugarmimo-auth"));
+      if (shouldShowPendingApproval(result.user)) {
+        router.replace(PENDING_APPROVAL_ROUTE);
+        return;
+      }
+
       router.push("/perfil");
     } catch (loginError) {
       setError(

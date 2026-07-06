@@ -3,13 +3,19 @@
 import {
   createContext,
   type ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
 } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
 import type { AuthUser } from "@/app/lib/auth";
+import {
+  PENDING_APPROVAL_ROUTE,
+  shouldShowPendingApproval,
+} from "@/app/perfil/ProfileApprovalGuard";
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -28,8 +34,10 @@ export function AuthProvider({
   initialUser: AuthUser | null;
 }) {
   const [user, setUser] = useState<AuthUser | null>(initialUser);
+  const pathname = usePathname();
+  const router = useRouter();
 
-  async function refreshUser() {
+  const refreshUser = useCallback(async () => {
     const response = await fetch("/api/auth/me").catch(() => null);
 
     if (!response?.ok) {
@@ -41,14 +49,21 @@ export function AuthProvider({
     const nextUser = (await response.json()) as AuthUser;
     setUser(nextUser);
     window.localStorage.setItem("sugarmimo:user", JSON.stringify(nextUser));
-  }
 
-  async function logout() {
+    if (
+      shouldShowPendingApproval(nextUser) &&
+      pathname !== PENDING_APPROVAL_ROUTE
+    ) {
+      router.replace(PENDING_APPROVAL_ROUTE);
+    }
+  }, [pathname, router]);
+
+  const logout = useCallback(async () => {
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
     setUser(null);
     window.localStorage.removeItem("sugarmimo:user");
     window.dispatchEvent(new Event("sugarmimo-auth"));
-  }
+  }, []);
 
   useEffect(() => {
     if (initialUser) {
@@ -61,7 +76,13 @@ export function AuthProvider({
 
     window.addEventListener("sugarmimo-auth", handleAuthChange);
     return () => window.removeEventListener("sugarmimo-auth", handleAuthChange);
-  }, [initialUser]);
+  }, [initialUser, refreshUser]);
+
+  useEffect(() => {
+    if (shouldShowPendingApproval(user) && pathname !== PENDING_APPROVAL_ROUTE) {
+      router.replace(PENDING_APPROVAL_ROUTE);
+    }
+  }, [pathname, router, user]);
 
   const value = useMemo(
     () => ({
@@ -70,7 +91,7 @@ export function AuthProvider({
       refreshUser,
       logout,
     }),
-    [user],
+    [logout, refreshUser, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

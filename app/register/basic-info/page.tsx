@@ -39,6 +39,11 @@ type AvailabilityResponse = {
   emailAvailable?: boolean;
 };
 
+type AvailabilityCheck = AvailabilityResponse & {
+  username: string;
+  email: string;
+};
+
 type FieldErrors = {
   username?: string;
   email?: string;
@@ -51,6 +56,8 @@ export default function RegisterAccountForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [availabilityErrors, setAvailabilityErrors] = useState<FieldErrors>({});
+  const [availabilityCheck, setAvailabilityCheck] =
+    useState<AvailabilityCheck | null>(null);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [username, setUsername] = useState(savedPayload.username);
@@ -64,14 +71,16 @@ export default function RegisterAccountForm() {
   const [termsAccepted, setTermsAccepted] = useState(
     savedPayload.termsAccepted,
   );
+  const normalizedUsername = username.trim();
+  const normalizedEmail = email.trim().toLowerCase();
   const clientErrors = useMemo(
     () =>
       getValidationErrors({
-        username: username.trim(),
-        email: email.trim().toLowerCase(),
+        username: normalizedUsername,
+        email: normalizedEmail,
         password,
       }),
-    [email, password, username],
+    [normalizedEmail, normalizedUsername, password],
   );
   const fieldErrors = {
     username: clientErrors.username ?? availabilityErrors.username,
@@ -86,8 +95,6 @@ export default function RegisterAccountForm() {
     const stepOne = JSON.parse(
       localStorage.getItem(REGISTER_STEP_ONE_KEY) ?? "{}",
     );
-    const normalizedUsername = username.trim();
-    const normalizedEmail = email.trim().toLowerCase();
     const validationErrors = getValidationErrors({
       username: normalizedUsername,
       email: normalizedEmail,
@@ -111,11 +118,16 @@ export default function RegisterAccountForm() {
         normalizedUsername,
         normalizedEmail,
       );
+      setAvailabilityCheck({
+        username: normalizedUsername,
+        email: normalizedEmail,
+        ...availability,
+      });
 
       if (!availability.usernameAvailable) {
         setAvailabilityErrors((currentErrors) => ({
           ...currentErrors,
-          username: "Este nome de usuario ja esta em uso.",
+          username: "Este nome de usuário já esta em uso.",
         }));
         return;
       }
@@ -123,7 +135,7 @@ export default function RegisterAccountForm() {
       if (!availability.emailAvailable) {
         setAvailabilityErrors((currentErrors) => ({
           ...currentErrors,
-          email: "Este e-mail ja esta sendo usado.",
+          email: "Este e-mail já esta sendo usado.",
         }));
         return;
       }
@@ -191,9 +203,6 @@ export default function RegisterAccountForm() {
   }, [state]);
 
   useEffect(() => {
-    const normalizedUsername = username.trim();
-    const normalizedEmail = email.trim().toLowerCase();
-
     if (
       clientErrors.username ||
       clientErrors.email ||
@@ -214,6 +223,11 @@ export default function RegisterAccountForm() {
           controller.signal,
         );
 
+        setAvailabilityCheck({
+          username: normalizedUsername,
+          email: normalizedEmail,
+          ...availability,
+        });
         setAvailabilityErrors((currentErrors) => ({
           ...currentErrors,
           username: availability.usernameAvailable
@@ -229,6 +243,7 @@ export default function RegisterAccountForm() {
         }
 
         setError("Nao foi possivel validar usuario e e-mail agora.");
+        setAvailabilityCheck(null);
       } finally {
         setIsCheckingAvailability(false);
       }
@@ -238,13 +253,45 @@ export default function RegisterAccountForm() {
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [clientErrors.email, clientErrors.username, email, username]);
+  }, [
+    clientErrors.email,
+    clientErrors.username,
+    normalizedEmail,
+    normalizedUsername,
+  ]);
 
   function handleStateChange(value: string) {
     setState(value);
     setCity("");
     setCities([]);
   }
+
+  const isCurrentAvailabilityCheck =
+    availabilityCheck?.username === normalizedUsername &&
+    availabilityCheck?.email === normalizedEmail;
+  const accountIsAvailable =
+    isCurrentAvailabilityCheck &&
+    availabilityCheck.usernameAvailable === true &&
+    availabilityCheck.emailAvailable === true;
+  const allRequiredFieldsFilled = Boolean(
+    normalizedUsername &&
+    normalizedEmail &&
+    password &&
+    birthDay &&
+    birthMonth &&
+    birthYear &&
+    country &&
+    state &&
+    city &&
+    source &&
+    termsAccepted,
+  );
+  const canContinue =
+    allRequiredFieldsFilled &&
+    accountIsAvailable &&
+    !hasFieldErrors &&
+    !isCheckingAvailability &&
+    !isSubmitting;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[url('/register-wallpaper-marble.jpg')] bg-cover bg-center px-4 py-3 lg:py-2">
@@ -262,12 +309,12 @@ export default function RegisterAccountForm() {
                 Crie sua conta
               </h1>
 
-              <Label
-                htmlFor="username"
-                className="font-bold text-black-jewel"
-              >
+              <Label htmlFor="username" className="font-bold text-black-jewel">
                 Nome de Usuário
               </Label>
+              <p className="flex items-center gap-1 text-xs text-[color:color-mix(in_srgb,var(--black)_58%,transparent)]">
+                O nome escolhido não podera ser alterado depois.
+              </p>
 
               <div className="relative border-b border-silver bg-[color-mix(in_srgb,var(--gold-soft)_30%,white)]">
                 <Input
@@ -279,6 +326,7 @@ export default function RegisterAccountForm() {
                   onChange={(event) => {
                     setUsername(event.target.value);
                     setError("");
+                    setAvailabilityCheck(null);
                     setAvailabilityErrors((currentErrors) => ({
                       ...currentErrors,
                       username: undefined,
@@ -290,10 +338,6 @@ export default function RegisterAccountForm() {
               </div>
 
               <FieldMessage message={fieldErrors.username} />
-
-              <p className="flex items-center gap-1 text-xs text-[color:color-mix(in_srgb,var(--black)_58%,transparent)]">
-                O nome escolhido não podera ser alterado depois.
-              </p>
             </div>
 
             <div className="space-y-2 lg:col-start-1 lg:row-start-3">
@@ -315,6 +359,7 @@ export default function RegisterAccountForm() {
                   onChange={(event) => {
                     setEmail(event.target.value);
                     setError("");
+                    setAvailabilityCheck(null);
                     setAvailabilityErrors((currentErrors) => ({
                       ...currentErrors,
                       email: undefined,
@@ -543,9 +588,7 @@ export default function RegisterAccountForm() {
 
             <Button
               type="submit"
-              disabled={
-                isSubmitting || isCheckingAvailability || hasFieldErrors
-              }
+              disabled={!canContinue}
               className="h-10 w-full rounded-md bg-emerald text-base font-bold text-white hover:bg-emerald/80 hover:text-white lg:col-start-2"
             >
               {isSubmitting ? "Validando..." : "Continuar Cadastro"}

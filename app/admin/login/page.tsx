@@ -1,7 +1,7 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
-import { Eye, EyeOff, Shield } from "lucide-react";
+import { ArrowBigLeft, Eye, EyeOff, Shield } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -10,8 +10,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -57,6 +56,10 @@ export default function AdminLoginPage() {
     }
   }
 
+  function handleBack() {
+    router.push("/");
+  }
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-[url('/register-wallpaper-marble.jpg')] bg-cover bg-center px-4 py-10">
       <Card className="w-full max-w-sm rounded-sm border-0 bg-[color-mix(in_srgb,var(--surface)_94%,transparent)] shadow-[0_22px_60px_rgba(20,17,14,0.24)] backdrop-blur-sm">
@@ -70,8 +73,8 @@ export default function AdminLoginPage() {
             style={{ height: "auto" }}
           />
           <div className="flex items-center gap-2 text-sm font-bold text-[var(--black)]">
-            <Shield className="h-4 w-4 text-[var(--gold)]" />
-            Acesso administrativo
+            <Shield className="h-4 w-4 text-gold" />
+            Acesso Administrativo
           </div>
         </CardHeader>
 
@@ -128,6 +131,14 @@ export default function AdminLoginPage() {
               className="h-11 w-full rounded-sm bg-[var(--black)] font-bold text-white hover:bg-[var(--gold)]"
             >
               {isSubmitting ? "Entrando..." : "Entrar"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 w-full rounded-sm hover:bg-gold"
+              onClick={handleBack}
+            >
+              <ArrowBigLeft /> Voltar
             </Button>
           </form>
         </CardContent>

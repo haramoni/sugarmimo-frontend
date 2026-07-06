@@ -18,7 +18,14 @@ export async function GET(request: Request) {
         Accept: "application/json",
       },
     },
-  );
+  ).catch(() => null);
+
+  if (!response) {
+    return NextResponse.json(
+      { message: "Nao foi possivel validar usuario e e-mail agora." },
+      { status: 503 },
+    );
+  }
 
   const result = await response.json().catch(() => null);
 

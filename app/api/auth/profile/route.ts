@@ -18,7 +18,15 @@ export async function PATCH(request: Request) {
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(body),
-  });
+  }).catch(() => null);
+
+  if (!response) {
+    await clearSessionCookie();
+    return NextResponse.json(
+      { message: "Nao foi possivel salvar o perfil agora." },
+      { status: 503 },
+    );
+  }
 
   const result = await response.json().catch(() => null);
 

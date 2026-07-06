@@ -11,12 +11,9 @@ import { ImagePlus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import {
-  clearRegisterFlow,
-  REGISTER_PAYLOAD_KEY,
-  setRegisterStep,
-} from "../register-flow";
+import { REGISTER_PAYLOAD_KEY, setRegisterStep } from "../register-flow";
 import { RegisterStepDots } from "../RegisterStepDots";
+import { useRegistrationCompletion } from "./useRegistrationCompletion";
 
 type ProfilePhoto = {
   file: File;
@@ -27,6 +24,7 @@ const MAX_PHOTOS = 3;
 
 export default function ProfilePhotosPage() {
   const router = useRouter();
+  const completeRegistration = useRegistrationCompletion();
   const [photos, setPhotos] = useState<ProfilePhoto[]>([]);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -148,21 +146,7 @@ export default function ProfilePhotosPage() {
         );
       }
 
-      clearRegisterFlow();
-
-      if (result?.requiresApproval) {
-        router.push("/register/pending-approval");
-        return;
-      }
-
-      if (result?.user) {
-        localStorage.setItem("sugarmimo:user", JSON.stringify(result.user));
-        window.dispatchEvent(new Event("sugarmimo-auth"));
-        router.push("/perfil");
-        return;
-      }
-
-      router.push("/login");
+      await completeRegistration(result);
     } catch (submitError) {
       setError(
         submitError instanceof Error

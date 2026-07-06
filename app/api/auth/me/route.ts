@@ -14,7 +14,15 @@ export async function GET() {
       Authorization: `Bearer ${token}`,
     },
     cache: "no-store",
-  });
+  }).catch(() => null);
+
+  if (!response) {
+    await clearSessionCookie();
+    return NextResponse.json(
+      { message: "Nao foi possivel validar sua sessao." },
+      { status: 503 },
+    );
+  }
 
   const result = await response.json().catch(() => null);
 

@@ -11,7 +11,14 @@ export async function POST(request: Request) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
-  });
+  }).catch(() => null);
+
+  if (!response) {
+    return NextResponse.json(
+      { message: "Nao foi possivel conectar ao servidor de cadastro." },
+      { status: 503 },
+    );
+  }
 
   const result = await response.json().catch(() => null);
 
