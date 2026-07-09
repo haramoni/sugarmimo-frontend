@@ -38,6 +38,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AUTH_USER_STORAGE_KEY,
+  removeAuthUser,
+  saveAuthUser,
+} from "../lib/auth-storage";
 import { Navbar } from "../components/ui/Navbar";
 import {
   ProfileApprovalGuard,
@@ -171,7 +176,7 @@ function subscribeToAuth(callback: () => void) {
 }
 
 function getUserSnapshot() {
-  const savedUser = window.localStorage.getItem("sugarmimo:user");
+  const savedUser = window.localStorage.getItem(AUTH_USER_STORAGE_KEY);
 
   if (!savedUser) {
     return "";
@@ -213,7 +218,7 @@ export default function PerfilPage() {
     try {
       return JSON.parse(savedUser) as ProfileUser;
     } catch {
-      window.localStorage.removeItem("sugarmimo:user");
+      removeAuthUser();
       return null;
     }
   }, [savedUser]);
@@ -236,7 +241,7 @@ export default function PerfilPage() {
         return (await response.json()) as ProfileUser;
       })
       .then((profile) => {
-        window.localStorage.setItem("sugarmimo:user", JSON.stringify(profile));
+        saveAuthUser(profile);
         setRemoteProfile(profile);
         if (shouldShowPendingApproval(profile)) {
           router.replace("/register/pending-approval");
@@ -246,7 +251,7 @@ export default function PerfilPage() {
         hydrateProfile(profile);
       })
       .catch(() => {
-        window.localStorage.removeItem("sugarmimo:user");
+        removeAuthUser();
         window.dispatchEvent(new Event("sugarmimo-auth"));
         router.replace("/login");
       });
@@ -475,7 +480,7 @@ export default function PerfilPage() {
         throw new Error(result?.message ?? "Nao foi possivel salvar o perfil.");
       }
 
-      window.localStorage.setItem("sugarmimo:user", JSON.stringify(result));
+      saveAuthUser(result);
       window.dispatchEvent(new Event("sugarmimo-auth"));
       setRemoteProfile(result);
       setIsEditing(false);
@@ -1250,7 +1255,7 @@ function getStoredProfile() {
   }
 
   try {
-    const savedUser = window.localStorage.getItem("sugarmimo:user");
+    const savedUser = window.localStorage.getItem(AUTH_USER_STORAGE_KEY);
     return savedUser ? (JSON.parse(savedUser) as ProfileUser) : null;
   } catch {
     return null;
