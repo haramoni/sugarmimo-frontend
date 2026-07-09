@@ -3,3 +3,5 @@
 [browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
 ⚠ Fast Refresh had to perform a full reload when ./app/components/AuthProvider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
 ⚠ Fast Refresh had to perform a full reload when ./app/lib/auth-storage.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./app/perfil/ProfileApprovalGuard.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./app/perfil/ProfileApprovalGuard.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
