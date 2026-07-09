@@ -1,0 +1,8 @@
+⨯ Another next dev server is already running.
+
+- Local:        http://localhost:3000
+- PID:          9936
+- Dir:          C:\Users\User\Desktop\99\SUGARMIMO\sugarmimo-frontend
+- Log:          .next\dev\logs\next-development.log
+
+Run taskkill /PID 9936 /F to stop it.

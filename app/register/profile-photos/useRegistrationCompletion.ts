@@ -7,6 +7,7 @@ import {
   PENDING_APPROVAL_ROUTE,
   shouldShowPendingApproval,
 } from "@/app/perfil/ProfileApprovalGuard";
+import { saveAuthUser } from "@/app/lib/auth-storage";
 import { clearRegisterFlow } from "../register-flow";
 
 type RegistrationResult = {
@@ -21,7 +22,7 @@ export function useRegistrationCompletion() {
       clearRegisterFlow();
 
       if (isRegistrationUser(result?.user)) {
-        localStorage.setItem("sugarmimo:user", JSON.stringify(result.user));
+        saveAuthUser(result.user);
         window.dispatchEvent(new Event("sugarmimo-auth"));
 
         const sessionUser = await getCurrentSessionUser();

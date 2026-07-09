@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Clock, MailCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { removeAuthUser } from "@/app/lib/auth-storage";
 import { clearRegisterFlow } from "../register-flow";
 
 export default function PendingApprovalPage() {
@@ -15,7 +16,7 @@ export default function PendingApprovalPage() {
     setIsClearingSession(true);
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
     clearRegisterFlow();
-    window.localStorage.removeItem("sugarmimo:user");
+    removeAuthUser();
     window.dispatchEvent(new Event("sugarmimo-auth"));
     router.replace("/login");
   }

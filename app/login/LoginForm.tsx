@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import Image from "next/image";
 import { ModalForgotPassword } from "./ModalForgotPassword";
+import { saveAuthUser } from "../lib/auth-storage";
 import {
   PENDING_APPROVAL_ROUTE,
   shouldShowPendingApproval,
@@ -63,7 +64,7 @@ export function LoginForm() {
         throw new Error("Resposta de login inválida.");
       }
 
-      localStorage.setItem("sugarmimo:user", JSON.stringify(result.user));
+      saveAuthUser(result.user);
       window.dispatchEvent(new Event("sugarmimo-auth"));
       if (shouldShowPendingApproval(result.user)) {
         router.replace(PENDING_APPROVAL_ROUTE);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, LogOut, RefreshCw, X } from "lucide-react";
+import { Check, ClipboardList, LogOut, RefreshCw, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -148,6 +148,16 @@ export default function AdminApprovalsPage() {
             style={{ height: "auto" }}
           />
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Ver logs"
+              onClick={() => router.push("/admin/activity-logs")}
+              className="rounded-sm"
+            >
+              <ClipboardList className="h-4 w-4" />
+            </Button>
             <Button
               type="button"
               variant="ghost"

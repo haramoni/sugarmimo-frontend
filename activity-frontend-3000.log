@@ -1,0 +1,33 @@
+
+> sugarmimo-frontend@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.15.4:3000
+- Environments: .env.local
+✓ Ready in 679ms
+
+ GET /admin/activity-logs 200 in 1339ms (next.js: 1077ms, application-code: 262ms)
+ GET / 200 in 353ms (next.js: 50ms, application-code: 303ms)
+ GET /wallpaper-marble.jpg 404 in 195ms (next.js: 50ms, application-code: 145ms)
+ GET /perfil 200 in 65ms (next.js: 39ms, application-code: 26ms)
+ GET /api/auth/me 200 in 153ms (next.js: 69ms, application-code: 84ms)
+ GET /api/auth/me 200 in 171ms (next.js: 5ms, application-code: 166ms)
+ GET /admin/login 200 in 195ms (next.js: 52ms, application-code: 143ms)
+ GET /admin/approvals 200 in 65ms (next.js: 40ms, application-code: 25ms)
+ GET /admin/activity-logs 200 in 30ms (next.js: 5ms, application-code: 25ms)
+✓ Compiled in 361ms
+ GET /admin/activity-logs 200 in 243ms (next.js: 9ms, application-code: 234ms)
+ GET /admin/activity-logs 200 in 196ms (next.js: 84ms, application-code: 112ms)
+ GET /admin/activity-logs 200 in 200ms (next.js: 11ms, application-code: 189ms)
+ GET /admin/activity-logs 200 in 200ms (next.js: 47ms, application-code: 153ms)
+ GET /admin/activity-logs 200 in 611ms (next.js: 130ms, application-code: 481ms)
+ GET /admin/activity-logs 200 in 674ms (next.js: 217ms, application-code: 457ms)
+ GET /admin/activity-logs 200 in 143ms (next.js: 78ms, application-code: 64ms)
+ GET /admin/activity-logs 200 in 148ms (next.js: 89ms, application-code: 59ms)
+✓ Compiled in 84ms
+ GET /admin/activity-logs 200 in 266ms (next.js: 206ms, application-code: 60ms)
+ GET /admin/activity-logs 200 in 364ms (next.js: 94ms, application-code: 270ms)
+ GET /admin/activity-logs 200 in 129ms (next.js: 81ms, application-code: 49ms)
+ GET /admin/activity-logs 200 in 139ms (next.js: 77ms, application-code: 62ms)

@@ -10,6 +10,7 @@ import { useAuth } from "../AuthProvider";
 const menuItems = [
   { label: "Inicio", href: "/" },
   { label: "Perfil", href: "/perfil" },
+  { label: "Chat", href: "/chat" },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -19,7 +20,11 @@ function isActivePath(pathname: string, href: string) {
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const loggedMenuItems =
+    user?.role === "SUGAR_BABY"
+      ? [...menuItems, { label: "Buscar", href: "/buscar" }]
+      : menuItems;
 
   async function handleLogout() {
     await logout();
@@ -56,7 +61,7 @@ export function Navbar() {
         </Link>
 
         <div className="order-3 flex gap-1.5 overflow-x-auto rounded-full border border-[color:color-mix(in_srgb,var(--silver)_42%,transparent)] bg-[color:color-mix(in_srgb,var(--surface)_78%,white)] p-1.5 text-sm font-bold text-[color-mix(in_srgb,var(--black)_68%,var(--silver))] shadow-[inset_0_1px_0_rgba(255,255,255,0.82),0_16px_42px_rgba(20,17,14,0.08)] backdrop-blur-2xl lg:order-none lg:justify-center">
-          {menuItems.map((item) => {
+          {loggedMenuItems.map((item) => {
             const active = isActivePath(pathname, item.href);
 
             return (
