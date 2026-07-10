@@ -34,5 +34,8 @@ export function ProfileApprovalGuard({
 }
 
 export function shouldShowPendingApproval(user: ApprovalUser | null) {
-  return user?.role === "SUGAR_BABY" && user.approvalStatus !== "APPROVED";
+  const role = user?.role?.trim().toUpperCase();
+  const approvalStatus = user?.approvalStatus?.trim().toUpperCase();
+
+  return role === "SUGAR_BABY" && approvalStatus !== "APPROVED";
 }

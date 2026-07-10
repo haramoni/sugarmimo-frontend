@@ -54,6 +54,7 @@
  GET /admin/activity-logs 200 in 154ms (next.js: 37ms, application-code: 118ms)
  GET /admin/activity-logs 200 in 156ms (next.js: 14ms, application-code: 142ms)
  GET /admin/activity-logs 200 in 285ms (next.js: 6ms, application-code: 279ms)
+<<<<<<< HEAD
 ✓ Compiled in 508ms
  GET /admin/activity-logs 404 in 462ms (next.js: 113ms, application-code: 349ms)
  GET /admin/activity-logs 404 in 128ms (next.js: 61ms, application-code: 67ms)
@@ -76,3 +77,5 @@
  GET /admin/activity-logs 404 in 185ms (next.js: 6ms, application-code: 179ms)
  GET /admin/activity-logs 404 in 259ms (next.js: 91ms, application-code: 168ms)
  GET /admin/activity-logs 404 in 194ms (next.js: 6ms, application-code: 188ms)
+=======
+>>>>>>> show-users

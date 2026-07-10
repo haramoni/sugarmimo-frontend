@@ -38,7 +38,11 @@ export function saveAuthUser(user: StorableUser) {
         JSON.stringify(toMinimalUser(user)),
       );
     } catch {
+<<<<<<< HEAD
       // Storage can be unavailable or full. Auth still lives in the httpOnly cookie.
+=======
+      // Storage can be unavailable in private or restricted browsing modes.
+>>>>>>> show-users
     }
   }
 }

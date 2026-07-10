@@ -5,5 +5,8 @@
 ⚠ Fast Refresh had to perform a full reload when ./app/lib/auth-storage.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
 ⚠ Fast Refresh had to perform a full reload when ./app/perfil/ProfileApprovalGuard.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
 ⚠ Fast Refresh had to perform a full reload when ./app/perfil/ProfileApprovalGuard.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+<<<<<<< HEAD
 ⚠ Fast Refresh had to perform a full reload when ./app/perfil/ProfileApprovalGuard.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
 ⚠ Fast Refresh had to perform a full reload when ./app/components/AuthProvider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+=======
+>>>>>>> show-users
