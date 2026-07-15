@@ -28,6 +28,8 @@ export default function ProfileCard({ profile }: { profile: PublicProfile }) {
             <img
               src={photo.dataUrl}
               alt={`Foto de ${profile.username ?? "perfil"}`}
+              loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover"
             />
           ) : (
