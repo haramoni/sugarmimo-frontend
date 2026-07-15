@@ -33,8 +33,16 @@ export default function BuscarPage() {
   const [profiles, setProfiles] = useState<PublicProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [presenceRefresh, setPresenceRefresh] = useState(0);
 
-  const canSearch = user?.role === "SUGAR_BABY";
+  const normalizedRole = user?.role?.trim().toUpperCase();
+  const isDaddy = normalizedRole === "SUGAR_DADDY";
+  const canSearch = ["SUGAR_BABY", "SUGAR_DADDY"].includes(
+    normalizedRole ?? "",
+  );
+  const targetLabel = isDaddy
+    ? "Sugar Babies aprovadas"
+    : "Sugar Daddies ativos";
   const isApprovalPending = shouldShowPendingApproval(user);
 
   useEffect(() => {
@@ -98,10 +106,24 @@ export default function BuscarPage() {
       });
 
     return () => controller.abort();
-  }, [canSearch, isApprovalPending, router, search, user]);
+  }, [canSearch, isApprovalPending, presenceRefresh, router, search, user]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        setPresenceRefresh((current) => current + 1);
+      }
+    }, 60_000);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   const featuredCount = useMemo(
     () => profiles.filter((profile) => getProfilePhoto(profile)).length,
+    [profiles],
+  );
+  const onlineCount = useMemo(
+    () => profiles.filter((profile) => profile.isOnline).length,
     [profiles],
   );
 
@@ -139,7 +161,7 @@ export default function BuscarPage() {
                     Buscar
                   </h1>
                   <p className="text-sm font-semibold text-black-jewel/64">
-                    Sugar daddies ativos
+                    {targetLabel}
                   </p>
                 </div>
               </div>
@@ -177,7 +199,11 @@ export default function BuscarPage() {
                   label="Com foto"
                   value={String(featuredCount)}
                 />
-                <Metric icon={SlidersHorizontal} label="Filtro" value="Livre" />
+                <Metric
+                  icon={SlidersHorizontal}
+                  label="Online agora"
+                  value={String(onlineCount)}
+                />
               </div>
             </aside>
 
@@ -194,7 +220,7 @@ export default function BuscarPage() {
                 <StatePanel
                   icon={Loader2}
                   title="Carregando perfis"
-                  description="Estamos buscando sugar daddies ativos para voce."
+                  description={`Estamos buscando ${targetLabel.toLocaleLowerCase("pt-BR")} para você.`}
                   spin
                 />
               ) : profiles.length === 0 ? (
@@ -244,8 +270,8 @@ function AccessNotice() {
   return (
     <StatePanel
       icon={ShieldCheck}
-      title="Busca para sugar babies"
-      description="Esta area mostra sugar daddies ativos para perfis Sugar Baby aprovados."
+      title="Busca indisponível"
+      description="Esta área está disponível para perfis Sugar Baby e Sugar Daddy."
     />
   );
 }

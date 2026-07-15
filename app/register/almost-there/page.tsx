@@ -15,6 +15,13 @@ import {
 } from "@/components/ui/select";
 import { REGISTER_PAYLOAD_KEY, setRegisterStep } from "../register-flow";
 import { RegisterStepDots } from "../RegisterStepDots";
+import { useRegistrationCompletion } from "../profile-photos/useRegistrationCompletion";
+import {
+  describeForProfile,
+  occupationOptions,
+  optionsForProfile,
+  relationshipOptions,
+} from "../../perfil/perfiloptions";
 
 const smokeOptions = [
   "Nunca",
@@ -34,14 +41,6 @@ const drinkOptions = [
   "Frequentemente",
   "Tentando parar",
   "Parei",
-];
-
-const relationshipOptions = [
-  "Solteira",
-  "Separada",
-  "Divorciada",
-  "Viúva",
-  "Casada, mas procurando",
 ];
 
 const childrenOptions = [
@@ -64,47 +63,21 @@ const educationOptions = [
   "Escola da Vida!",
 ];
 
-const occupationOptions = [
-  "Administradora de Empresas",
-  "Advogada",
-  "Arquiteta",
-  "Assistente",
-  "Atendente",
-  "Autônoma",
-  "Cabeleireira",
-  "Consultora",
-  "Dentista",
-  "Diretora de Empresas",
-  "Economista",
-  "Educadora",
-  "Empresária",
-  "Enfermeira",
-  "Engenheira",
-  "Estagiaria",
-  "Esteticista",
-  "Estudante",
-  "Funcionária Pública",
-  "TI",
-  "Jornalista",
-  "Médica",
-  "Modelo",
-  "Recepcionista",
-  "Secretária",
-  "Vendedora",
-  "Outras",
-];
-
 export default function AlmostTherePage() {
   const router = useRouter();
+  const completeRegistration = useRegistrationCompletion();
+  const profileType = getSavedValue("profileType");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [smoke, setSmoke] = useState(() => getSavedValue("smoke"));
   const [drink, setDrink] = useState(() => getSavedValue("drink"));
   const [relationship, setRelationship] = useState(() =>
-    getSavedValue("relationship"),
+    describeForProfile(getSavedValue("relationship"), profileType),
   );
   const [children, setChildren] = useState(() => getSavedValue("children"));
   const [education, setEducation] = useState(() => getSavedValue("education"));
   const [occupation, setOccupation] = useState(() =>
-    getSavedValue("occupation"),
+    describeForProfile(getSavedValue("occupation"), profileType),
   );
 
   useEffect(() => {
@@ -116,7 +89,7 @@ export default function AlmostTherePage() {
     setRegisterStep("/register/almost-there");
   }, [router]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const currentPayload = JSON.parse(
@@ -135,12 +108,45 @@ export default function AlmostTherePage() {
 
     localStorage.setItem(REGISTER_PAYLOAD_KEY, JSON.stringify(nextPayload));
 
-    const nextStep = isSugarBabyProfile(nextPayload)
-      ? "/register/social-contacts"
-      : "/register/profile-photos";
+    if (isSugarBabyProfile(nextPayload)) {
+      const nextStep = "/register/social-contacts";
+      setRegisterStep(nextStep);
+      router.push(nextStep);
+      return;
+    }
 
-    setRegisterStep(nextStep);
-    router.push(nextStep);
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...nextPayload,
+          profilePhotos: [],
+        }),
+      });
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message ?? "Não foi possível finalizar o cadastro.",
+        );
+      }
+
+      await completeRegistration(result);
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Não foi possível finalizar o cadastro.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -176,7 +182,7 @@ export default function AlmostTherePage() {
             value={relationship}
             onValueChange={setRelationship}
             placeholder="Selecione uma opção"
-            options={relationshipOptions}
+            options={optionsForProfile(relationshipOptions, profileType)}
           />
 
           <ProfileSelect
@@ -200,9 +206,15 @@ export default function AlmostTherePage() {
             value={occupation}
             onValueChange={setOccupation}
             placeholder="Selecione uma opção"
-            options={occupationOptions}
+            options={optionsForProfile(occupationOptions, profileType)}
             required={false}
           />
+
+          {error && (
+            <p className="rounded-sm bg-[color-mix(in_srgb,var(--ruby)_12%,white)] px-3 py-2 text-sm font-bold text-ruby">
+              {error}
+            </p>
+          )}
 
           <div className="grid gap-3 sm:grid-cols-[0.8fr_1.2fr]">
             <Button
@@ -217,9 +229,10 @@ export default function AlmostTherePage() {
 
             <Button
               type="submit"
+              disabled={isSubmitting}
               className="h-12 rounded-sm bg-emerald text-base font-bold text-white hover:bg-emerald/80 hover:text-surface"
             >
-              Salvar e Continuar
+              {isSubmitting ? "Finalizando..." : "Salvar e Continuar"}
             </Button>
           </div>
         </form>

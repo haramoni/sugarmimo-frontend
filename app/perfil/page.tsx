@@ -3,6 +3,7 @@
 import {
   Camera,
   Check,
+  ChevronDown,
   Crown,
   ImagePlus,
   Loader2,
@@ -57,7 +58,9 @@ import {
   eyeColors,
   hairColors,
   occupationOptions,
+  optionsForProfile,
   relationshipOptions,
+  describeForProfile,
   smokeOptions,
 } from "./perfiloptions";
 
@@ -67,6 +70,13 @@ const MAX_INTERESTS = 3;
 const heights = Array.from({ length: 111 }, (_, index) => 120 + index);
 
 type ContactChannel = "whatsapp" | "telegram" | "instagram";
+
+type ContactViewerSuggestion = {
+  id: string;
+  username: string;
+  city?: string | null;
+  state?: string | null;
+};
 
 const contactChannelOptions: {
   channel: ContactChannel;
@@ -209,6 +219,12 @@ export default function PerfilPage() {
   const [isInterestInputOpen, setIsInterestInputOpen] = useState(false);
   const [interestDraft, setInterestDraft] = useState("");
   const [contactViewerDraft, setContactViewerDraft] = useState("");
+  const [contactViewerSuggestions, setContactViewerSuggestions] = useState<
+    ContactViewerSuggestion[]
+  >([]);
+  const [isSearchingContactViewers, setIsSearchingContactViewers] =
+    useState(false);
+  const [contactViewerError, setContactViewerError] = useState("");
 
   const storedUser = useMemo(() => {
     if (!savedUser) {
@@ -257,6 +273,67 @@ export default function PerfilPage() {
       });
   }, [router]);
 
+  useEffect(() => {
+    const normalizedDraft = normalizeUsername(contactViewerDraft);
+    const canSearch =
+      isEditing &&
+      user?.role?.trim().toUpperCase() === "SUGAR_BABY" &&
+      normalizedDraft.length > 0;
+
+    if (!canSearch) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => {
+      setIsSearchingContactViewers(true);
+      setContactViewerError("");
+
+      fetch(
+        `/api/contact-viewers?search=${encodeURIComponent(normalizedDraft)}`,
+        { signal: controller.signal },
+      )
+        .then(async (response) => {
+          const result = await response.json().catch(() => null);
+
+          if (!response.ok) {
+            throw new Error(
+              result?.message ?? "Não foi possível buscar Sugar Daddies.",
+            );
+          }
+
+          return Array.isArray(result)
+            ? (result as ContactViewerSuggestion[])
+            : [];
+        })
+        .then((suggestions) => {
+          if (!controller.signal.aborted) {
+            setContactViewerSuggestions(suggestions);
+          }
+        })
+        .catch((searchError) => {
+          if (!controller.signal.aborted) {
+            setContactViewerSuggestions([]);
+            setContactViewerError(
+              searchError instanceof Error
+                ? searchError.message
+                : "Não foi possível buscar Sugar Daddies.",
+            );
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) {
+            setIsSearchingContactViewers(false);
+          }
+        });
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [contactViewerDraft, isEditing, user?.role]);
+
   if (!user || isApprovalPending) {
     return <ProfileApprovalGuard user={user} />;
   }
@@ -296,10 +373,42 @@ export default function PerfilPage() {
     setError("");
   }
 
-  function addContactViewer() {
-    const normalizedUsername = normalizeUsername(contactViewerDraft);
+  function updateContactValue(channel: ContactChannel, value: string) {
+    setForm((current) => ({
+      ...current,
+      [channel]: value,
+      visibleContactChannels: value.trim()
+        ? current.visibleContactChannels
+        : current.visibleContactChannels.filter((item) => item !== channel),
+    }));
+    setFeedback("");
+    setError("");
+  }
 
-    if (!normalizedUsername) {
+  function updateContactViewerDraft(value: string) {
+    setContactViewerDraft(value);
+
+    if (!normalizeUsername(value)) {
+      setContactViewerSuggestions([]);
+      setIsSearchingContactViewers(false);
+      setContactViewerError("");
+    } else {
+      setIsSearchingContactViewers(true);
+      setContactViewerError("");
+    }
+  }
+
+  function addContactViewer(username = contactViewerDraft) {
+    const normalizedUsername = normalizeUsername(username);
+    const isActiveDaddy = contactViewerSuggestions.some(
+      (suggestion) =>
+        normalizeUsername(suggestion.username) === normalizedUsername,
+    );
+
+    if (!normalizedUsername || !isActiveDaddy) {
+      setContactViewerError(
+        "Selecione um Sugar Daddy ativo na lista de sugestões.",
+      );
       return;
     }
 
@@ -317,6 +426,8 @@ export default function PerfilPage() {
       };
     });
     setContactViewerDraft("");
+    setContactViewerSuggestions([]);
+    setContactViewerError("");
     setIsEditing(true);
     setFeedback("");
     setError("");
@@ -637,10 +748,17 @@ export default function PerfilPage() {
                   form={form}
                   isEditing={isEditing}
                   onToggle={updateContactVisibility}
+                  onContactChange={updateContactValue}
                   viewerDraft={contactViewerDraft}
-                  onViewerDraftChange={setContactViewerDraft}
+                  onViewerDraftChange={updateContactViewerDraft}
                   onAddViewer={addContactViewer}
                   onRemoveViewer={removeContactViewer}
+                  suggestions={contactViewerSuggestions}
+                  isSearchingViewers={isSearchingContactViewers}
+                  viewerError={contactViewerError}
+                  canSelectViewers={
+                    user.role?.trim().toUpperCase() === "SUGAR_BABY"
+                  }
                 />
 
                 <div className="h-px bg-[linear-gradient(90deg,var(--emerald),color-mix(in_srgb,var(--gold)_48%,white),transparent)] opacity-35" />
@@ -723,7 +841,11 @@ export default function PerfilPage() {
                     </div>
                   ) : null}
                   {isEditing && (
-                    <DetailsForm form={form} updateField={updateField} />
+                    <DetailsForm
+                      form={form}
+                      profileType={user?.gender}
+                      updateField={updateField}
+                    />
                   )}
                 </div>
 
@@ -834,9 +956,11 @@ export default function PerfilPage() {
 
 function DetailsForm({
   form,
+  profileType,
   updateField,
 }: {
   form: ProfileForm;
+  profileType?: string | null;
   updateField: (field: TextProfileField, value: string) => void;
 }) {
   return (
@@ -862,21 +986,6 @@ function DetailsForm({
         value={form.state}
         onChange={(value) => updateField("state", value)}
       />
-      <TextField
-        label="WhatsApp"
-        value={form.whatsapp}
-        onChange={(value) => updateField("whatsapp", value)}
-      />
-      <TextField
-        label="Telegram"
-        value={form.telegram}
-        onChange={(value) => updateField("telegram", value)}
-      />
-      <TextField
-        label="Instagram"
-        value={form.instagram}
-        onChange={(value) => updateField("instagram", value)}
-      />
       <ProfileSelect
         label="Buscando"
         value={form.lookingFor}
@@ -891,13 +1000,13 @@ function DetailsForm({
         label="Tipo de corpo"
         value={form.bodyType}
         onValueChange={(value) => updateField("bodyType", value)}
-        options={bodyTypes.map(optionToSelectItem)}
+        options={optionsForProfile(bodyTypes, profileType).map(optionToSelectItem)}
       />
       <ProfileSelect
         label="Tom de pele"
         value={form.ethnicity}
         onValueChange={(value) => updateField("ethnicity", value)}
-        options={ethnicities.map(optionToSelectItem)}
+        options={optionsForProfile(ethnicities, profileType).map(optionToSelectItem)}
       />
       <ProfileSelect
         label="Cabelo"
@@ -936,7 +1045,9 @@ function DetailsForm({
         label="Estado civil"
         value={form.relationship}
         onValueChange={(value) => updateField("relationship", value)}
-        options={relationshipOptions.map(optionToSelectItem)}
+        options={optionsForProfile(relationshipOptions, profileType).map(
+          optionToSelectItem,
+        )}
       />
       <ProfileSelect
         label="Tem filhos?"
@@ -954,7 +1065,9 @@ function DetailsForm({
         label="Profissao"
         value={form.occupation}
         onValueChange={(value) => updateField("occupation", value)}
-        options={occupationOptions.map(optionToSelectItem)}
+        options={optionsForProfile(occupationOptions, profileType).map(
+          optionToSelectItem,
+        )}
       />
     </div>
   );
@@ -964,18 +1077,28 @@ function ContactSection({
   form,
   isEditing,
   onToggle,
+  onContactChange,
   viewerDraft,
   onViewerDraftChange,
   onAddViewer,
   onRemoveViewer,
+  suggestions,
+  isSearchingViewers,
+  viewerError,
+  canSelectViewers,
 }: {
   form: ProfileForm;
   isEditing: boolean;
   onToggle: (channel: ContactChannel, checked: boolean) => void;
+  onContactChange: (channel: ContactChannel, value: string) => void;
   viewerDraft: string;
   onViewerDraftChange: (value: string) => void;
-  onAddViewer: () => void;
+  onAddViewer: (username?: string) => void;
   onRemoveViewer: (username: string) => void;
+  suggestions: ContactViewerSuggestion[];
+  isSearchingViewers: boolean;
+  viewerError: string;
+  canSelectViewers: boolean;
 }) {
   const visibleContactChannels = form.visibleContactChannels ?? [];
   const contactViewerUsernames = form.contactViewerUsernames ?? [];
@@ -988,6 +1111,14 @@ function ContactSection({
       (contact) =>
         contact.value && visibleContactChannels.includes(contact.channel),
     );
+  const availableSuggestions = suggestions.filter(
+    (suggestion) =>
+      !contactViewerUsernames.includes(normalizeUsername(suggestion.username)),
+  );
+  const exactSuggestion = availableSuggestions.find(
+    (suggestion) =>
+      normalizeUsername(suggestion.username) === normalizeUsername(viewerDraft),
+  );
 
   return (
     <div className="space-y-3">
@@ -997,69 +1128,204 @@ function ContactSection({
 
       {isEditing ? (
         <div className="space-y-3">
+          <div className="max-w-md">
+            <Label className="font-bold text-black-jewel">
+              O que deseja liberar
+            </Label>
+            <p className="mt-1 text-xs font-medium text-black-jewel/62">
+              Selecione os contatos que poderão aparecer para os Sugar Daddies
+              autorizados.
+            </p>
+            <details className="group relative mt-2">
+              <summary className="flex h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-sm border border-emerald/30 bg-white px-3 text-sm font-semibold text-black-jewel shadow-[0_8px_18px_rgba(0,55,44,0.06)] [&::-webkit-details-marker]:hidden">
+                <span className="min-w-0 truncate">
+                  {visibleContactChannels.length > 0
+                    ? contactChannelOptions
+                        .filter(({ channel }) =>
+                          visibleContactChannels.includes(channel),
+                        )
+                        .map(({ label }) => label)
+                        .join(", ")
+                    : "Nenhum contato selecionado"}
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 text-emerald transition group-open:rotate-180" />
+              </summary>
+              <div className="absolute z-40 mt-1 grid w-full gap-1 rounded-sm border border-emerald/25 bg-white p-2 shadow-xl">
+                {contactChannelOptions.map(
+                  ({ channel, label, icon: Icon }) => {
+                    const hasValue = Boolean(form[channel].trim());
+                    const selected = visibleContactChannels.includes(channel);
+
+                    return (
+                      <label
+                        key={channel}
+                        className={[
+                          "flex min-h-10 items-center gap-3 rounded-sm px-2 py-2 text-sm font-semibold transition",
+                          hasValue
+                            ? "cursor-pointer hover:bg-[color-mix(in_srgb,var(--emerald)_8%,white)]"
+                            : "cursor-not-allowed opacity-50",
+                        ].join(" ")}
+                      >
+                        <Checkbox
+                          checked={selected}
+                          disabled={!hasValue}
+                          aria-label={`Liberar ${label}`}
+                          onCheckedChange={(checked) =>
+                            onToggle(channel, checked === true)
+                          }
+                          className="border-emerald/45 bg-white data-checked:border-emerald data-checked:bg-emerald data-checked:text-white"
+                        />
+                        <Icon className="h-4 w-4 shrink-0 text-emerald" />
+                        <span className="flex-1">{label}</span>
+                        {!hasValue ? (
+                          <span className="text-xs font-medium text-black-jewel/52">
+                            Preencha primeiro
+                          </span>
+                        ) : null}
+                      </label>
+                    );
+                  },
+                )}
+              </div>
+            </details>
+          </div>
+
           <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {contactChannelOptions.map(({ channel, label, icon: Icon }) => {
               const hasValue = Boolean(form[channel].trim());
+              const selected = visibleContactChannels.includes(channel);
 
               return (
-                <label
+                <div
                   key={channel}
                   className={[
-                    "flex min-h-20 min-w-0 items-start gap-3 rounded-sm border bg-white/78 p-3 text-sm font-semibold text-black-jewel shadow-[0_10px_20px_rgba(0,55,44,0.07)]",
+                    "grid min-h-28 min-w-0 gap-3 rounded-sm border bg-white/78 p-3 text-sm font-semibold text-black-jewel shadow-[0_10px_20px_rgba(0,55,44,0.07)]",
                     hasValue ? "border-emerald/38" : "border-silver opacity-70",
                   ].join(" ")}
                 >
-                  <Checkbox
-                    checked={visibleContactChannels.includes(channel)}
-                    disabled={!hasValue}
-                    onCheckedChange={(checked) =>
-                      onToggle(channel, checked === true)
+                  <div className="flex min-w-0 items-start gap-3">
+                    <span className="grid min-w-0 gap-1">
+                      <span className="flex min-w-0 items-center gap-2">
+                        <Icon className="h-4 w-4 text-emerald" />
+                        <span className="min-w-0 truncate">{label}</span>
+                      </span>
+                      <span className="text-xs font-medium leading-4 text-black-jewel/62">
+                        {hasValue
+                          ? selected
+                            ? "Selecionado para liberação"
+                            : "Não selecionado para liberação"
+                          : "Preencha este contato"}
+                      </span>
+                    </span>
+                  </div>
+                  <Input
+                    value={form[channel]}
+                    inputMode={channel === "whatsapp" ? "tel" : "text"}
+                    maxLength={channel === "whatsapp" ? 30 : 80}
+                    onChange={(event) =>
+                      onContactChange(channel, event.target.value)
                     }
-                    className="mt-1 border-emerald/45 bg-white data-checked:border-emerald data-checked:bg-emerald data-checked:text-white"
+                    placeholder={getContactPlaceholder(channel)}
+                    aria-label={label}
+                    className="h-10 min-w-0 rounded-sm border-emerald/25 bg-white focus-visible:border-emerald"
                   />
-                  <span className="grid min-w-0 gap-1">
-                    <span className="flex min-w-0 items-center gap-2">
-                      <Icon className="h-4 w-4 text-emerald" />
-                      <span className="min-w-0 truncate">{label}</span>
-                    </span>
-                    <span className="text-xs font-medium leading-4 text-black-jewel/62">
-                      {hasValue
-                        ? "Liberar para usernames selecionados"
-                        : "Preencha este contato abaixo"}
-                    </span>
-                  </span>
-                </label>
+                </div>
               );
             })}
           </div>
 
+          {canSelectViewers ? (
           <div className="rounded-sm border border-emerald/30 bg-white/78 p-3 shadow-[0_10px_20px_rgba(0,55,44,0.07)]">
             <Label className="font-bold text-black-jewel">
               Quem pode ver seus contatos
             </Label>
-            <div className="mt-2 flex min-w-0 gap-2">
+            <p className="mt-1 text-xs font-medium text-black-jewel/62">
+              Busque e selecione Sugar Daddies ativos na plataforma.
+            </p>
+            <div className="relative mt-2">
+              <div className="flex min-w-0 gap-2">
               <Input
                 value={viewerDraft}
-                onChange={(event) => onViewerDraftChange(event.target.value)}
+                onChange={(event) =>
+                  onViewerDraftChange(event.target.value.slice(0, 50))
+                }
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
                     event.preventDefault();
-                    onAddViewer();
+                    const suggestion = exactSuggestion ?? availableSuggestions[0];
+                    if (suggestion) {
+                      onAddViewer(suggestion.username);
+                    }
                   }
                 }}
-                placeholder="username"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={availableSuggestions.length > 0}
+                placeholder="Digite o username do Sugar Daddy"
                 className="h-10 min-w-0 rounded-sm border-emerald/25 bg-white focus-visible:border-emerald"
               />
               <Button
                 type="button"
                 size="icon"
                 aria-label="Adicionar username"
-                onClick={onAddViewer}
+                disabled={!exactSuggestion}
+                onClick={() =>
+                  exactSuggestion && onAddViewer(exactSuggestion.username)
+                }
                 className="h-10 w-10 shrink-0 rounded-sm bg-emerald text-white hover:bg-emerald/85"
               >
                 <Plus className="h-4 w-4" />
               </Button>
+              </div>
+
+              {viewerDraft.trim() &&
+              (isSearchingViewers || availableSuggestions.length > 0) ? (
+                <div
+                  role="listbox"
+                  className="absolute z-30 mt-1 max-h-56 w-[calc(100%-3rem)] overflow-y-auto rounded-sm border border-emerald/25 bg-white p-1 shadow-xl"
+                >
+                  {isSearchingViewers ? (
+                    <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-black-jewel/62">
+                      <Loader2 className="h-4 w-4 animate-spin text-emerald" />
+                      Buscando perfis ativos...
+                    </div>
+                  ) : (
+                    availableSuggestions.map((suggestion) => (
+                      <button
+                        key={suggestion.id}
+                        type="button"
+                        role="option"
+                        aria-selected={
+                          normalizeUsername(suggestion.username) ===
+                          normalizeUsername(viewerDraft)
+                        }
+                        onClick={() => onAddViewer(suggestion.username)}
+                        className="flex w-full min-w-0 items-center justify-between gap-3 rounded-sm px-3 py-2 text-left hover:bg-[color-mix(in_srgb,var(--emerald)_8%,white)]"
+                      >
+                        <span className="min-w-0 truncate text-sm font-bold text-black-jewel">
+                          @{suggestion.username}
+                        </span>
+                        <span className="shrink-0 text-xs font-medium text-black-jewel/52">
+                          {[suggestion.city, suggestion.state]
+                            .filter(Boolean)
+                            .join(", ") || "Ativo"}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              ) : null}
             </div>
+
+            {viewerError ? (
+              <p className="mt-2 text-xs font-bold text-ruby">{viewerError}</p>
+            ) : viewerDraft.trim() &&
+              !isSearchingViewers &&
+              availableSuggestions.length === 0 ? (
+              <p className="mt-2 text-xs font-medium text-black-jewel/62">
+                Nenhum Sugar Daddy ativo encontrado com esse username.
+              </p>
+            ) : null}
 
             {contactViewerUsernames.length > 0 ? (
               <div className="mt-3 flex flex-wrap gap-2">
@@ -1087,6 +1353,7 @@ function ContactSection({
               </p>
             )}
           </div>
+          ) : null}
         </div>
       ) : visibleContacts.length > 0 ? (
         <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -1291,17 +1558,20 @@ function formFromUser(user: ProfileUser): ProfileForm {
     introductionPhrase: user.preferences?.introductionPhrase ?? "",
     aboutMe: user.preferences?.aboutMe ?? "",
     lookingForText: user.preferences?.lookingFor ?? "",
-    bodyType: user.appearance?.bodyType ?? "",
-    ethnicity: user.appearance?.ethnicity ?? "",
+    bodyType: describeForProfile(user.appearance?.bodyType ?? "", user.gender),
+    ethnicity: describeForProfile(user.appearance?.ethnicity ?? "", user.gender),
     hairColor: user.appearance?.hairColor ?? "",
     eyeColor: user.appearance?.eyeColor ?? "",
     heightCm: user.appearance?.heightCm ? String(user.appearance.heightCm) : "",
     smoke: preferences?.smoke ?? "",
     drink: preferences?.drink ?? "",
-    relationship: preferences?.relationship ?? "",
+    relationship: describeForProfile(
+      preferences?.relationship ?? "",
+      user.gender,
+    ),
     children: preferences?.children ?? "",
     education: preferences?.education ?? "",
-    occupation: preferences?.occupation ?? "",
+    occupation: describeForProfile(preferences?.occupation ?? "", user.gender),
     customInterests: normalizeInterests(preferences?.customInterests),
     visibleContactChannels: normalizeVisibleContactChannels(
       preferences?.visibleContactChannels,
@@ -1446,6 +1716,14 @@ function formatContactValue(channel: ContactChannel, value: string) {
   }
 
   return value;
+}
+
+function getContactPlaceholder(channel: ContactChannel) {
+  if (channel === "whatsapp") {
+    return "+55 (11) 99999-9999";
+  }
+
+  return "@usuario";
 }
 
 function getContactHref(channel: ContactChannel, value: string) {

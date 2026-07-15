@@ -5,12 +5,13 @@ import { LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useAuth } from "../AuthProvider";
 
 const menuItems = [
   { label: "Inicio", href: "/" },
   { label: "Perfil", href: "/perfil" },
-  { label: "Chat", href: "/chat" },
+  { label: "Notificações", href: "/notificacoes" },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -21,10 +22,57 @@ export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { logout, user } = useAuth();
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const canSearch = ["SUGAR_BABY", "SUGAR_DADDY"].includes(
+    user?.role?.trim().toUpperCase() ?? "",
+  );
   const loggedMenuItems =
-    user?.role === "SUGAR_BABY"
+    canSearch
       ? [...menuItems, { label: "Buscar", href: "/buscar" }]
       : menuItems;
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    let isActive = true;
+
+    async function loadUnreadNotifications() {
+      const response = await fetch("/api/interactions/notifications", {
+        cache: "no-store",
+      }).catch(() => null);
+
+      if (!response?.ok) {
+        return;
+      }
+
+      const result = await response.json().catch(() => null);
+      if (isActive) {
+        setUnreadNotifications(
+          typeof result?.unreadCount === "number" ? result.unreadCount : 0,
+        );
+      }
+    }
+
+    void loadUnreadNotifications();
+    const interval = window.setInterval(loadUnreadNotifications, 30_000);
+    window.addEventListener("focus", loadUnreadNotifications);
+    window.addEventListener(
+      "sugarmimo-notifications-updated",
+      loadUnreadNotifications,
+    );
+
+    return () => {
+      isActive = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", loadUnreadNotifications);
+      window.removeEventListener(
+        "sugarmimo-notifications-updated",
+        loadUnreadNotifications,
+      );
+    };
+  }, [user]);
 
   async function handleLogout() {
     await logout();
@@ -77,6 +125,18 @@ export function Navbar() {
                 ].join(" ")}
               >
                 <span className="relative z-10">{item.label}</span>
+                {item.href === "/notificacoes" &&
+                user &&
+                unreadNotifications > 0 ? (
+                  <span
+                    title={`${unreadNotifications} notificação${unreadNotifications === 1 ? "" : "ões"} não lida${unreadNotifications === 1 ? "" : "s"}`}
+                    className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-ruby shadow-[0_0_0_2px_rgba(190,35,62,0.14)]"
+                  >
+                    <span className="sr-only">
+                      {unreadNotifications} notificações não lidas
+                    </span>
+                  </span>
+                ) : null}
                 {active ? (
                   <span className="absolute inset-x-5 bottom-1 h-px rounded-full bg-[linear-gradient(90deg,var(--silver),var(--gold-soft),white)]" />
                 ) : null}

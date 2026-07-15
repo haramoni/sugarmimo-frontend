@@ -85,6 +85,27 @@ export function AuthProvider({
     }
   }, [pathname, router, user]);
 
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    function sendPresence() {
+      if (document.visibilityState === "visible") {
+        void fetch("/api/auth/presence", { method: "POST" }).catch(() => null);
+      }
+    }
+
+    sendPresence();
+    const interval = window.setInterval(sendPresence, 45_000);
+    document.addEventListener("visibilitychange", sendPresence);
+
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", sendPresence);
+    };
+  }, [user]);
+
   const value = useMemo(
     () => ({
       user,

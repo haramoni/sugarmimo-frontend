@@ -10,8 +10,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
-
 export default function AdminLoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +24,7 @@ export default function AdminLoginPage() {
     const formData = new FormData(event.currentTarget);
 
     try {
-      const response = await fetch(`${API_URL}/admin/login`, {
+      const response = await fetch("/api/admin/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,7 +41,6 @@ export default function AdminLoginPage() {
         throw new Error(result?.message ?? "Login administrativo inválido.");
       }
 
-      localStorage.setItem("sugarmimo:admin-token", result.accessToken);
       router.push("/admin/approvals");
     } catch (loginError) {
       setError(

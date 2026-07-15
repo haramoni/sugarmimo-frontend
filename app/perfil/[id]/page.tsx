@@ -4,16 +4,23 @@ import {
   ArrowLeft,
   AtSign,
   BadgeCheck,
+  Briefcase,
   Camera,
+  Check,
+  Cigarette,
+  Eye,
+  GraduationCap,
+  Heart,
   HeartHandshake,
   Loader2,
   MapPin,
-  MessageCircle,
   Phone,
   Ruler,
   Send,
   ShieldCheck,
   Sparkles,
+  Users,
+  Wine,
   UserRound,
   type LucideIcon,
 } from "lucide-react";
@@ -35,6 +42,7 @@ import {
   type ContactChannel,
 } from "../../buscar/profile-utils";
 import type { PublicProfile } from "../../buscar/types";
+import { describeForProfile } from "../perfiloptions";
 import {
   ProfileApprovalGuard,
   shouldShowPendingApproval,
@@ -62,7 +70,9 @@ export default function PublicProfilePage() {
     const value = params?.id;
     return Array.isArray(value) ? value[0] : value;
   }, [params]);
-  const canView = user?.role === "SUGAR_BABY";
+  const canView = ["SUGAR_BABY", "SUGAR_DADDY"].includes(
+    user?.role?.trim().toUpperCase() ?? "",
+  );
   const isApprovalPending = shouldShowPendingApproval(user);
 
   useEffect(() => {
@@ -144,7 +154,7 @@ export default function PublicProfilePage() {
             <StatePanel
               icon={ShieldCheck}
               title="Perfil privado"
-              description="Esta area mostra sugar daddies ativos para perfis Sugar Baby aprovados."
+              description="Esta área está disponível para perfis Sugar Baby e Sugar Daddy."
             />
           ) : isLoading ? (
             <StatePanel
@@ -160,7 +170,7 @@ export default function PublicProfilePage() {
               description={error || "Este perfil nao esta disponivel agora."}
             />
           ) : (
-            <ProfileView profile={profile} />
+            <ProfileView profile={profile} viewerRole={user.role} />
           )}
         </section>
       </main>
@@ -168,7 +178,23 @@ export default function PublicProfilePage() {
   );
 }
 
-function ProfileView({ profile }: { profile: PublicProfile }) {
+function ProfileView({
+  profile,
+  viewerRole,
+}: {
+  profile: PublicProfile;
+  viewerRole?: string | null;
+}) {
+  const [interaction, setInteraction] = useState(
+    profile.interaction ?? {
+      liked: false,
+      daddyLiked: false,
+      babyLiked: false,
+      contactsReleased: false,
+    },
+  );
+  const [isActing, setIsActing] = useState(false);
+  const [actionError, setActionError] = useState("");
   const mainPhoto = getProfilePhoto(profile);
   const galleryPhotos = getGalleryPhotos(profile);
   const age = getAge(profile.birthDate);
@@ -180,6 +206,42 @@ function ProfileView({ profile }: { profile: PublicProfile }) {
       value: profile[option.channel]?.trim() ?? "",
     }))
     .filter((contact) => contact.value);
+  const normalizedViewerRole = viewerRole?.trim().toUpperCase();
+  const normalizedProfileRole = profile.role?.trim().toUpperCase();
+  const canLike =
+    normalizedViewerRole === "SUGAR_DADDY" &&
+    normalizedProfileRole === "SUGAR_BABY";
+  const canBabyLike =
+    normalizedViewerRole === "SUGAR_BABY" &&
+    normalizedProfileRole === "SUGAR_DADDY";
+
+  async function performInteraction(action: "daddy-like" | "baby-like") {
+    setIsActing(true);
+    setActionError("");
+
+    try {
+      const path =
+        action === "daddy-like"
+          ? `/api/interactions/likes/${encodeURIComponent(profile.id)}`
+          : `/api/interactions/baby-likes/${encodeURIComponent(profile.id)}`;
+      const response = await fetch(path, { method: "POST" });
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(result?.message ?? "Não foi possível concluir a ação.");
+      }
+
+      setInteraction((current) => ({ ...current, ...result }));
+    } catch (interactionError) {
+      setActionError(
+        interactionError instanceof Error
+          ? interactionError.message
+          : "Não foi possível concluir a ação.",
+      );
+    } finally {
+      setIsActing(false);
+    }
+  }
 
   return (
     <div className="overflow-hidden rounded-lg border border-emerald/28 bg-[color:color-mix(in_srgb,var(--surface)_91%,white)] shadow-[0_28px_70px_rgba(0,55,44,0.15)] ring-1 ring-white/70 backdrop-blur-sm">
@@ -201,9 +263,18 @@ function ProfileView({ profile }: { profile: PublicProfile }) {
                 </div>
               )}
             </div>
-            <span className="absolute left-4 top-4 inline-flex min-h-8 items-center gap-1.5 rounded-full border border-white/70 bg-white/88 px-3 py-1 text-xs font-extrabold text-emerald shadow-[0_8px_18px_rgba(20,17,14,0.12)]">
-              <BadgeCheck className="h-3.5 w-3.5" />
-              Ativo
+            <span
+              className={[
+                "absolute left-4 top-4 inline-flex min-h-8 items-center gap-1.5 rounded-full border border-white/70 bg-white/90 px-3 py-1 text-xs font-extrabold shadow-[0_8px_18px_rgba(20,17,14,0.12)]",
+                profile.isOnline ? "text-emerald" : "text-black-jewel/62",
+              ].join(" ")}
+            >
+              {profile.isOnline ? (
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald shadow-[0_0_0_3px_rgba(0,108,88,0.14)]" />
+              ) : (
+                <BadgeCheck className="h-3.5 w-3.5" />
+              )}
+              {profile.isOnline ? "Online agora" : "Perfil ativo"}
             </span>
           </div>
 
@@ -213,17 +284,47 @@ function ProfileView({ profile }: { profile: PublicProfile }) {
             </h1>
             <p className="mx-auto max-w-sm text-sm font-semibold leading-5 text-black-jewel/68">
               {profile.preferences?.introductionPhrase ||
-                "Perfil verificado no SugarMimo"}
+                "Perfil aprovado no SugarMimo"}
             </p>
-            <Button
-              asChild
-              className="h-11 rounded-sm bg-emerald px-4 font-extrabold text-white hover:bg-emerald/84"
-            >
-              <Link href={`/chat?userId=${encodeURIComponent(profile.id)}`}>
-                <MessageCircle className="h-4 w-4" />
-                Mensagem
-              </Link>
-            </Button>
+            <div className="grid gap-2">
+              {canLike ? (
+                <Button
+                  type="button"
+                  disabled={Boolean(interaction.daddyLiked) || isActing}
+                  onClick={() => void performInteraction("daddy-like")}
+                  className="h-11 rounded-sm bg-ruby px-4 font-extrabold text-white hover:bg-ruby/84"
+                >
+                  {interaction.daddyLiked ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Heart className="h-4 w-4" />
+                  )}
+                  {interaction.daddyLiked ? "Like Enviado" : "Dar Like"}
+                </Button>
+              ) : null}
+
+              {canBabyLike ? (
+                <Button
+                  type="button"
+                  disabled={Boolean(interaction.babyLiked) || isActing}
+                  onClick={() => void performInteraction("baby-like")}
+                  className="h-11 rounded-sm bg-gold px-4 font-extrabold text-white hover:bg-gold/84"
+                >
+                  {interaction.babyLiked ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Heart className="h-4 w-4" />
+                  )}
+                  {interaction.babyLiked
+                    ? "Like e contatos enviados"
+                    : "Curtir e liberar contatos"}
+                </Button>
+              ) : null}
+
+              {actionError ? (
+                <p className="text-xs font-bold text-ruby">{actionError}</p>
+              ) : null}
+            </div>
           </div>
 
           <dl className="mt-5 grid gap-2 text-sm font-bold text-black-jewel/76">
@@ -257,6 +358,8 @@ function ProfileView({ profile }: { profile: PublicProfile }) {
               "Este perfil ainda nao adicionou uma descricao publica."
             }
           />
+
+          <ProfileDetails profile={profile} />
 
           <TextBlock
             title="O que busca"
@@ -332,6 +435,98 @@ function TextBlock({ title, body }: { title: string; body: string }) {
       <p className="wrap-anywhere text-sm font-medium leading-6 text-black-jewel/78">
         {body}
       </p>
+    </section>
+  );
+}
+
+function ProfileDetails({ profile }: { profile: PublicProfile }) {
+  const preferences = profile.preferences?.preferences;
+  const preferenceValue = (key: string) => {
+    const value = preferences?.[key];
+    return typeof value === "string" && value.trim()
+      ? value.trim()
+      : "Não informado";
+  };
+  const detailItems: Array<{
+    label: string;
+    value: string;
+    icon: LucideIcon;
+  }> = [
+    {
+      label: "Tipo de corpo",
+      value:
+        describeForProfile(
+          profile.appearance?.bodyType?.trim() ?? "",
+          profile.gender,
+        ) || "Não informado",
+      icon: Users,
+    },
+    {
+      label: "Tom de pele",
+      value:
+        describeForProfile(
+          profile.appearance?.ethnicity?.trim() ?? "",
+          profile.gender,
+        ) || "Não informado",
+      icon: Sparkles,
+    },
+    {
+      label: "Cabelo",
+      value: profile.appearance?.hairColor?.trim() || "Não informado",
+      icon: Sparkles,
+    },
+    {
+      label: "Cor dos olhos",
+      value: profile.appearance?.eyeColor?.trim() || "Não informado",
+      icon: Eye,
+    },
+    { label: "Fuma", value: preferenceValue("smoke"), icon: Cigarette },
+    { label: "Bebe", value: preferenceValue("drink"), icon: Wine },
+    {
+      label: "Estado civil",
+      value: describeForProfile(
+        preferenceValue("relationship"),
+        profile.gender,
+      ),
+      icon: HeartHandshake,
+    },
+    {
+      label: "Escolaridade",
+      value: preferenceValue("education"),
+      icon: GraduationCap,
+    },
+    {
+      label: "Profissão",
+      value: describeForProfile(preferenceValue("occupation"), profile.gender),
+      icon: Briefcase,
+    },
+  ];
+
+  return (
+    <section className="space-y-3">
+      <h2 className="font-serif text-xl font-semibold text-black-jewel sm:text-2xl">
+        Informações do perfil
+      </h2>
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+        {detailItems.map(({ label, value, icon: Icon }) => (
+          <div
+            key={label}
+            className="flex min-w-0 items-center gap-3 rounded-sm border border-emerald/22 bg-white/72 px-3 py-3 shadow-[0_8px_18px_rgba(0,55,44,0.06)]"
+          >
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[color-mix(in_srgb,var(--emerald)_12%,white)] text-emerald">
+              <Icon className="h-4 w-4" />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-xs font-extrabold uppercase text-black-jewel/52">
+                {label}
+              </span>
+              <span className="block truncate text-sm font-bold text-black-jewel/82">
+                {value}
+              </span>
+            </span>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

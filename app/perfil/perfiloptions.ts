@@ -120,3 +120,75 @@ export const occupationOptions = [
   "Vendedora",
   "Outras",
 ];
+
+const masculineDescriptions: Record<string, string> = {
+  magra: "Magro",
+  medio: "Médio",
+  musculosa: "Musculoso",
+  "grande e amorosa": "Grande e amoroso",
+  "branca/caucasiano": "Branco/Caucasiano",
+  parda: "Pardo",
+  "negra/afrodescendente": "Negro/Afrodescendente",
+  "latina/hispanico": "Latino/Hispânico",
+  "asiatica japonesa": "Asiático japonês",
+  "asiatica chinesa": "Asiático chinês",
+  "asiatica coreana": "Asiático coreano",
+  "asiatica outras": "Asiático — outros",
+  indiana: "Indiano",
+  solteira: "Solteiro",
+  separada: "Separado",
+  divorciada: "Divorciado",
+  viuva: "Viúvo",
+  "casada, mas procurando": "Casado, mas procurando",
+  "administradora de empresas": "Administrador de Empresas",
+  advogada: "Advogado",
+  arquiteta: "Arquiteto",
+  autonoma: "Autônomo",
+  cabeleireira: "Cabeleireiro",
+  consultora: "Consultor",
+  "diretora de empresas": "Diretor de Empresas",
+  educadora: "Educador",
+  empresaria: "Empresário",
+  enfermeira: "Enfermeiro",
+  engenheira: "Engenheiro",
+  estagiaria: "Estagiário",
+  "funcionaria publica": "Funcionário Público",
+  medica: "Médico",
+  secretaria: "Secretário",
+  vendedora: "Vendedor",
+  outras: "Outros",
+};
+
+export function isMasculineProfile(profileType?: string | null) {
+  const normalized = profileType?.trim().toLowerCase();
+  return (
+    normalized?.startsWith("sugar-daddy") === true ||
+    normalized === "sugar-baby-man"
+  );
+}
+
+export function describeForProfile(
+  value: string,
+  profileType?: string | null,
+) {
+  if (!value || !isMasculineProfile(profileType)) {
+    return value;
+  }
+
+  return masculineDescriptions[normalizeDescription(value)] ?? value;
+}
+
+export function optionsForProfile(
+  options: string[],
+  profileType?: string | null,
+) {
+  return options.map((option) => describeForProfile(option, profileType));
+}
+
+function normalizeDescription(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}

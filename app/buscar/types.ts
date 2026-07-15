@@ -20,6 +20,8 @@ export type PublicProfile = {
   telegram?: string | null;
   instagram?: string | null;
   createdAt?: string | null;
+  lastActiveAt?: string | null;
+  isOnline?: boolean;
   photos?: ProfilePhoto[];
   appearance?: {
     bodyType?: string | null;
@@ -37,4 +39,15 @@ export type PublicProfile = {
     aboutMe?: string | null;
     lookingFor?: string | null;
   } | null;
+  interaction?: {
+    liked?: boolean;
+    likeId?: string | null;
+    likedAt?: string | null;
+    daddyLiked?: boolean;
+    daddyLikedAt?: string | null;
+    babyLiked?: boolean;
+    babyLikedAt?: string | null;
+    contactsReleased?: boolean;
+    contactsReleasedAt?: string | null;
+  };
 };

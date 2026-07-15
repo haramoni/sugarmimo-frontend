@@ -7,9 +7,6 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
-
 type PendingPhoto = {
   id: string;
   dataUrl: string;
@@ -45,25 +42,13 @@ export default function AdminApprovalsPage() {
   const [reviewingId, setReviewingId] = useState("");
 
   const loadProfiles = useCallback(async () => {
-    const token = localStorage.getItem("sugarmimo:admin-token");
-
-    if (!token) {
-      router.push("/admin/login");
-      return;
-    }
-
     setError("");
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/admin/pending-babies`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch("/api/admin/pending-babies");
 
       if (response.status === 401 || response.status === 403) {
-        localStorage.removeItem("sugarmimo:admin-token");
         router.push("/admin/login");
         return;
       }
@@ -93,22 +78,12 @@ export default function AdminApprovalsPage() {
   }, [loadProfiles]);
 
   async function reviewProfile(id: string, action: "approve" | "reject") {
-    const token = localStorage.getItem("sugarmimo:admin-token");
-
-    if (!token) {
-      router.push("/admin/login");
-      return;
-    }
-
     setReviewingId(id);
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/admin/profiles/${id}/${action}`, {
+      const response = await fetch(`/api/admin/profiles/${id}/${action}`, {
         method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       const result = await response.json().catch(() => null);
@@ -131,8 +106,8 @@ export default function AdminApprovalsPage() {
     }
   }
 
-  function logout() {
-    localStorage.removeItem("sugarmimo:admin-token");
+  async function logout() {
+    await fetch("/api/admin/logout", { method: "POST" }).catch(() => null);
     router.push("/admin/login");
   }
 

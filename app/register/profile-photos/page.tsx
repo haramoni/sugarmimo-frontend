@@ -21,6 +21,12 @@ type ProfilePhoto = {
 };
 
 const MAX_PHOTOS = 3;
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const ALLOWED_PHOTO_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
 
 export default function ProfilePhotosPage() {
   const router = useRouter();
@@ -62,11 +68,17 @@ export default function ProfilePhotosPage() {
     }
 
     const imageFiles = selectedFiles.filter((file) =>
-      file.type.startsWith("image/"),
+      ALLOWED_PHOTO_TYPES.has(file.type),
     );
 
     if (imageFiles.length !== selectedFiles.length) {
-      setError("Envie apenas arquivos de imagem.");
+      setError("Envie apenas fotos JPEG, PNG ou WebP.");
+      event.target.value = "";
+      return;
+    }
+
+    if (imageFiles.some((file) => file.size > MAX_PHOTO_BYTES)) {
+      setError("Cada foto pode ter no máximo 5 MB.");
       event.target.value = "";
       return;
     }
@@ -211,7 +223,7 @@ export default function ProfilePhotosPage() {
                   </span>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                     multiple
                     className="sr-only"
                     onChange={handlePhotoChange}

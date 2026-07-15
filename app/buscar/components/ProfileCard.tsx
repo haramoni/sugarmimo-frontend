@@ -1,9 +1,4 @@
-import {
-  BadgeCheck,
-  HeartHandshake,
-  MapPin,
-  UserRound,
-} from "lucide-react";
+import { BadgeCheck, HeartHandshake, MapPin, UserRound } from "lucide-react";
 import Link from "next/link";
 import {
   getAge,
@@ -40,9 +35,18 @@ export default function ProfileCard({ profile }: { profile: PublicProfile }) {
               <UserRound className="h-16 w-16" />
             </div>
           )}
-          <span className="absolute left-3 top-3 inline-flex min-h-8 items-center gap-1.5 rounded-full border border-white/70 bg-white/86 px-3 py-1 text-xs font-extrabold text-emerald shadow-[0_8px_18px_rgba(20,17,14,0.12)]">
-            <BadgeCheck className="h-3.5 w-3.5" />
-            Ativo
+          <span
+            className={[
+              "absolute left-3 top-3 inline-flex min-h-8 items-center gap-1.5 rounded-full border border-white/70 bg-white/90 px-3 py-1 text-xs font-extrabold shadow-[0_8px_18px_rgba(20,17,14,0.12)]",
+              profile.isOnline ? "text-emerald" : "text-black-jewel/62",
+            ].join(" ")}
+          >
+            {profile.isOnline ? (
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald shadow-[0_0_0_3px_rgba(0,108,88,0.14)]" />
+            ) : (
+              <BadgeCheck className="h-3.5 w-3.5" />
+            )}
+            {profile.isOnline ? "Online agora" : "Perfil ativo"}
           </span>
         </div>
 
@@ -53,7 +57,7 @@ export default function ProfileCard({ profile }: { profile: PublicProfile }) {
             </h2>
             <p className="mt-1 line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-black-jewel/68">
               {profile.preferences?.introductionPhrase ||
-                "Perfil verificado no SugarMimo"}
+                "Perfil aprovado no SugarMimo"}
             </p>
           </div>
 

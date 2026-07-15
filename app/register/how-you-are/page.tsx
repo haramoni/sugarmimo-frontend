@@ -15,29 +15,12 @@ import {
 } from "@/components/ui/select";
 import { REGISTER_PAYLOAD_KEY, setRegisterStep } from "../register-flow";
 import { RegisterStepDots } from "../RegisterStepDots";
-
-const bodyTypes = [
-  "Magra",
-  "Medio",
-  "Musculosa",
-  "Em forma",
-  "Um pouco acima do peso",
-  "Grande e amorosa",
-];
-
-const ethnicities = [
-  "Branca/Caucasiano",
-  "Parda",
-  "Negra/Afrodescendente",
-  "Latina/Hispanico",
-  "Asiatica japonesa",
-  "Asiatica chinesa",
-  "Asiatica coreana",
-  "Asiatica outras",
-  "Indiana",
-  "Do Oriente Medio",
-  "Outros",
-];
+import {
+  bodyTypes,
+  describeForProfile,
+  ethnicities,
+  optionsForProfile,
+} from "../../perfil/perfiloptions";
 
 const hairColors = [
   "Preto",
@@ -65,8 +48,13 @@ const heights = Array.from({ length: 61 }, (_, index) => 150 + index);
 
 export default function HowYouArePage() {
   const router = useRouter();
-  const [bodyType, setBodyType] = useState(() => getSavedValue("bodyType"));
-  const [ethnicity, setEthnicity] = useState(() => getSavedValue("ethnicity"));
+  const profileType = getSavedValue("profileType");
+  const [bodyType, setBodyType] = useState(() =>
+    describeForProfile(getSavedValue("bodyType"), profileType),
+  );
+  const [ethnicity, setEthnicity] = useState(() =>
+    describeForProfile(getSavedValue("ethnicity"), profileType),
+  );
   const [hairColor, setHairColor] = useState(() => getSavedValue("hairColor"));
   const [eyeColor, setEyeColor] = useState(() => getSavedValue("eyeColor"));
   const [heightCm, setHeightCm] = useState(() => getSavedValue("heightCm"));
@@ -122,7 +110,7 @@ export default function HowYouArePage() {
             value={bodyType}
             onValueChange={setBodyType}
             placeholder="Selecione uma opção"
-            options={bodyTypes}
+            options={optionsForProfile(bodyTypes, profileType)}
           />
 
           <ProfileSelect
@@ -130,7 +118,7 @@ export default function HowYouArePage() {
             value={ethnicity}
             onValueChange={setEthnicity}
             placeholder="Selecione uma opção"
-            options={ethnicities}
+            options={optionsForProfile(ethnicities, profileType)}
           />
 
           <ProfileSelect

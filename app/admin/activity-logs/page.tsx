@@ -7,9 +7,6 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
-
 type ActivityLog = {
   id: string;
   userId: string | null;
@@ -39,25 +36,13 @@ export default function AdminActivityLogsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const loadLogs = useCallback(async () => {
-    const token = localStorage.getItem("sugarmimo:admin-token");
-
-    if (!token) {
-      router.push("/admin/login");
-      return;
-    }
-
     setError("");
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/admin/activity-logs?limit=${limit}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(`/api/admin/activity-logs?limit=${limit}`);
 
       if (response.status === 401 || response.status === 403) {
-        localStorage.removeItem("sugarmimo:admin-token");
         router.push("/admin/login");
         return;
       }
@@ -86,8 +71,8 @@ export default function AdminActivityLogsPage() {
     return () => window.clearTimeout(timeoutId);
   }, [loadLogs]);
 
-  function logout() {
-    localStorage.removeItem("sugarmimo:admin-token");
+  async function logout() {
+    await fetch("/api/admin/logout", { method: "POST" }).catch(() => null);
     router.push("/admin/login");
   }
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { API_URL, setSessionCookie } from "../_cookies";
+import { API_URL, clearSessionCookie, setSessionCookie } from "../_cookies";
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -31,6 +31,10 @@ export async function POST(request: Request) {
     const safeResult = { ...result };
     delete safeResult.accessToken;
     return NextResponse.json(safeResult);
+  }
+
+  if (result?.requiresApproval) {
+    await clearSessionCookie();
   }
 
   return NextResponse.json(result);
