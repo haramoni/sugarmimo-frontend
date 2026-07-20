@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, UserRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -9,8 +9,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../AuthProvider";
 
 const menuItems = [
-  { label: "Inicio", href: "/" },
-  { label: "Perfil", href: "/perfil" },
+  { label: "Inicio", href: "/inicio" },
   { label: "Notificações", href: "/notificacoes" },
 ];
 
@@ -26,10 +25,15 @@ export function Navbar() {
   const canSearch = ["SUGAR_BABY", "SUGAR_DADDY"].includes(
     user?.role?.trim().toUpperCase() ?? "",
   );
-  const loggedMenuItems =
-    canSearch
-      ? [...menuItems, { label: "Buscar", href: "/buscar" }]
-      : menuItems;
+  const loggedMenuItems = canSearch
+    ? [menuItems[0], { label: "Buscar", href: "/buscar" }, menuItems[1]]
+    : menuItems;
+  const profilePhoto = user?.photos
+    ?.filter((photo) => !photo.isPrivate)
+    ?.slice()
+    .sort(
+      (first, second) => (first.sortOrder ?? 0) - (second.sortOrder ?? 0),
+    )[0];
 
   useEffect(() => {
     if (!user) {
@@ -108,7 +112,7 @@ export function Navbar() {
           </span>
         </Link>
 
-        <div className="order-3 flex gap-1.5 overflow-x-auto rounded-full border border-[color:color-mix(in_srgb,var(--silver)_42%,transparent)] bg-[color:color-mix(in_srgb,var(--surface)_78%,white)] p-1.5 text-sm font-bold text-[color-mix(in_srgb,var(--black)_68%,var(--silver))] shadow-[inset_0_1px_0_rgba(255,255,255,0.82),0_16px_42px_rgba(20,17,14,0.08)] backdrop-blur-2xl lg:order-none lg:justify-center">
+        <div className="order-3 flex gap-1.5 overflow-x-auto justify-center rounded-full border border-[color:color-mix(in_srgb,var(--silver)_42%,transparent)] bg-[color:color-mix(in_srgb,var(--surface)_78%,white)] p-1.5 text-sm font-bold text-[color-mix(in_srgb,var(--black)_68%,var(--silver))] shadow-[inset_0_1px_0_rgba(255,255,255,0.82),0_16px_42px_rgba(20,17,14,0.08)] backdrop-blur-2xl lg:order-none lg:justify-center">
           {loggedMenuItems.map((item) => {
             const active = isActivePath(pathname, item.href);
 
@@ -145,11 +149,35 @@ export function Navbar() {
           })}
         </div>
 
-        <div className="justify-self-end sm:flex">
+        <div className="flex items-center justify-self-end gap-5">
+          {user ? (
+            <Link
+              href="/perfil"
+              aria-label="Abrir meu perfil"
+              className="flex items-center gap-2"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald/12 text-emerald">
+                {profilePhoto?.dataUrl ? (
+                  // User uploads are data URLs and should not use Next image optimization.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={profilePhoto.dataUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <UserRound className="h-5 w-5" />
+                )}
+              </span>
+              <span className="max-w-20 truncate sm:max-w-28">
+                {user.username || "Meu perfil"}
+              </span>
+            </Link>
+          ) : null}
           <Button
             type="button"
             onClick={handleLogout}
-            className="h-auto min-h-12 w-full rounded-full border border-white/28 px-4 py-2 text-sm font-extrabold text-white hover:bg-ruby hover:text-white sm:text-base"
+            className="h-auto min-h-12 w-fit rounded-full border border-white/28 px-4 py-2 text-sm font-extrabold text-white hover:bg-ruby hover:text-white sm:text-base"
           >
             <LogOut className="h-4 w-4" />
             Sair

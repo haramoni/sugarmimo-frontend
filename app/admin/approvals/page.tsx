@@ -1,7 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, ClipboardList, LogOut, RefreshCw, X } from "lucide-react";
+import {
+  Check,
+  ClipboardList,
+  Crown,
+  LogOut,
+  RefreshCw,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -89,7 +96,9 @@ export default function AdminApprovalsPage() {
       const result = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(result?.message ?? "Não foi possível revisar o perfil.");
+        throw new Error(
+          result?.message ?? "Não foi possível revisar o perfil.",
+        );
       }
 
       setProfiles((currentProfiles) =>
@@ -123,6 +132,16 @@ export default function AdminApprovalsPage() {
             style={{ height: "auto" }}
           />
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Gerenciar Premium"
+              onClick={() => router.push("/admin/premium")}
+              className="rounded-sm"
+            >
+              <Crown className="h-4 w-4" />
+            </Button>
             <Button
               type="button"
               variant="ghost"
@@ -226,10 +245,7 @@ export default function AdminApprovalsPage() {
                     />
                     <ProfileField label="WhatsApp" value={profile.whatsapp} />
                     <ProfileField label="Telegram" value={profile.telegram} />
-                    <ProfileField
-                      label="Instagram"
-                      value={profile.instagram}
-                    />
+                    <ProfileField label="Instagram" value={profile.instagram} />
                     <ProfileField
                       label="Enviado em"
                       value={formatDate(profile.createdAt)}

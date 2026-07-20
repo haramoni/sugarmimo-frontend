@@ -13,8 +13,10 @@ import {
   Heart,
   HeartHandshake,
   Loader2,
+  Lock,
   MapPin,
   Phone,
+  Crown,
   Ruler,
   Send,
   ShieldCheck,
@@ -37,6 +39,7 @@ import {
   getContactHref,
   getCustomInterests,
   getGalleryPhotos,
+  getPrivatePhotos,
   getLocation,
   getProfilePhoto,
   type ContactChannel,
@@ -143,7 +146,7 @@ export default function PublicProfilePage() {
           <Button
             type="button"
             variant="ghost"
-            onClick={() => router.push("/buscar")}
+            onClick={() => router.back()}
             className="mb-4 h-11 rounded-sm border border-emerald/24 bg-white/76 px-4 text-sm font-extrabold text-black-jewel hover:bg-[color-mix(in_srgb,var(--emerald)_8%,white)]"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -170,7 +173,11 @@ export default function PublicProfilePage() {
               description={error || "Este perfil nao esta disponivel agora."}
             />
           ) : (
-            <ProfileView profile={profile} viewerRole={user.role} />
+            <ProfileView
+              profile={profile}
+              viewerRole={user.role}
+              viewerIsPremium={Boolean(user.isPremium)}
+            />
           )}
         </section>
       </main>
@@ -181,9 +188,11 @@ export default function PublicProfilePage() {
 function ProfileView({
   profile,
   viewerRole,
+  viewerIsPremium,
 }: {
   profile: PublicProfile;
   viewerRole?: string | null;
+  viewerIsPremium: boolean;
 }) {
   const [interaction, setInteraction] = useState(
     profile.interaction ?? {
@@ -197,6 +206,7 @@ function ProfileView({
   const [actionError, setActionError] = useState("");
   const mainPhoto = getProfilePhoto(profile);
   const galleryPhotos = getGalleryPhotos(profile);
+  const privatePhotos = getPrivatePhotos(profile);
   const age = getAge(profile.birthDate);
   const location = getLocation(profile);
   const interests = getCustomInterests(profile);
@@ -208,12 +218,21 @@ function ProfileView({
     .filter((contact) => contact.value);
   const normalizedViewerRole = viewerRole?.trim().toUpperCase();
   const normalizedProfileRole = profile.role?.trim().toUpperCase();
-  const canLike =
+  const isDaddyViewingBaby =
     normalizedViewerRole === "SUGAR_DADDY" &&
     normalizedProfileRole === "SUGAR_BABY";
-  const canBabyLike =
+  const isBabyViewingDaddy =
     normalizedViewerRole === "SUGAR_BABY" &&
     normalizedProfileRole === "SUGAR_DADDY";
+  const canLike = isDaddyViewingBaby && viewerIsPremium;
+  const canBabyLike = isBabyViewingDaddy && Boolean(profile.isPremium);
+  const isPremiumDaddy =
+    normalizedProfileRole === "SUGAR_DADDY" && Boolean(profile.isPremium);
+
+  const isNewProfile = profile.createdAt
+    ? new Date().getTime() - new Date(profile.createdAt).getTime() <
+      7 * 24 * 60 * 60 * 1000
+    : false;
 
   async function performInteraction(action: "daddy-like" | "baby-like") {
     setIsActing(true);
@@ -276,16 +295,28 @@ function ProfileView({
               )}
               {profile.isOnline ? "Online agora" : "Perfil ativo"}
             </span>
+            {isNewProfile || isPremiumDaddy ? (
+              <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
+                {isPremiumDaddy ? (
+                  <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-gold/55 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--gold-soft)_42%,white),white)] px-3 py-1 text-xs font-extrabold text-black-jewel shadow-[0_8px_18px_rgba(20,17,14,0.12)]">
+                    <Crown className="h-3.5 w-3.5 text-gold" />
+                    Premium
+                  </span>
+                ) : null}
+                {isNewProfile ? (
+                  <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-gold/45 bg-[color-mix(in_srgb,var(--gold-soft)_28%,white)] px-3 py-1 text-xs font-extrabold text-black-jewel shadow-[0_8px_18px_rgba(20,17,14,0.12)]">
+                    <Sparkles className="h-3.5 w-3.5 text-gold" />
+                    Perfil Novo
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
           </div>
 
           <div className="mt-5 space-y-3 text-center">
             <h1 className="wrap-anywhere text-3xl font-extrabold tracking-tight text-black-jewel">
               {profile.username}
             </h1>
-            <p className="mx-auto max-w-sm text-sm font-semibold leading-5 text-black-jewel/68">
-              {profile.preferences?.introductionPhrase ||
-                "Perfil aprovado no SugarMimo"}
-            </p>
             <div className="grid gap-2">
               {canLike ? (
                 <Button
@@ -300,6 +331,15 @@ function ProfileView({
                     <Heart className="h-4 w-4" />
                   )}
                   {interaction.daddyLiked ? "Like Enviado" : "Dar Like"}
+                </Button>
+              ) : isDaddyViewingBaby ? (
+                <Button
+                  type="button"
+                  disabled
+                  className="h-auto min-h-11 rounded-sm bg-black-jewel/70 px-4 py-2 font-extrabold text-white"
+                >
+                  <Crown className="h-4 w-4 text-gold-soft" />
+                  Seja Premium para dar likes
                 </Button>
               ) : null}
 
@@ -319,7 +359,7 @@ function ProfileView({
                     ? "Like e contatos enviados"
                     : "Curtir e liberar contatos"}
                 </Button>
-              ) : null}
+              ) : isBabyViewingDaddy ? null : null}
 
               {actionError ? (
                 <p className="text-xs font-bold text-ruby">{actionError}</p>
@@ -420,6 +460,36 @@ function ProfileView({
               </div>
             )}
           </section>
+
+          {privatePhotos.length > 0 ? (
+            <section className="space-y-3 rounded-md border border-gold/30 bg-[color-mix(in_srgb,var(--gold-soft)_12%,white)] p-4">
+              <div className="flex items-center gap-2">
+                <Lock className="h-5 w-5 text-gold" />
+                <h2 className="font-serif text-xl font-semibold text-black-jewel sm:text-2xl">
+                  Fotos privadas
+                </h2>
+              </div>
+              <p className="text-xs font-semibold text-black-jewel/62">
+                Este perfil autorizou você a visualizar estas fotos.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {privatePhotos.map((photo, index) => (
+                  <div
+                    key={photo.id ?? `private-${index}`}
+                    className="aspect-[1.18/1] overflow-hidden rounded-sm border-2 border-gold/45 bg-white p-0.5 shadow-[0_12px_24px_rgba(185,138,56,0.14)]"
+                  >
+                    {/* User uploads are served through an authorized endpoint. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photo.dataUrl}
+                      alt={`Foto privada ${index + 1}`}
+                      className="h-full w-full rounded-[0.18rem] object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
         </section>
       </div>
     </div>

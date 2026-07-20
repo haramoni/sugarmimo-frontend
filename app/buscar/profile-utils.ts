@@ -31,11 +31,21 @@ export function getLocation(profile: PublicProfile) {
 }
 
 export function getProfilePhoto(profile: PublicProfile) {
-  return [...(profile.photos ?? [])].sort(sortPhotos)[0] ?? null;
+  return [...(profile.photos ?? [])]
+    .filter((photo) => !photo.isPrivate)
+    .sort(sortPhotos)[0] ?? null;
 }
 
 export function getGalleryPhotos(profile: PublicProfile) {
-  return [...(profile.photos ?? [])].sort(sortPhotos);
+  return [...(profile.photos ?? [])]
+    .filter((photo) => !photo.isPrivate)
+    .sort(sortPhotos);
+}
+
+export function getPrivatePhotos(profile: PublicProfile) {
+  return [...(profile.photos ?? [])]
+    .filter((photo) => photo.isPrivate)
+    .sort(sortPhotos);
 }
 
 export function getCustomInterests(profile: PublicProfile) {

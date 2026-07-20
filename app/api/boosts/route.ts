@@ -10,31 +10,19 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const search = searchParams.get("search")?.trim();
   const page = searchParams.get("page")?.trim() || "1";
   const limit = searchParams.get("limit")?.trim() || "6";
-  const backendParams = new URLSearchParams();
-
-  backendParams.set("page", page);
-  backendParams.set("limit", limit);
-
-  if (search) {
-    backendParams.set("search", search);
-  }
-
   const response = await fetch(
-    `${API_URL}/auth/matches${backendParams.size ? `?${backendParams}` : ""}`,
+    `${API_URL}/auth/boosts?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}`,
     {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     },
   ).catch(() => null);
 
   if (!response) {
     return NextResponse.json(
-      { message: "Não foi possível carregar a busca agora." },
+      { message: "Nao foi possivel carregar os destaques agora." },
       { status: 503 },
     );
   }
@@ -51,7 +39,7 @@ export async function GET(request: Request) {
         items: result.items.map(
           (profile: { photos?: Array<{ id?: string }> }) => ({
             ...profile,
-            photos: Array.isArray(profile?.photos)
+            photos: Array.isArray(profile.photos)
               ? profile.photos.map((photo: { id?: string }) => ({
                   ...photo,
                   dataUrl: photo.id

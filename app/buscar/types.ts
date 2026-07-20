@@ -4,12 +4,15 @@ export type ProfilePhoto = {
   fileName?: string | null;
   mimeType?: string | null;
   sortOrder: number;
+  isPrivate?: boolean;
 };
 
 export type PublicProfile = {
   id: string;
   username?: string | null;
   role?: string | null;
+  isPremium?: boolean;
+  boostedUntil?: string | null;
   gender?: string | null;
   lookingFor?: string | null;
   birthDate?: string | null;
@@ -50,4 +53,14 @@ export type PublicProfile = {
     contactsReleased?: boolean;
     contactsReleasedAt?: string | null;
   };
+  canViewPrivatePhotos?: boolean;
+};
+
+export type PublicProfilePage = {
+  items: PublicProfile[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+  hasMore: boolean;
 };

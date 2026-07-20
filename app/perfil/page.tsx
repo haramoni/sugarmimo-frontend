@@ -7,6 +7,7 @@ import {
   Crown,
   ImagePlus,
   Loader2,
+  Lock,
   Pencil,
   AtSign,
   Phone,
@@ -17,6 +18,7 @@ import {
   Trash2,
   X,
   type LucideIcon,
+  Rocket,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -29,7 +31,6 @@ import {
 } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -64,7 +65,8 @@ import {
   smokeOptions,
 } from "./perfiloptions";
 
-const MAX_PHOTOS = 12;
+const MAX_PUBLIC_PHOTOS = 6;
+const MAX_PRIVATE_PHOTOS = 6;
 const MAX_INTERESTS = 3;
 
 const heights = Array.from({ length: 111 }, (_, index) => 120 + index);
@@ -94,6 +96,7 @@ type ProfilePhoto = {
   fileName?: string | null;
   mimeType?: string | null;
   sortOrder: number;
+  isPrivate?: boolean;
 };
 
 type PreferenceValues = {
@@ -106,6 +109,7 @@ type PreferenceValues = {
   customInterests?: string[];
   visibleContactChannels?: ContactChannel[];
   contactViewerUsernames?: string[];
+  privatePhotoViewerUsernames?: string[];
   slugs?: Record<string, string>;
 };
 
@@ -168,11 +172,15 @@ type ProfileForm = {
   customInterests: string[];
   visibleContactChannels: ContactChannel[];
   contactViewerUsernames: string[];
+  privatePhotoViewerUsernames: string[];
 };
 
 type TextProfileField = Exclude<
   keyof ProfileForm,
-  "customInterests" | "visibleContactChannels" | "contactViewerUsernames"
+  | "customInterests"
+  | "visibleContactChannels"
+  | "contactViewerUsernames"
+  | "privatePhotoViewerUsernames"
 >;
 
 function subscribeToAuth(callback: () => void) {
@@ -198,6 +206,7 @@ function getUserSnapshot() {
 export default function PerfilPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const privateFileInputRef = useRef<HTMLInputElement>(null);
   const savedUser = useSyncExternalStore(
     subscribeToAuth,
     getUserSnapshot,
@@ -225,6 +234,13 @@ export default function PerfilPage() {
   const [isSearchingContactViewers, setIsSearchingContactViewers] =
     useState(false);
   const [contactViewerError, setContactViewerError] = useState("");
+  const [privateViewerDraft, setPrivateViewerDraft] = useState("");
+  const [privateViewerSuggestions, setPrivateViewerSuggestions] = useState<
+    ContactViewerSuggestion[]
+  >([]);
+  const [isSearchingPrivateViewers, setIsSearchingPrivateViewers] =
+    useState(false);
+  const [privateViewerError, setPrivateViewerError] = useState("");
 
   const storedUser = useMemo(() => {
     if (!savedUser) {
@@ -334,11 +350,66 @@ export default function PerfilPage() {
     };
   }, [contactViewerDraft, isEditing, user?.role]);
 
+  useEffect(() => {
+    const normalizedDraft = normalizeUsername(privateViewerDraft);
+    if (!isEditing || !normalizedDraft) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => {
+      setIsSearchingPrivateViewers(true);
+      setPrivateViewerError("");
+      fetch(
+        `/api/private-photo-viewers?search=${encodeURIComponent(normalizedDraft)}`,
+        { signal: controller.signal },
+      )
+        .then(async (response) => {
+          const result = await response.json().catch(() => null);
+          if (!response.ok) {
+            throw new Error(
+              result?.message ?? "Nao foi possivel buscar perfis.",
+            );
+          }
+          return Array.isArray(result)
+            ? (result as ContactViewerSuggestion[])
+            : [];
+        })
+        .then((suggestions) => {
+          if (!controller.signal.aborted) {
+            setPrivateViewerSuggestions(suggestions);
+          }
+        })
+        .catch((searchError) => {
+          if (!controller.signal.aborted) {
+            setPrivateViewerSuggestions([]);
+            setPrivateViewerError(
+              searchError instanceof Error
+                ? searchError.message
+                : "Nao foi possivel buscar perfis.",
+            );
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) {
+            setIsSearchingPrivateViewers(false);
+          }
+        });
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [isEditing, privateViewerDraft]);
+
   if (!user || isApprovalPending) {
     return <ProfileApprovalGuard user={user} />;
   }
 
-  const profilePhoto = photos[0];
+  const publicPhotos = photos.filter((photo) => !photo.isPrivate);
+  const privatePhotos = photos.filter((photo) => photo.isPrivate);
+  const profilePhoto = publicPhotos[0];
   const age = getAge(form.birthDate || user.birthDate);
   const location = [form.city, form.state].filter(Boolean).join(", ");
   const statusLabel =
@@ -359,13 +430,9 @@ export default function PerfilPage() {
 
   function updateContactVisibility(channel: ContactChannel, checked: boolean) {
     setForm((current) => {
-      const channels = checked
-        ? Array.from(new Set([...current.visibleContactChannels, channel]))
-        : current.visibleContactChannels.filter((item) => item !== channel);
-
       return {
         ...current,
-        visibleContactChannels: channels,
+        visibleContactChannels: checked ? [channel] : [],
       };
     });
     setIsEditing(true);
@@ -445,6 +512,54 @@ export default function PerfilPage() {
     setError("");
   }
 
+  function updatePrivateViewerDraft(value: string) {
+    setPrivateViewerDraft(value);
+    if (!normalizeUsername(value)) {
+      setPrivateViewerSuggestions([]);
+      setIsSearchingPrivateViewers(false);
+      setPrivateViewerError("");
+    } else {
+      setIsSearchingPrivateViewers(true);
+      setPrivateViewerError("");
+    }
+  }
+
+  function addPrivateViewer(username = privateViewerDraft) {
+    const normalizedUsername = normalizeUsername(username);
+    const isActiveProfile = privateViewerSuggestions.some(
+      (suggestion) =>
+        normalizeUsername(suggestion.username) === normalizedUsername,
+    );
+
+    if (!normalizedUsername || !isActiveProfile) {
+      setPrivateViewerError("Selecione um perfil ativo na lista de sugestoes.");
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      privatePhotoViewerUsernames: current.privatePhotoViewerUsernames.includes(
+        normalizedUsername,
+      )
+        ? current.privatePhotoViewerUsernames
+        : [...current.privatePhotoViewerUsernames, normalizedUsername],
+    }));
+    setPrivateViewerDraft("");
+    setPrivateViewerSuggestions([]);
+    setPrivateViewerError("");
+    setIsEditing(true);
+  }
+
+  function removePrivateViewer(usernameToRemove: string) {
+    setForm((current) => ({
+      ...current,
+      privatePhotoViewerUsernames: current.privatePhotoViewerUsernames.filter(
+        (username) => username !== usernameToRemove,
+      ),
+    }));
+    setIsEditing(true);
+  }
+
   function addCustomInterest() {
     const normalizedInterest = normalizeInterest(interestDraft);
 
@@ -490,14 +605,19 @@ export default function PerfilPage() {
     setError("");
   }
 
-  async function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
+  async function handlePhotoChange(
+    event: ChangeEvent<HTMLInputElement>,
+    isPrivate = false,
+  ) {
     const selectedFiles = Array.from(event.target.files ?? []);
 
     if (!selectedFiles.length) {
       return;
     }
 
-    const remainingSlots = MAX_PHOTOS - photos.length;
+    const categoryPhotos = isPrivate ? privatePhotos : publicPhotos;
+    const categoryLimit = isPrivate ? MAX_PRIVATE_PHOTOS : MAX_PUBLIC_PHOTOS;
+    const remainingSlots = categoryLimit - categoryPhotos.length;
     const imageFiles = selectedFiles.filter((file) =>
       file.type.startsWith("image/"),
     );
@@ -509,7 +629,11 @@ export default function PerfilPage() {
     }
 
     if (remainingSlots <= 0) {
-      setError(`Voce pode enviar no maximo ${MAX_PHOTOS} fotos.`);
+      setError(
+        `Voce pode enviar no maximo ${categoryLimit} fotos ${
+          isPrivate ? "privadas" : "publicas"
+        }.`,
+      );
       event.target.value = "";
       return;
     }
@@ -519,7 +643,8 @@ export default function PerfilPage() {
         dataUrl: await fileToDataUrl(file),
         fileName: file.name,
         mimeType: file.type,
-        sortOrder: photos.length + index + 1,
+        sortOrder: categoryPhotos.length + index + 1,
+        isPrivate,
       })),
     );
 
@@ -528,10 +653,10 @@ export default function PerfilPage() {
     event.target.value = "";
   }
 
-  function removePhoto(photoIndex: number) {
+  function removePhoto(photoToRemove: ProfilePhoto) {
     setPhotos((currentPhotos) =>
       currentPhotos
-        .filter((_, index) => index !== photoIndex)
+        .filter((photo) => photo !== photoToRemove)
         .map((photo, index) => ({ ...photo, sortOrder: index + 1 })),
     );
     setIsEditing(true);
@@ -563,12 +688,14 @@ export default function PerfilPage() {
         customInterests: form.customInterests,
         visibleContactChannels: form.visibleContactChannels,
         contactViewerUsernames: form.contactViewerUsernames,
+        privatePhotoViewerUsernames: form.privatePhotoViewerUsernames,
         profilePhotos: photos.map((photo, index) => ({
           id: photo.id,
           dataUrl: photo.dataUrl,
           fileName: photo.fileName,
           mimeType: photo.mimeType,
           sortOrder: index + 1,
+          isPrivate: Boolean(photo.isPrivate),
         })),
       };
 
@@ -620,337 +747,519 @@ export default function PerfilPage() {
   return (
     <ProfileApprovalGuard user={user}>
       <main className="min-h-screen bg-[radial-gradient(circle_at_18%_12%,color-mix(in_srgb,var(--emerald)_13%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--gold-soft)_22%,transparent),transparent_30%),url('/wallpaper-marble.png')] bg-cover bg-fixed bg-center text-black-jewel">
-      <Navbar />
+        <Navbar />
 
-      <section className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8 lg:px-8">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          className="sr-only"
-          onChange={handlePhotoChange}
-        />
+        <section className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8 lg:px-8">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="sr-only"
+            onChange={handlePhotoChange}
+          />
+          <input
+            ref={privateFileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="sr-only"
+            onChange={(event) => void handlePhotoChange(event, true)}
+          />
 
-        {error || feedback ? (
-          <div
-            className={[
-              "mb-4 rounded-md border px-4 py-3 text-sm font-bold",
-              error
-                ? "border-ruby/35 bg-[color-mix(in_srgb,var(--ruby)_10%,white)] text-ruby"
-                : "border-emerald/35 bg-[color-mix(in_srgb,var(--emerald)_10%,white)] text-emerald",
-            ].join(" ")}
-          >
-            {error || feedback}
-          </div>
-        ) : null}
+          {error || feedback ? (
+            <div
+              className={[
+                "mb-4 rounded-md border px-4 py-3 text-sm font-bold",
+                error
+                  ? "border-ruby/35 bg-[color-mix(in_srgb,var(--ruby)_10%,white)] text-ruby"
+                  : "border-emerald/35 bg-[color-mix(in_srgb,var(--emerald)_10%,white)] text-emerald",
+              ].join(" ")}
+            >
+              {error || feedback}
+            </div>
+          ) : null}
 
-        <div className="overflow-hidden rounded-lg border border-emerald/30 bg-[color-mix(in_srgb,var(--surface)_88%,white)] shadow-[0_28px_70px_rgba(0,55,44,0.16)] ring-1 ring-white/70 backdrop-blur-sm">
-          <div className="grid min-w-0 xl:grid-cols-[minmax(250px,310px)_minmax(0,1fr)_minmax(240px,290px)]">
-            <aside className="min-w-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_8%,white),color-mix(in_srgb,var(--surface)_94%,white)_42%,color-mix(in_srgb,var(--gold-soft)_12%,white))] p-4 sm:p-6 xl:p-7">
-              <div className="relative mx-auto w-full max-w-72">
-                <div className="aspect-4/5 overflow-hidden rounded-lg border-[3px] border-emerald/70 bg-[color-mix(in_srgb,var(--emerald)_10%,white)] p-1 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.86),0_18px_38px_rgba(0,55,44,0.18)] sm:aspect-[1/0.98]">
-                  <div className="h-full overflow-hidden rounded-md">
-                    {profilePhoto ? (
-                      // User uploads are data URLs and should not use Next image optimization.
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={profilePhoto.dataUrl}
-                        alt={`Foto de ${form.username || "perfil"}`}
-                        className="h-full w-full object-cover"
-                      />
+          <div className="overflow-hidden rounded-lg border border-emerald/30 bg-[color-mix(in_srgb,var(--surface)_88%,white)] shadow-[0_28px_70px_rgba(0,55,44,0.16)] ring-1 ring-white/70 backdrop-blur-sm">
+            <div className="grid min-w-0 xl:grid-cols-[minmax(250px,310px)_minmax(0,1fr)_minmax(240px,290px)]">
+              <aside className="min-w-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_8%,white),color-mix(in_srgb,var(--surface)_94%,white)_42%,color-mix(in_srgb,var(--gold-soft)_12%,white))] p-4 sm:p-6 xl:p-7">
+                <div className="relative mx-auto w-full max-w-72">
+                  <div className="aspect-4/5 overflow-hidden rounded-lg border-[3px] border-emerald/70 bg-[color-mix(in_srgb,var(--emerald)_10%,white)] p-1 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.86),0_18px_38px_rgba(0,55,44,0.18)] sm:aspect-[1/0.98]">
+                    <div className="h-full overflow-hidden rounded-md">
+                      {profilePhoto ? (
+                        // User uploads are data URLs and should not use Next image optimization.
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={profilePhoto.dataUrl}
+                          alt={`Foto de ${form.username || "perfil"}`}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white/74 px-4 text-center text-sm font-bold text-black-jewel"
+                        >
+                          <Camera className="h-10 w-10 text-emerald" />
+                          Adicionar foto
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 space-y-4 text-center sm:mt-8">
+                  <div className="min-w-0">
+                    <h1 className="wrap-anywhere text-2xl font-extrabold tracking-tight text-black-jewel sm:text-3xl">
+                      {form.username || user.username}
+                    </h1>
+                    <p className="mt-1 text-sm font-semibold leading-5 text-black-jewel/72 wrap-anywhere">
+                      {form.introductionPhrase}
+                    </p>
+                  </div>
+                  <div className="mx-auto h-px max-w-56 bg-[linear-gradient(90deg,transparent,var(--emerald),transparent)] opacity-45" />
+                  <dl className="mx-auto grid max-w-64 grid-cols-[minmax(70px,0.8fr)_minmax(0,1fr)] gap-x-4 gap-y-2 text-left text-sm sm:text-base">
+                    <dt className="font-semibold text-black-jewel/82">Idade</dt>
+                    <dd className="min-w-0 font-medium wrap-anywhere">
+                      {age || "Nao informado"}
+                    </dd>
+                    <dt className="font-semibold text-black-jewel/82">
+                      De onde é?
+                    </dt>
+                    <dd className="min-w-0 font-medium wrap-anywhere">
+                      {location || "Nao informado"}
+                    </dd>
+                  </dl>
+                </div>
+              </aside>
+
+              <section className="min-w-0 border-y border-emerald/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.48),rgba(255,255,255,0.16))] p-4 sm:p-6 xl:border-x xl:border-y-0 xl:p-7">
+                <div className="min-w-0 space-y-5">
+                  <div className="space-y-3">
+                    <h2 className="font-serif text-xl font-semibold text-black-jewel sm:text-2xl">
+                      Sobre Mim
+                    </h2>
+                    {isEditing ? (
+                      <div className="grid gap-4">
+                        <TextField
+                          label="Frase de apresentação"
+                          value={form.introductionPhrase}
+                          onChange={(value) =>
+                            updateField("introductionPhrase", value)
+                          }
+                        />
+                        <TextAreaField
+                          label="Sobre mim"
+                          value={form.aboutMe}
+                          onChange={(value) => updateField("aboutMe", value)}
+                        />
+                        <TextAreaField
+                          label="O que estou buscando"
+                          value={form.lookingForText}
+                          onChange={(value) =>
+                            updateField("lookingForText", value)
+                          }
+                        />
+                      </div>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white/74 px-4 text-center text-sm font-bold text-black-jewel"
-                      >
-                        <Camera className="h-10 w-10 text-emerald" />
-                        Adicionar foto
-                      </button>
+                      <div className="space-y-4 text-sm font-medium leading-6 text-black-jewel/82">
+                        <p className="wrap-anywhere">
+                          {form.aboutMe ||
+                            "Edite seu perfil para adicionar uma descrição sobre você!"}
+                        </p>
+                        {form.lookingForText ? (
+                          <p className="wrap-anywhere">{form.lookingForText}</p>
+                        ) : null}
+                      </div>
                     )}
                   </div>
-                </div>
-              </div>
 
-              <div className="mt-6 space-y-4 text-center sm:mt-8">
-                <div className="min-w-0">
-                  <h1 className="wrap-anywhere text-2xl font-extrabold tracking-tight text-black-jewel sm:text-3xl">
-                    {form.username || user.username}
-                  </h1>
-                  <p className="mt-1 text-sm font-semibold leading-5 text-black-jewel/72 wrap-anywhere">
-                    {form.introductionPhrase || "Sweet & Successful"}
-                  </p>
-                  <span className="mt-3 inline-flex min-h-7 items-center rounded-full border border-emerald/35 bg-[color-mix(in_srgb,var(--emerald)_9%,white)] px-3 py-1 text-xs font-extrabold uppercase text-emerald">
-                    {statusLabel}
-                  </span>
-                </div>
-                <div className="mx-auto h-px max-w-56 bg-[linear-gradient(90deg,transparent,var(--emerald),transparent)] opacity-45" />
-                <dl className="mx-auto grid max-w-64 grid-cols-[minmax(70px,0.8fr)_minmax(0,1fr)] gap-x-4 gap-y-2 text-left text-sm sm:text-base">
-                  <dt className="font-semibold text-black-jewel/82">Idade</dt>
-                  <dd className="min-w-0 font-medium wrap-anywhere">
-                    {age || "Nao informado"}
-                  </dd>
-                  <dt className="font-semibold text-black-jewel/82">
-                    De onde é?
-                  </dt>
-                  <dd className="min-w-0 font-medium wrap-anywhere">
-                    {location || "Nao informado"}
-                  </dd>
-                </dl>
-              </div>
-            </aside>
+                  <div className="h-px bg-[linear-gradient(90deg,var(--emerald),color-mix(in_srgb,var(--gold)_48%,white),transparent)] opacity-35" />
 
-            <section className="min-w-0 border-y border-emerald/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.48),rgba(255,255,255,0.16))] p-4 sm:p-6 xl:border-x xl:border-y-0 xl:p-7">
-              <div className="min-w-0 space-y-5">
-                <div className="space-y-3">
-                  <h2 className="font-serif text-xl font-semibold text-black-jewel sm:text-2xl">
-                    Sobre Mim
-                  </h2>
-                  {isEditing ? (
-                    <div className="grid gap-4">
-                      <TextField
-                        label="Frase de apresentação"
-                        value={form.introductionPhrase}
-                        onChange={(value) =>
-                          updateField("introductionPhrase", value)
-                        }
-                      />
-                      <TextAreaField
-                        label="Sobre mim"
-                        value={form.aboutMe}
-                        onChange={(value) => updateField("aboutMe", value)}
-                      />
-                      <TextAreaField
-                        label="O que estou buscando"
-                        value={form.lookingForText}
-                        onChange={(value) =>
-                          updateField("lookingForText", value)
-                        }
-                      />
-                    </div>
-                  ) : (
-                    <div className="space-y-4 text-sm font-medium leading-6 text-black-jewel/82">
-                      <p className="wrap-anywhere">
-                        {form.aboutMe ||
-                          "Edite seu perfil para adicionar uma descrição sobre você!"}
-                      </p>
-                      {form.lookingForText ? (
-                        <p className="wrap-anywhere">{form.lookingForText}</p>
-                      ) : null}
-                    </div>
-                  )}
-                </div>
+                  <ContactSection
+                    form={form}
+                    isEditing={isEditing}
+                    onToggle={updateContactVisibility}
+                    onContactChange={updateContactValue}
+                    viewerDraft={contactViewerDraft}
+                    onViewerDraftChange={updateContactViewerDraft}
+                    onAddViewer={addContactViewer}
+                    onRemoveViewer={removeContactViewer}
+                    suggestions={contactViewerSuggestions}
+                    isSearchingViewers={isSearchingContactViewers}
+                    viewerError={contactViewerError}
+                    canSelectViewers={
+                      user.role?.trim().toUpperCase() === "SUGAR_BABY"
+                    }
+                  />
 
-                <div className="h-px bg-[linear-gradient(90deg,var(--emerald),color-mix(in_srgb,var(--gold)_48%,white),transparent)] opacity-35" />
+                  <div className="h-px bg-[linear-gradient(90deg,var(--emerald),color-mix(in_srgb,var(--gold)_48%,white),transparent)] opacity-35" />
 
-                <ContactSection
-                  form={form}
-                  isEditing={isEditing}
-                  onToggle={updateContactVisibility}
-                  onContactChange={updateContactValue}
-                  viewerDraft={contactViewerDraft}
-                  onViewerDraftChange={updateContactViewerDraft}
-                  onAddViewer={addContactViewer}
-                  onRemoveViewer={removeContactViewer}
-                  suggestions={contactViewerSuggestions}
-                  isSearchingViewers={isSearchingContactViewers}
-                  viewerError={contactViewerError}
-                  canSelectViewers={
-                    user.role?.trim().toUpperCase() === "SUGAR_BABY"
-                  }
-                />
-
-                <div className="h-px bg-[linear-gradient(90deg,var(--emerald),color-mix(in_srgb,var(--gold)_48%,white),transparent)] opacity-35" />
-
-                <div className="space-y-3">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h2 className="font-serif text-xl font-semibold text-black-jewel sm:text-2xl">
-                      Interesses
-                    </h2>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      aria-label="Adicionar interesse"
-                      onClick={() => {
-                        setIsInterestInputOpen((current) => !current);
-                        setIsEditing(true);
-                      }}
-                      disabled={form.customInterests.length >= MAX_INTERESTS}
-                      className="h-8 w-8 rounded-full border border-emerald/45 bg-white/82 text-emerald shadow-none hover:bg-[color-mix(in_srgb,var(--emerald)_10%,white)] disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {form.customInterests.length > 0 ? (
-                    <div className="flex min-w-0 flex-wrap gap-2">
-                      {form.customInterests.map((interest) => (
-                        <span
-                          key={interest}
-                          className="inline-flex min-h-8 max-w-full items-center gap-2 rounded-full border border-emerald/35 bg-[color-mix(in_srgb,var(--emerald)_7%,white)] px-3 py-1 text-sm font-bold text-black-jewel shadow-[0_8px_18px_rgba(0,55,44,0.07)]"
-                        >
-                          <Tag className="h-3.5 w-3.5 shrink-0 text-emerald" />
-                          <span className="min-w-0 wrap-anywhere">
-                            {interest}
-                          </span>
-                          {isEditing ? (
-                            <button
-                              type="button"
-                              aria-label={`Remover interesse ${interest}`}
-                              onClick={() => removeCustomInterest(interest)}
-                              className="text-black-jewel/55 transition hover:text-ruby"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          ) : null}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                  {isInterestInputOpen && isEditing ? (
-                    <div className="flex max-w-sm flex-col gap-2 min-[420px]:flex-row">
-                      <Input
-                        value={interestDraft}
-                        maxLength={28}
-                        onChange={(event) =>
-                          setInterestDraft(
-                            normalizeInterest(event.target.value),
-                          )
-                        }
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") {
-                            event.preventDefault();
-                            addCustomInterest();
-                          }
-                        }}
-                        placeholder="Uma palavra"
-                        className="h-10 min-w-0 rounded-sm border-emerald/25 bg-white text-sm font-semibold focus-visible:border-emerald"
-                      />
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <h2 className="font-serif text-xl font-semibold text-black-jewel sm:text-2xl">
+                        Interesses
+                      </h2>
                       <Button
                         type="button"
-                        onClick={addCustomInterest}
-                        disabled={
-                          !interestDraft.trim() ||
-                          form.customInterests.length >= MAX_INTERESTS
-                        }
-                        className="h-10 shrink-0 rounded-sm border border-emerald bg-emerald px-3 font-extrabold text-white hover:bg-emerald/85 disabled:cursor-not-allowed disabled:opacity-45"
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Adicionar interesse"
+                        onClick={() => {
+                          setIsInterestInputOpen((current) => !current);
+                          setIsEditing(true);
+                        }}
+                        disabled={form.customInterests.length >= MAX_INTERESTS}
+                        className="h-8 w-8 rounded-full border border-emerald/45 bg-white/82 text-emerald shadow-none hover:bg-[color-mix(in_srgb,var(--emerald)_10%,white)] disabled:cursor-not-allowed disabled:opacity-45"
                       >
-                        <Check className="h-4 w-4" />
+                        <Plus className="h-4 w-4" />
                       </Button>
                     </div>
-                  ) : null}
-                  {isEditing && (
-                    <DetailsForm
-                      form={form}
-                      profileType={user?.gender}
-                      updateField={updateField}
-                    />
-                  )}
-                </div>
-
-                <div className="h-px bg-[linear-gradient(90deg,var(--emerald),color-mix(in_srgb,var(--gold)_48%,white),transparent)] opacity-35" />
-
-                <div className="space-y-3">
-                  <h2 className="font-serif text-xl font-semibold text-black-jewel sm:text-2xl">
-                    Gallery
-                  </h2>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {photos.slice(1, 4).map((photo, index) => (
-                      <GalleryTile
-                        key={`${photo.id ?? photo.fileName ?? "photo"}-${index}`}
-                        photo={photo}
-                        index={index + 1}
-                        isEditing={isEditing}
-                        onRemove={() => removePhoto(index + 1)}
-                      />
-                    ))}
-                    {photos.length < 4 ? (
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex aspect-[1.18/1] min-h-24 items-center justify-center rounded-sm border-2 border-dashed border-emerald/45 bg-[color-mix(in_srgb,var(--emerald)_5%,white)] text-emerald transition hover:bg-[color-mix(in_srgb,var(--emerald)_11%,white)]"
-                      >
-                        <ImagePlus className="h-7 w-7" />
-                      </button>
+                    {form.customInterests.length > 0 ? (
+                      <div className="flex min-w-0 flex-wrap gap-2">
+                        {form.customInterests.map((interest) => (
+                          <span
+                            key={interest}
+                            className="inline-flex min-h-8 max-w-full items-center gap-2 rounded-full border border-emerald/35 bg-[color-mix(in_srgb,var(--emerald)_7%,white)] px-3 py-1 text-sm font-bold text-black-jewel shadow-[0_8px_18px_rgba(0,55,44,0.07)]"
+                          >
+                            <Tag className="h-3.5 w-3.5 shrink-0 text-emerald" />
+                            <span className="min-w-0 wrap-anywhere">
+                              {interest}
+                            </span>
+                            {isEditing ? (
+                              <button
+                                type="button"
+                                aria-label={`Remover interesse ${interest}`}
+                                onClick={() => removeCustomInterest(interest)}
+                                className="text-black-jewel/55 transition hover:text-ruby"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            ) : null}
+                          </span>
+                        ))}
+                      </div>
                     ) : null}
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <aside className="min-w-0 bg-[radial-gradient(circle_at_12%_0%,rgba(255,255,255,0.14),transparent_28%),linear-gradient(145deg,#05251f,#083e34_50%,#111512)] p-4 text-white sm:p-6">
-              <div className="flex h-full flex-col justify-between gap-7">
-                <div className="space-y-4">
-                  <Button className="h-auto min-h-12 w-full rounded-full border border-white/20 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_78%,white),var(--emerald))] px-4 py-2 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(0,108,88,0.34)] hover:bg-emerald/85 sm:text-base">
-                    <Crown className="h-4 w-4" />
-                    SEJA PREMIUM
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={
-                      isEditing ? cancelEditing : () => setIsEditing(true)
-                    }
-                    className="h-auto min-h-12 w-full rounded-full border border-white/55 bg-white/5 px-4 py-2 text-sm font-extrabold text-white hover:bg-white hover:text-emerald sm:text-base"
-                  >
-                    {isEditing ? (
-                      <X className="h-4 w-4" />
-                    ) : (
-                      <Pencil className="h-4 w-4" />
+                    {isInterestInputOpen && isEditing ? (
+                      <div className="flex max-w-sm flex-col gap-2 min-[420px]:flex-row">
+                        <Input
+                          value={interestDraft}
+                          maxLength={28}
+                          onChange={(event) =>
+                            setInterestDraft(
+                              normalizeInterest(event.target.value),
+                            )
+                          }
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              addCustomInterest();
+                            }
+                          }}
+                          placeholder="Uma palavra"
+                          className="h-10 min-w-0 rounded-sm border-emerald/25 bg-white text-sm font-semibold focus-visible:border-emerald"
+                        />
+                        <Button
+                          type="button"
+                          onClick={addCustomInterest}
+                          disabled={
+                            !interestDraft.trim() ||
+                            form.customInterests.length >= MAX_INTERESTS
+                          }
+                          className="h-10 shrink-0 rounded-sm border border-emerald bg-emerald px-3 font-extrabold text-white hover:bg-emerald/85 disabled:cursor-not-allowed disabled:opacity-45"
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : null}
+                    {isEditing && (
+                      <DetailsForm
+                        form={form}
+                        profileType={user?.gender}
+                        updateField={updateField}
+                      />
                     )}
-                    {isEditing ? "Cancelar Edição" : "Editar Perfil"}
-                  </Button>
-                  {isEditing && (
+                  </div>
+
+                  <div className="h-px bg-[linear-gradient(90deg,var(--emerald),color-mix(in_srgb,var(--gold)_48%,white),transparent)] opacity-35" />
+
+                  <div className="space-y-3">
+                    <h2 className="font-serif text-xl font-semibold text-black-jewel sm:text-2xl">
+                      Gallery
+                    </h2>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                      {publicPhotos.slice(1, 6).map((photo, index) => (
+                        <GalleryTile
+                          key={`${photo.id ?? photo.fileName ?? "photo"}-${index}`}
+                          photo={photo}
+                          index={index + 1}
+                          isEditing={isEditing}
+                          onRemove={() => removePhoto(photo)}
+                        />
+                      ))}
+                      {publicPhotos.length < MAX_PUBLIC_PHOTOS ? (
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex aspect-[1.18/1] min-h-24 items-center justify-center rounded-sm border-2 border-dashed border-emerald/45 bg-[color-mix(in_srgb,var(--emerald)_5%,white)] text-emerald transition hover:bg-[color-mix(in_srgb,var(--emerald)_11%,white)]"
+                        >
+                          <ImagePlus className="h-7 w-7" />
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <PrivatePhotosSection
+                    photos={privatePhotos}
+                    isEditing={isEditing}
+                    onAddPhotos={() => privateFileInputRef.current?.click()}
+                    onRemovePhoto={removePhoto}
+                    viewerUsernames={form.privatePhotoViewerUsernames}
+                    viewerDraft={privateViewerDraft}
+                    onViewerDraftChange={updatePrivateViewerDraft}
+                    onAddViewer={addPrivateViewer}
+                    onRemoveViewer={removePrivateViewer}
+                    suggestions={privateViewerSuggestions}
+                    isSearching={isSearchingPrivateViewers}
+                    error={privateViewerError}
+                  />
+                </div>
+              </section>
+
+              <aside className="min-w-0 bg-[radial-gradient(circle_at_12%_0%,rgba(255,255,255,0.14),transparent_28%),linear-gradient(145deg,#05251f,#083e34_50%,#111512)] p-4 text-white sm:p-6">
+                <div className="flex h-full flex-col justify-between gap-7">
+                  <div className="space-y-4">
+                    <Button className="h-auto min-h-12 w-full rounded-full border border-white/20 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_78%,white),var(--emerald))] px-4 py-2 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(0,108,88,0.34)] hover:bg-emerald/85 sm:text-base">
+                      <Crown className="h-4 w-4" />
+                      SEJA PREMIUM
+                    </Button>
+                    <Button
+                      disabled
+                      className="h-auto min-h-12 w-full rounded-full border border-white/20 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_78%,white),var(--emerald))] px-4 py-2 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(0,108,88,0.34)] hover:bg-emerald/85 sm:text-base"
+                    >
+                      <Rocket className="h-4 w-4" />
+                      COMPRE UM BOOST
+                    </Button>
                     <Button
                       type="button"
-                      onClick={saveProfile}
-                      disabled={!isEditing || isSaving}
-                      className="h-auto min-h-12 w-full rounded-full border border-emerald/60 bg-[color-mix(in_srgb,var(--emerald)_28%,transparent)] px-4 py-2 text-sm font-extrabold text-white hover:bg-white hover:text-emerald disabled:cursor-not-allowed disabled:opacity-45 sm:text-base"
+                      onClick={
+                        isEditing ? cancelEditing : () => setIsEditing(true)
+                      }
+                      className="h-auto min-h-12 w-full rounded-full border border-white/55 bg-white/5 px-4 py-2 text-sm font-extrabold text-white hover:bg-white hover:text-emerald sm:text-base"
                     >
-                      {isSaving ? (
-                        <Loader2 className="h-4 w-4" />
+                      {isEditing ? (
+                        <X className="h-4 w-4" />
                       ) : (
-                        <Save className="h-4 w-4" />
+                        <Pencil className="h-4 w-4" />
                       )}
-                      {isSaving ? "Salvando..." : "Salvar"}
+                      {isEditing ? "Cancelar Edição" : "Editar Perfil"}
                     </Button>
-                  )}
-                </div>
-
-                <div className="space-y-4 border-t border-white/20 pt-6">
-                  <h2 className="font-serif text-xl font-semibold text-white sm:text-2xl">
-                    Gallery
-                  </h2>
-                  <div className="grid grid-cols-2 gap-3">
-                    {photos.slice(0, 4).map((photo, index) => (
-                      <GalleryTile
-                        key={`${photo.id ?? photo.fileName ?? "side"}-${index}`}
-                        photo={photo}
-                        index={index}
-                        isEditing={isEditing}
-                        onRemove={() => removePhoto(index)}
-                        dark
-                      />
-                    ))}
-                    {photos.length === 0 ? (
-                      <button
+                    {isEditing && (
+                      <Button
                         type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="col-span-2 flex aspect-2/1 flex-col items-center justify-center gap-2 rounded-sm border-2 border-dashed border-white/35 bg-white/5 text-sm font-bold text-white/82"
+                        onClick={saveProfile}
+                        disabled={!isEditing || isSaving}
+                        className="h-auto min-h-12 w-full rounded-full border border-emerald/60 bg-[color-mix(in_srgb,var(--emerald)_28%,transparent)] px-4 py-2 text-sm font-extrabold text-white hover:bg-white hover:text-emerald disabled:cursor-not-allowed disabled:opacity-45 sm:text-base"
                       >
-                        <ImagePlus className="h-7 w-7" />
-                        Adicionar fotos
-                      </button>
-                    ) : null}
+                        {isSaving ? (
+                          <Loader2 className="h-4 w-4" />
+                        ) : (
+                          <Save className="h-4 w-4" />
+                        )}
+                        {isSaving ? "Salvando..." : "Salvar"}
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="space-y-4 border-t border-white/20 pt-6">
+                    <h2 className="font-serif text-xl font-semibold text-white sm:text-2xl">
+                      Gallery
+                    </h2>
+                    <div className="grid grid-cols-2 gap-3">
+                      {publicPhotos.slice(0, 4).map((photo, index) => (
+                        <GalleryTile
+                          key={`${photo.id ?? photo.fileName ?? "side"}-${index}`}
+                          photo={photo}
+                          index={index}
+                          isEditing={isEditing}
+                          onRemove={() => removePhoto(photo)}
+                          dark
+                        />
+                      ))}
+                      {publicPhotos.length === 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="col-span-2 flex aspect-2/1 flex-col items-center justify-center gap-2 rounded-sm border-2 border-dashed border-white/35 bg-white/5 text-sm font-bold text-white/82"
+                        >
+                          <ImagePlus className="h-7 w-7" />
+                          Adicionar fotos
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </aside>
+              </aside>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
       </main>
     </ProfileApprovalGuard>
+  );
+}
+
+function PrivatePhotosSection({
+  photos,
+  isEditing,
+  onAddPhotos,
+  onRemovePhoto,
+  viewerUsernames,
+  viewerDraft,
+  onViewerDraftChange,
+  onAddViewer,
+  onRemoveViewer,
+  suggestions,
+  isSearching,
+  error,
+}: {
+  photos: ProfilePhoto[];
+  isEditing: boolean;
+  onAddPhotos: () => void;
+  onRemovePhoto: (photo: ProfilePhoto) => void;
+  viewerUsernames: string[];
+  viewerDraft: string;
+  onViewerDraftChange: (value: string) => void;
+  onAddViewer: (username?: string) => void;
+  onRemoveViewer: (username: string) => void;
+  suggestions: ContactViewerSuggestion[];
+  isSearching: boolean;
+  error: string;
+}) {
+  const availableSuggestions = suggestions.filter(
+    (suggestion) =>
+      !viewerUsernames.includes(normalizeUsername(suggestion.username)),
+  );
+
+  return (
+    <section className="space-y-3 rounded-md border border-gold/30 bg-[color-mix(in_srgb,var(--gold-soft)_12%,white)] p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="flex items-center gap-2 font-serif text-xl font-semibold text-black-jewel sm:text-2xl">
+            <Lock className="h-5 w-5 text-gold" />
+            Fotos privadas
+          </h2>
+          <p className="mt-1 text-xs font-semibold text-black-jewel/62">
+            Somente os perfis autorizados abaixo poderão visualizar estas fotos.
+          </p>
+        </div>
+        {isEditing && photos.length < MAX_PRIVATE_PHOTOS ? (
+          <Button
+            type="button"
+            onClick={onAddPhotos}
+            className="h-10 rounded-full bg-gold px-4 font-extrabold text-white hover:bg-gold/85"
+          >
+            <ImagePlus className="h-4 w-4" />
+            Adicionar
+          </Button>
+        ) : null}
+      </div>
+
+      {photos.length > 0 ? (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {photos.map((photo, index) => (
+            <GalleryTile
+              key={`${photo.id ?? photo.fileName ?? "private"}-${index}`}
+              photo={photo}
+              index={index}
+              isEditing={isEditing}
+              onRemove={() => onRemovePhoto(photo)}
+            />
+          ))}
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={onAddPhotos}
+          disabled={!isEditing}
+          className="flex min-h-24 w-full items-center justify-center gap-2 rounded-sm border-2 border-dashed border-gold/40 bg-white/55 text-sm font-bold text-gold disabled:cursor-default"
+        >
+          <Lock className="h-5 w-5" />
+          Nenhuma foto privada
+        </button>
+      )}
+
+      {isEditing ? (
+        <div className="space-y-2 border-t border-gold/20 pt-3">
+          <Label className="font-bold text-black-jewel">
+            Quem pode ver suas fotos privadas
+          </Label>
+          <div className="flex gap-2">
+            <Input
+              value={viewerDraft}
+              onChange={(event) => onViewerDraftChange(event.target.value)}
+              placeholder="Digite o username"
+              className="h-10 border-gold/30 bg-white"
+            />
+            <Button
+              type="button"
+              size="icon"
+              disabled={availableSuggestions.length === 0}
+              onClick={() =>
+                availableSuggestions[0] &&
+                onAddViewer(availableSuggestions[0].username)
+              }
+              className="h-10 w-10 bg-gold text-white hover:bg-gold/85"
+            >
+              {isSearching ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          {viewerDraft.trim() && availableSuggestions.length > 0 ? (
+            <div className="grid max-h-40 gap-1 overflow-y-auto rounded-sm border border-gold/25 bg-white p-1">
+              {availableSuggestions.map((suggestion) => (
+                <button
+                  key={suggestion.id}
+                  type="button"
+                  onClick={() => onAddViewer(suggestion.username)}
+                  className="flex justify-between rounded-sm px-3 py-2 text-left text-sm hover:bg-gold-soft/20"
+                >
+                  <span className="font-bold">@{suggestion.username}</span>
+                  <span className="text-black-jewel/52">
+                    {[suggestion.city, suggestion.state]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {error ? (
+            <p className="text-xs font-bold text-ruby">{error}</p>
+          ) : null}
+          <div className="flex flex-wrap gap-2">
+            {viewerUsernames.map((username) => (
+              <span
+                key={username}
+                className="inline-flex items-center gap-2 rounded-full border border-gold/35 bg-white px-3 py-1 text-sm font-bold"
+              >
+                @{username}
+                <button
+                  type="button"
+                  aria-label={`Remover ${username}`}
+                  onClick={() => onRemoveViewer(username)}
+                  className="text-black-jewel/55 hover:text-ruby"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </section>
   );
 }
 
@@ -1000,13 +1309,17 @@ function DetailsForm({
         label="Tipo de corpo"
         value={form.bodyType}
         onValueChange={(value) => updateField("bodyType", value)}
-        options={optionsForProfile(bodyTypes, profileType).map(optionToSelectItem)}
+        options={optionsForProfile(bodyTypes, profileType).map(
+          optionToSelectItem,
+        )}
       />
       <ProfileSelect
         label="Tom de pele"
         value={form.ethnicity}
         onValueChange={(value) => updateField("ethnicity", value)}
-        options={optionsForProfile(ethnicities, profileType).map(optionToSelectItem)}
+        options={optionsForProfile(ethnicities, profileType).map(
+          optionToSelectItem,
+        )}
       />
       <ProfileSelect
         label="Cabelo"
@@ -1133,8 +1446,8 @@ function ContactSection({
               O que deseja liberar
             </Label>
             <p className="mt-1 text-xs font-medium text-black-jewel/62">
-              Selecione os contatos que poderão aparecer para os Sugar Daddies
-              autorizados.
+              Escolha no máximo um contato para aparecer aos Sugar Daddies
+              autorizados. Se preferir, deixe todos ocultos.
             </p>
             <details className="group relative mt-2">
               <summary className="flex h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-sm border border-emerald/30 bg-white px-3 text-sm font-semibold text-black-jewel shadow-[0_8px_18px_rgba(0,55,44,0.06)] [&::-webkit-details-marker]:hidden">
@@ -1151,41 +1464,44 @@ function ContactSection({
                 <ChevronDown className="h-4 w-4 shrink-0 text-emerald transition group-open:rotate-180" />
               </summary>
               <div className="absolute z-40 mt-1 grid w-full gap-1 rounded-sm border border-emerald/25 bg-white p-2 shadow-xl">
-                {contactChannelOptions.map(
-                  ({ channel, label, icon: Icon }) => {
-                    const hasValue = Boolean(form[channel].trim());
-                    const selected = visibleContactChannels.includes(channel);
+                {contactChannelOptions.map(({ channel, label, icon: Icon }) => {
+                  const hasValue = Boolean(form[channel].trim());
+                  const selected = visibleContactChannels.includes(channel);
 
-                    return (
-                      <label
-                        key={channel}
+                  return (
+                    <button
+                      key={channel}
+                      type="button"
+                      disabled={!hasValue}
+                      aria-pressed={selected}
+                      onClick={() => onToggle(channel, !selected)}
+                      className={[
+                        "flex min-h-10 w-full items-center gap-3 rounded-sm px-2 py-2 text-left text-sm font-semibold transition",
+                        hasValue
+                          ? "cursor-pointer hover:bg-[color-mix(in_srgb,var(--emerald)_8%,white)]"
+                          : "cursor-not-allowed opacity-50",
+                      ].join(" ")}
+                    >
+                      <span
                         className={[
-                          "flex min-h-10 items-center gap-3 rounded-sm px-2 py-2 text-sm font-semibold transition",
-                          hasValue
-                            ? "cursor-pointer hover:bg-[color-mix(in_srgb,var(--emerald)_8%,white)]"
-                            : "cursor-not-allowed opacity-50",
+                          "grid h-4 w-4 shrink-0 place-items-center rounded-full border",
+                          selected
+                            ? "border-emerald bg-emerald text-white"
+                            : "border-emerald/45 bg-white",
                         ].join(" ")}
                       >
-                        <Checkbox
-                          checked={selected}
-                          disabled={!hasValue}
-                          aria-label={`Liberar ${label}`}
-                          onCheckedChange={(checked) =>
-                            onToggle(channel, checked === true)
-                          }
-                          className="border-emerald/45 bg-white data-checked:border-emerald data-checked:bg-emerald data-checked:text-white"
-                        />
-                        <Icon className="h-4 w-4 shrink-0 text-emerald" />
-                        <span className="flex-1">{label}</span>
-                        {!hasValue ? (
-                          <span className="text-xs font-medium text-black-jewel/52">
-                            Preencha primeiro
-                          </span>
-                        ) : null}
-                      </label>
-                    );
-                  },
-                )}
+                        {selected ? <Check className="h-3 w-3" /> : null}
+                      </span>
+                      <Icon className="h-4 w-4 shrink-0 text-emerald" />
+                      <span className="flex-1">{label}</span>
+                      {!hasValue ? (
+                        <span className="text-xs font-medium text-black-jewel/52">
+                          Preencha primeiro
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
               </div>
             </details>
           </div>
@@ -1235,124 +1551,128 @@ function ContactSection({
           </div>
 
           {canSelectViewers ? (
-          <div className="rounded-sm border border-emerald/30 bg-white/78 p-3 shadow-[0_10px_20px_rgba(0,55,44,0.07)]">
-            <Label className="font-bold text-black-jewel">
-              Quem pode ver seus contatos
-            </Label>
-            <p className="mt-1 text-xs font-medium text-black-jewel/62">
-              Busque e selecione Sugar Daddies ativos na plataforma.
-            </p>
-            <div className="relative mt-2">
-              <div className="flex min-w-0 gap-2">
-              <Input
-                value={viewerDraft}
-                onChange={(event) =>
-                  onViewerDraftChange(event.target.value.slice(0, 50))
-                }
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    const suggestion = exactSuggestion ?? availableSuggestions[0];
-                    if (suggestion) {
-                      onAddViewer(suggestion.username);
+            <div className="rounded-sm border border-emerald/30 bg-white/78 p-3 shadow-[0_10px_20px_rgba(0,55,44,0.07)]">
+              <Label className="font-bold text-black-jewel">
+                Quem pode ver seus contatos
+              </Label>
+              <p className="mt-1 text-xs font-medium text-black-jewel/62">
+                Busque e selecione Sugar Daddies ativos na plataforma.
+              </p>
+              <div className="relative mt-2">
+                <div className="flex min-w-0 gap-2">
+                  <Input
+                    value={viewerDraft}
+                    onChange={(event) =>
+                      onViewerDraftChange(event.target.value.slice(0, 50))
                     }
-                  }
-                }}
-                role="combobox"
-                aria-autocomplete="list"
-                aria-expanded={availableSuggestions.length > 0}
-                placeholder="Digite o username do Sugar Daddy"
-                className="h-10 min-w-0 rounded-sm border-emerald/25 bg-white focus-visible:border-emerald"
-              />
-              <Button
-                type="button"
-                size="icon"
-                aria-label="Adicionar username"
-                disabled={!exactSuggestion}
-                onClick={() =>
-                  exactSuggestion && onAddViewer(exactSuggestion.username)
-                }
-                className="h-10 w-10 shrink-0 rounded-sm bg-emerald text-white hover:bg-emerald/85"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-              </div>
-
-              {viewerDraft.trim() &&
-              (isSearchingViewers || availableSuggestions.length > 0) ? (
-                <div
-                  role="listbox"
-                  className="absolute z-30 mt-1 max-h-56 w-[calc(100%-3rem)] overflow-y-auto rounded-sm border border-emerald/25 bg-white p-1 shadow-xl"
-                >
-                  {isSearchingViewers ? (
-                    <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-black-jewel/62">
-                      <Loader2 className="h-4 w-4 animate-spin text-emerald" />
-                      Buscando perfis ativos...
-                    </div>
-                  ) : (
-                    availableSuggestions.map((suggestion) => (
-                      <button
-                        key={suggestion.id}
-                        type="button"
-                        role="option"
-                        aria-selected={
-                          normalizeUsername(suggestion.username) ===
-                          normalizeUsername(viewerDraft)
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        const suggestion =
+                          exactSuggestion ?? availableSuggestions[0];
+                        if (suggestion) {
+                          onAddViewer(suggestion.username);
                         }
-                        onClick={() => onAddViewer(suggestion.username)}
-                        className="flex w-full min-w-0 items-center justify-between gap-3 rounded-sm px-3 py-2 text-left hover:bg-[color-mix(in_srgb,var(--emerald)_8%,white)]"
-                      >
-                        <span className="min-w-0 truncate text-sm font-bold text-black-jewel">
-                          @{suggestion.username}
-                        </span>
-                        <span className="shrink-0 text-xs font-medium text-black-jewel/52">
-                          {[suggestion.city, suggestion.state]
-                            .filter(Boolean)
-                            .join(", ") || "Ativo"}
-                        </span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              ) : null}
-            </div>
-
-            {viewerError ? (
-              <p className="mt-2 text-xs font-bold text-ruby">{viewerError}</p>
-            ) : viewerDraft.trim() &&
-              !isSearchingViewers &&
-              availableSuggestions.length === 0 ? (
-              <p className="mt-2 text-xs font-medium text-black-jewel/62">
-                Nenhum Sugar Daddy ativo encontrado com esse username.
-              </p>
-            ) : null}
-
-            {contactViewerUsernames.length > 0 ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {contactViewerUsernames.map((username) => (
-                  <span
-                    key={username}
-                    className="inline-flex min-h-8 min-w-0 items-center gap-2 rounded-full border border-emerald/35 bg-[color-mix(in_srgb,var(--emerald)_8%,white)] px-3 py-1 text-sm font-bold text-black-jewel"
+                      }
+                    }}
+                    role="combobox"
+                    aria-autocomplete="list"
+                    aria-expanded={availableSuggestions.length > 0}
+                    placeholder="Digite o username do Sugar Daddy"
+                    className="h-10 min-w-0 rounded-sm border-emerald/25 bg-white focus-visible:border-emerald"
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    aria-label="Adicionar username"
+                    disabled={!exactSuggestion}
+                    onClick={() =>
+                      exactSuggestion && onAddViewer(exactSuggestion.username)
+                    }
+                    className="h-10 w-10 shrink-0 rounded-sm bg-emerald text-white hover:bg-emerald/85"
                   >
-                    <AtSign className="h-3.5 w-3.5 shrink-0 text-emerald" />
-                    <span className="min-w-0 truncate">{username}</span>
-                    <button
-                      type="button"
-                      aria-label={`Remover ${username}`}
-                      onClick={() => onRemoveViewer(username)}
-                      className="rounded-full text-black-jewel/60 hover:text-ruby"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </span>
-                ))}
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {viewerDraft.trim() &&
+                (isSearchingViewers || availableSuggestions.length > 0) ? (
+                  <div
+                    role="listbox"
+                    className="absolute z-30 mt-1 max-h-56 w-[calc(100%-3rem)] overflow-y-auto rounded-sm border border-emerald/25 bg-white p-1 shadow-xl"
+                  >
+                    {isSearchingViewers ? (
+                      <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-black-jewel/62">
+                        <Loader2 className="h-4 w-4 animate-spin text-emerald" />
+                        Buscando perfis ativos...
+                      </div>
+                    ) : (
+                      availableSuggestions.map((suggestion) => (
+                        <button
+                          key={suggestion.id}
+                          type="button"
+                          role="option"
+                          aria-selected={
+                            normalizeUsername(suggestion.username) ===
+                            normalizeUsername(viewerDraft)
+                          }
+                          onClick={() => onAddViewer(suggestion.username)}
+                          className="flex w-full min-w-0 items-center justify-between gap-3 rounded-sm px-3 py-2 text-left hover:bg-[color-mix(in_srgb,var(--emerald)_8%,white)]"
+                        >
+                          <span className="min-w-0 truncate text-sm font-bold text-black-jewel">
+                            @{suggestion.username}
+                          </span>
+                          <span className="shrink-0 text-xs font-medium text-black-jewel/52">
+                            {[suggestion.city, suggestion.state]
+                              .filter(Boolean)
+                              .join(", ") || "Ativo"}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                ) : null}
               </div>
-            ) : (
-              <p className="mt-2 text-xs font-medium leading-4 text-black-jewel/62">
-                Nenhum username selecionado. Seus contatos nao aparecerao para outros perfis.
-              </p>
-            )}
-          </div>
+
+              {viewerError ? (
+                <p className="mt-2 text-xs font-bold text-ruby">
+                  {viewerError}
+                </p>
+              ) : viewerDraft.trim() &&
+                !isSearchingViewers &&
+                availableSuggestions.length === 0 ? (
+                <p className="mt-2 text-xs font-medium text-black-jewel/62">
+                  Nenhum Sugar Daddy ativo encontrado com esse username.
+                </p>
+              ) : null}
+
+              {contactViewerUsernames.length > 0 ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {contactViewerUsernames.map((username) => (
+                    <span
+                      key={username}
+                      className="inline-flex min-h-8 min-w-0 items-center gap-2 rounded-full border border-emerald/35 bg-[color-mix(in_srgb,var(--emerald)_8%,white)] px-3 py-1 text-sm font-bold text-black-jewel"
+                    >
+                      <AtSign className="h-3.5 w-3.5 shrink-0 text-emerald" />
+                      <span className="min-w-0 truncate">{username}</span>
+                      <button
+                        type="button"
+                        aria-label={`Remover ${username}`}
+                        onClick={() => onRemoveViewer(username)}
+                        className="rounded-full text-black-jewel/60 hover:text-ruby"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2 text-xs font-medium leading-4 text-black-jewel/62">
+                  Nenhum username selecionado. Seus contatos nao aparecerao para
+                  outros perfis.
+                </p>
+              )}
+            </div>
           ) : null}
         </div>
       ) : visibleContacts.length > 0 ? (
@@ -1559,7 +1879,10 @@ function formFromUser(user: ProfileUser): ProfileForm {
     aboutMe: user.preferences?.aboutMe ?? "",
     lookingForText: user.preferences?.lookingFor ?? "",
     bodyType: describeForProfile(user.appearance?.bodyType ?? "", user.gender),
-    ethnicity: describeForProfile(user.appearance?.ethnicity ?? "", user.gender),
+    ethnicity: describeForProfile(
+      user.appearance?.ethnicity ?? "",
+      user.gender,
+    ),
     hairColor: user.appearance?.hairColor ?? "",
     eyeColor: user.appearance?.eyeColor ?? "",
     heightCm: user.appearance?.heightCm ? String(user.appearance.heightCm) : "",
@@ -1579,6 +1902,9 @@ function formFromUser(user: ProfileUser): ProfileForm {
     ),
     contactViewerUsernames: normalizeUsernames(
       preferences?.contactViewerUsernames,
+    ),
+    privatePhotoViewerUsernames: normalizeUsernames(
+      preferences?.privatePhotoViewerUsernames,
     ),
   };
 }
@@ -1610,6 +1936,7 @@ const emptyForm: ProfileForm = {
   customInterests: [],
   visibleContactChannels: [],
   contactViewerUsernames: [],
+  privatePhotoViewerUsernames: [],
 };
 
 function fileToDataUrl(file: File) {
@@ -1698,12 +2025,13 @@ function normalizeUsernames(value: unknown) {
 
 function normalizeVisibleContactChannels(value: unknown, user: ProfileUser) {
   if (Array.isArray(value)) {
-    return value.filter(isContactChannel);
+    return value.filter(isContactChannel).slice(0, 1);
   }
 
   return contactChannelOptions
     .filter(({ channel }) => Boolean(user[channel]))
-    .map(({ channel }) => channel);
+    .map(({ channel }) => channel)
+    .slice(0, 1);
 }
 
 function isContactChannel(value: unknown): value is ContactChannel {

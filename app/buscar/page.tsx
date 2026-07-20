@@ -1,9 +1,12 @@
 "use client";
 
 import {
+  ChevronLeft,
+  ChevronRight,
   Crown,
   Eye,
   Loader2,
+  MoreHorizontal,
   Search,
   ShieldCheck,
   SlidersHorizontal,
@@ -23,7 +26,17 @@ import {
 import StatePanel from "./components/StatePanel";
 import ProfileCard from "./components/ProfileCard";
 import { getProfilePhoto } from "./profile-utils";
-import { PublicProfile } from "./types";
+import type { PublicProfile, PublicProfilePage } from "./types";
+
+const PAGE_SIZE = 6;
+const SEARCH_STATE_KEY = "sugarmimo:buscar-state";
+
+type SavedSearchState = {
+  searchDraft: string;
+  search: string;
+  page: number;
+  scrollY: number;
+};
 
 export default function BuscarPage() {
   const router = useRouter();
@@ -32,8 +45,12 @@ export default function BuscarPage() {
   const [search, setSearch] = useState("");
   const [profiles, setProfiles] = useState<PublicProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState("");
-  const [presenceRefresh, setPresenceRefresh] = useState(0);
+  const [hasRestoredState, setHasRestoredState] = useState(false);
+  const [scrollToRestore, setScrollToRestore] = useState<number | null>(null);
 
   const normalizedRole = user?.role?.trim().toUpperCase();
   const isDaddy = normalizedRole === "SUGAR_DADDY";
@@ -46,18 +63,59 @@ export default function BuscarPage() {
   const isApprovalPending = shouldShowPendingApproval(user);
 
   useEffect(() => {
+    const savedState = readSavedSearchState();
+    const frame = window.requestAnimationFrame(() => {
+      if (savedState) {
+        setSearchDraft(savedState.searchDraft);
+        setSearch(savedState.search);
+        setPage(savedState.page);
+        setScrollToRestore(savedState.scrollY);
+      }
+
+      setHasRestoredState(true);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    if (!hasRestoredState) {
+      return;
+    }
+
+    function saveCurrentState() {
+      saveSearchState({
+        searchDraft,
+        search,
+        page,
+        scrollY: window.scrollY,
+      });
+    }
+
+    saveCurrentState();
+    window.addEventListener("scroll", saveCurrentState, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", saveCurrentState);
+      saveCurrentState();
+    };
+  }, [hasRestoredState, page, search, searchDraft]);
+
+  useEffect(() => {
     if (!user) {
       router.replace("/login");
     }
   }, [router, user]);
 
   useEffect(() => {
-    if (!user || isApprovalPending || !canSearch) {
+    if (!hasRestoredState || !user || isApprovalPending || !canSearch) {
       return;
     }
 
     const controller = new AbortController();
     const params = new URLSearchParams();
+    params.set("page", String(page));
+    params.set("limit", String(PAGE_SIZE));
 
     if (search.trim()) {
       params.set("search", search.trim());
@@ -71,7 +129,7 @@ export default function BuscarPage() {
 
         if (response.status === 401) {
           router.replace("/login");
-          return [];
+          return null;
         }
 
         if (!response.ok) {
@@ -80,11 +138,14 @@ export default function BuscarPage() {
           );
         }
 
-        return Array.isArray(result) ? (result as PublicProfile[]) : [];
+        return result as PublicProfilePage;
       })
       .then((result) => {
-        if (!controller.signal.aborted) {
-          setProfiles(result);
+        if (!controller.signal.aborted && result) {
+          setProfiles(Array.isArray(result.items) ? result.items : []);
+          setTotal(Number(result.total) || 0);
+          setTotalPages(Number(result.totalPages) || 0);
+          setError("");
         }
       })
       .catch((fetchError) => {
@@ -98,6 +159,8 @@ export default function BuscarPage() {
             : "Nao foi possivel carregar a busca.",
         );
         setProfiles([]);
+        setTotal(0);
+        setTotalPages(0);
       })
       .finally(() => {
         if (!controller.signal.aborted) {
@@ -106,17 +169,28 @@ export default function BuscarPage() {
       });
 
     return () => controller.abort();
-  }, [canSearch, isApprovalPending, presenceRefresh, router, search, user]);
+  }, [
+    canSearch,
+    hasRestoredState,
+    isApprovalPending,
+    page,
+    router,
+    search,
+    user,
+  ]);
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === "visible") {
-        setPresenceRefresh((current) => current + 1);
-      }
-    }, 60_000);
+    if (isLoading || scrollToRestore === null) {
+      return;
+    }
 
-    return () => window.clearInterval(interval);
-  }, []);
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: scrollToRestore, behavior: "auto" });
+      setScrollToRestore(null);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [isLoading, scrollToRestore]);
 
   const featuredCount = useMemo(
     () => profiles.filter((profile) => getProfilePhoto(profile)).length,
@@ -137,7 +211,28 @@ export default function BuscarPage() {
 
     setIsLoading(true);
     setError("");
+    setPage(1);
     setSearch(nextSearch);
+  }
+
+  function goToPage(nextPage: number) {
+    if (
+      isLoading ||
+      nextPage === page ||
+      nextPage < 1 ||
+      nextPage > totalPages
+    ) {
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+    setPage(nextPage);
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById("profile-results")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   if (!user || isApprovalPending) {
@@ -187,27 +282,9 @@ export default function BuscarPage() {
                   </Button>
                 </div>
               </form>
-
-              <div className="mt-5 grid gap-2">
-                <Metric
-                  icon={ShieldCheck}
-                  label="Perfis ativos"
-                  value={String(profiles.length)}
-                />
-                <Metric
-                  icon={Eye}
-                  label="Com foto"
-                  value={String(featuredCount)}
-                />
-                <Metric
-                  icon={SlidersHorizontal}
-                  label="Online agora"
-                  value={String(onlineCount)}
-                />
-              </div>
             </aside>
 
-            <section className="min-w-0">
+            <section id="profile-results" className="min-w-0 scroll-mt-24">
               {!canSearch ? (
                 <AccessNotice />
               ) : error ? (
@@ -230,10 +307,30 @@ export default function BuscarPage() {
                   description="Tente buscar por outro nome, cidade ou estado."
                 />
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {profiles.map((profile) => (
-                    <ProfileCard key={profile.id} profile={profile} />
-                  ))}
+                <div className="space-y-5">
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    {profiles.map((profile) => (
+                      <ProfileCard
+                        key={profile.id}
+                        profile={profile}
+                        onNavigate={() =>
+                          saveSearchState({
+                            searchDraft,
+                            search,
+                            page,
+                            scrollY: window.scrollY,
+                          })
+                        }
+                      />
+                    ))}
+                  </div>
+
+                  <Pagination
+                    page={page}
+                    total={total}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                  />
                 </div>
               )}
             </section>
@@ -242,6 +339,137 @@ export default function BuscarPage() {
       </main>
     </ProfileApprovalGuard>
   );
+}
+
+function readSavedSearchState(): SavedSearchState | null {
+  try {
+    const parsed = JSON.parse(
+      window.sessionStorage.getItem(SEARCH_STATE_KEY) ?? "null",
+    ) as Partial<SavedSearchState> | null;
+
+    if (!parsed || !Number.isInteger(parsed.page) || Number(parsed.page) < 1) {
+      return null;
+    }
+
+    return {
+      searchDraft: typeof parsed.searchDraft === "string" ? parsed.searchDraft : "",
+      search: typeof parsed.search === "string" ? parsed.search : "",
+      page: Number(parsed.page),
+      scrollY:
+        typeof parsed.scrollY === "number" && parsed.scrollY >= 0
+          ? parsed.scrollY
+          : 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveSearchState(state: SavedSearchState) {
+  try {
+    window.sessionStorage.setItem(SEARCH_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // The search still works if session storage is unavailable.
+  }
+}
+
+function Pagination({
+  page,
+  total,
+  totalPages,
+  onPageChange,
+}: {
+  page: number;
+  total: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}) {
+  if (totalPages <= 1) {
+    return null;
+  }
+
+  const firstProfile = (page - 1) * PAGE_SIZE + 1;
+  const lastProfile = Math.min(page * PAGE_SIZE, total);
+  const pageItems = getPaginationItems(page, totalPages);
+  const navigationButton =
+    "inline-flex h-10 items-center justify-center gap-1 rounded-full border border-emerald/22 bg-white/82 px-3 text-sm font-extrabold text-black-jewel shadow-[0_6px_16px_rgba(0,55,44,0.06)] transition hover:border-emerald/45 hover:bg-emerald hover:text-white disabled:pointer-events-none disabled:opacity-35 sm:px-4";
+
+  return (
+    <nav
+      aria-label="Paginação de perfis"
+      className="overflow-hidden rounded-lg border border-emerald/20 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--surface)_94%,white),color-mix(in_srgb,var(--emerald)_7%,white))] px-3 py-4 shadow-[0_16px_38px_rgba(20,17,14,0.09)] ring-1 ring-white/70 sm:px-5"
+    >
+      <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+        <button
+          type="button"
+          className={navigationButton}
+          onClick={() => onPageChange(page - 1)}
+          disabled={page === 1}
+          aria-label="Ir para a página anterior"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span className="hidden sm:inline">Anterior</span>
+        </button>
+
+        <div className="flex items-center gap-1" aria-label="Páginas">
+          {pageItems.map((item, index) =>
+            typeof item === "number" ? (
+              <button
+                key={item}
+                type="button"
+                onClick={() => onPageChange(item)}
+                aria-label={`Ir para a página ${item}`}
+                aria-current={item === page ? "page" : undefined}
+                className={[
+                  "grid h-10 min-w-10 place-items-center rounded-full border px-2 text-sm font-extrabold transition",
+                  item === page
+                    ? "border-emerald bg-emerald text-white shadow-[0_9px_22px_rgba(0,108,88,0.24)]"
+                    : "border-transparent bg-transparent text-black-jewel/70 hover:border-emerald/28 hover:bg-white/85 hover:text-emerald",
+                ].join(" ")}
+              >
+                {item}
+              </button>
+            ) : (
+              <span
+                key={`${item}-${index}`}
+                className="grid h-10 w-7 place-items-center text-black-jewel/45"
+                aria-hidden="true"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </span>
+            ),
+          )}
+        </div>
+
+        <button
+          type="button"
+          className={navigationButton}
+          onClick={() => onPageChange(page + 1)}
+          disabled={page === totalPages}
+          aria-label="Ir para a próxima página"
+        >
+          <span className="hidden sm:inline">Próxima</span>
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+    </nav>
+  );
+}
+
+function getPaginationItems(currentPage: number, totalPages: number) {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  if (currentPage <= 3) {
+    return [1, 2, 3, "ellipsis" as const, totalPages];
+  }
+
+  if (currentPage >= totalPages - 2) {
+    return [1, "ellipsis" as const, totalPages - 2, totalPages - 1, totalPages];
+  }
+
+  return [1, "ellipsis" as const, currentPage, "ellipsis" as const, totalPages];
 }
 
 function Metric({

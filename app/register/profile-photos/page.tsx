@@ -20,7 +20,7 @@ type ProfilePhoto = {
   previewUrl: string;
 };
 
-const MAX_PHOTOS = 3;
+const MAX_PHOTOS = 6;
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 const ALLOWED_PHOTO_TYPES = new Set([
   "image/jpeg",

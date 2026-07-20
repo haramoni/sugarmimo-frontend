@@ -1,0 +1,34 @@
+import { NextResponse } from "next/server";
+
+import { API_URL, clearSessionCookie, getSessionToken } from "../auth/_cookies";
+
+export async function GET(request: Request) {
+  const token = await getSessionToken();
+
+  if (!token) {
+    return NextResponse.json({ message: "Nao autenticado." }, { status: 401 });
+  }
+
+  const search = new URL(request.url).searchParams.get("search")?.trim() ?? "";
+  const response = await fetch(
+    `${API_URL}/auth/private-photo-viewers?search=${encodeURIComponent(search.slice(0, 50))}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    },
+  ).catch(() => null);
+
+  if (!response) {
+    return NextResponse.json(
+      { message: "Nao foi possivel buscar perfis ativos." },
+      { status: 503 },
+    );
+  }
+
+  const result = await response.json().catch(() => null);
+  if (response.status === 401) {
+    await clearSessionCookie();
+  }
+
+  return NextResponse.json(result, { status: response.status });
+}

@@ -19,6 +19,13 @@ export type AuthUser = {
   telegram?: string | null;
   instagram?: string | null;
   approvalStatus?: string;
+  isPremium?: boolean;
+  photos?: Array<{
+    id?: string;
+    dataUrl: string;
+    sortOrder?: number;
+    isPrivate?: boolean;
+  }>;
   createdAt?: string | null;
 };
 

@@ -81,8 +81,12 @@ export default function Register() {
                       Sugar Baby (Mulher)
                     </option>
                     <option value="sugar-baby-man">Sugar Baby (Homem)</option>
-                    <option value="sugar-daddy">Sugar Daddy</option>
-                    <option value="sugar-mommy">Sugar Mommy</option>
+                    <option value="sugar-daddy" disabled>
+                      Sugar Daddy (cadastro temporariamente indisponível)
+                    </option>
+                    <option value="sugar-mommy" disabled>
+                      Sugar Mommy (cadastro temporariamente indisponível)
+                    </option>
                   </select>
                 </div>
 

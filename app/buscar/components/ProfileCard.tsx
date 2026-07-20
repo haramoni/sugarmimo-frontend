@@ -1,4 +1,13 @@
-import { BadgeCheck, HeartHandshake, MapPin, UserRound } from "lucide-react";
+import {
+  BadgeCheck,
+  Crown,
+  HeartHandshake,
+  MapPin,
+  Radio,
+  Sparkles,
+  UserRound,
+  Zap,
+} from "lucide-react";
 import Link from "next/link";
 import {
   getAge,
@@ -8,17 +17,33 @@ import {
 } from "../profile-utils";
 import type { PublicProfile } from "../types";
 
-export default function ProfileCard({ profile }: { profile: PublicProfile }) {
+export default function ProfileCard({
+  profile,
+  onNavigate,
+}: {
+  profile: PublicProfile;
+  onNavigate?: () => void;
+}) {
   const photo = getProfilePhoto(profile);
   const age = getAge(profile.birthDate);
   const location = getLocation(profile);
   const interests = getCustomInterests(profile).slice(0, 3);
   const href = `/perfil/${encodeURIComponent(profile.username || profile.id)}`;
+  const isNewProfile = profile.createdAt
+    ? new Date().getTime() - new Date(profile.createdAt).getTime() <
+      7 * 24 * 60 * 60 * 1000
+    : false;
+  const isPremiumDaddy =
+    profile.role?.trim().toUpperCase() === "SUGAR_DADDY" && profile.isPremium;
+  const isBoosted = profile.boostedUntil
+    ? new Date(profile.boostedUntil).getTime() > new Date().getTime()
+    : false;
 
   return (
     <article className="min-w-0 overflow-hidden rounded-lg border border-emerald/24 bg-[color-mix(in_srgb,var(--surface)_92%,white)] shadow-[0_18px_44px_rgba(20,17,14,0.12)] ring-1 ring-white/70 transition duration-300 hover:-translate-y-0.5 hover:border-gold/55 hover:shadow-[0_24px_56px_rgba(20,17,14,0.16)]">
       <Link
         href={href}
+        onClick={onNavigate}
         className="block focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-emerald"
       >
         <div className="relative aspect-4/3 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--emerald)_18%,white),color-mix(in_srgb,var(--gold-soft)_35%,white))]">
@@ -38,18 +63,50 @@ export default function ProfileCard({ profile }: { profile: PublicProfile }) {
             </div>
           )}
           <span
+            aria-label={profile.isOnline ? "Online agora" : "Perfil ativo"}
+            title={profile.isOnline ? "Online agora" : "Perfil ativo"}
             className={[
-              "absolute left-3 top-3 inline-flex min-h-8 items-center gap-1.5 rounded-full border border-white/70 bg-white/90 px-3 py-1 text-xs font-extrabold shadow-[0_8px_18px_rgba(20,17,14,0.12)]",
+              "absolute left-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/90 shadow-[0_8px_18px_rgba(20,17,14,0.12)] backdrop-blur-sm",
               profile.isOnline ? "text-emerald" : "text-black-jewel/62",
             ].join(" ")}
           >
             {profile.isOnline ? (
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald shadow-[0_0_0_3px_rgba(0,108,88,0.14)]" />
+              <Radio aria-hidden="true" className="h-5 w-5" />
             ) : (
-              <BadgeCheck className="h-3.5 w-3.5" />
+              <BadgeCheck aria-hidden="true" className="h-5 w-5" />
             )}
-            {profile.isOnline ? "Online agora" : "Perfil ativo"}
           </span>
+          {isNewProfile || isPremiumDaddy || isBoosted ? (
+            <div className="absolute right-3 top-3 flex items-center gap-2">
+              {isBoosted ? (
+                <span
+                  aria-label="Perfil com Boost ativo"
+                  title="Perfil com Boost ativo"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gold/60 bg-gold text-white shadow-[0_8px_18px_rgba(185,138,56,0.28)]"
+                >
+                  <Zap aria-hidden="true" className="h-5 w-5 fill-current" />
+                </span>
+              ) : null}
+              {isPremiumDaddy ? (
+                <span
+                  aria-label="Perfil Premium"
+                  title="Perfil Premium"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gold/55 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--gold-soft)_42%,white),white)] text-gold shadow-[0_8px_18px_rgba(20,17,14,0.12)] backdrop-blur-sm"
+                >
+                  <Crown aria-hidden="true" className="h-5 w-5" />
+                </span>
+              ) : null}
+              {isNewProfile ? (
+                <span
+                  aria-label="Perfil novo"
+                  title="Perfil novo"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gold/45 bg-[color-mix(in_srgb,var(--gold-soft)_28%,white)] text-gold shadow-[0_8px_18px_rgba(20,17,14,0.12)] backdrop-blur-sm"
+                >
+                  <Sparkles aria-hidden="true" className="h-5 w-5" />
+                </span>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         <div className="space-y-3 p-4">
@@ -57,10 +114,6 @@ export default function ProfileCard({ profile }: { profile: PublicProfile }) {
             <h2 className="truncate text-xl font-extrabold tracking-tight text-black-jewel">
               {profile.username}
             </h2>
-            <p className="mt-1 line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-black-jewel/68">
-              {profile.preferences?.introductionPhrase ||
-                "Perfil aprovado no SugarMimo"}
-            </p>
           </div>
 
           <div className="grid gap-2 text-sm font-bold text-black-jewel/76">
