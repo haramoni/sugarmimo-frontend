@@ -20,8 +20,9 @@ type ProfilePhoto = {
   previewUrl: string;
 };
 
-const MAX_PHOTOS = 6;
+const MAX_PHOTOS = 3;
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const MAX_PHOTO_SIZE_LABEL = "5 MB";
 const ALLOWED_PHOTO_TYPES = new Set([
   "image/jpeg",
   "image/png",
@@ -77,14 +78,22 @@ export default function ProfilePhotosPage() {
       return;
     }
 
-    if (imageFiles.some((file) => file.size > MAX_PHOTO_BYTES)) {
-      setError("Cada foto pode ter no máximo 5 MB.");
+    const oversizedFiles = imageFiles.filter(
+      (file) => file.size > MAX_PHOTO_BYTES,
+    );
+
+    if (oversizedFiles.length > 0) {
+      setError(getOversizedPhotoMessage(oversizedFiles));
       event.target.value = "";
       return;
     }
 
     if (selectedFiles.length > remainingSlots) {
-      setError("Você pode enviar no máximo 3 fotos.");
+      setError(
+        remainingSlots === 0
+          ? `Você já atingiu o limite de ${MAX_PHOTOS} fotos.`
+          : `Apenas ${remainingSlots} ${remainingSlots === 1 ? "foto foi adicionada" : "fotos foram adicionadas"}. O limite do cadastro é de ${MAX_PHOTOS} fotos.`,
+      );
     } else {
       setError("");
     }
@@ -118,6 +127,20 @@ export default function ProfilePhotosPage() {
 
     if (photos.length < 1) {
       setError("Envie pelo menos 1 foto para continuar.");
+      return;
+    }
+
+    if (photos.length > MAX_PHOTOS) {
+      setError(`Você pode enviar no máximo ${MAX_PHOTOS} fotos.`);
+      return;
+    }
+
+    const oversizedPhoto = photos.find(
+      (photo) => photo.file.size > MAX_PHOTO_BYTES,
+    );
+
+    if (oversizedPhoto) {
+      setError(getOversizedPhotoMessage([oversizedPhoto.file]));
       return;
     }
 
@@ -176,13 +199,26 @@ export default function ProfilePhotosPage() {
         <form className="space-y-6" onSubmit={handleSubmit}>
           <RegisterStepDots currentStep="/register/profile-photos" />
 
-          <div>
-            <h1 className="text-2xl font-bold text-black-jewel">
-              Fotos do perfil
-            </h1>
-            <p className="text-sm text-[color-mix(in_srgb,var(--black)_64%,transparent)]">
-              Envie de 1 a 3 fotos para completar seu cadastro.
-            </p>
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-bold text-black-jewel">
+                  Fotos do perfil
+                </h1>
+                <p className="text-sm text-[color-mix(in_srgb,var(--black)_64%,transparent)]">
+                  Escolha suas melhores fotos para completar o cadastro.
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-[color-mix(in_srgb,var(--gold-soft)_65%,white)] px-3 py-1 text-xs font-extrabold text-black-jewel">
+                Até {MAX_PHOTOS} fotos
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 rounded-sm border border-gold/45 bg-[color-mix(in_srgb,var(--gold-soft)_24%,white)] p-3 text-center text-xs font-bold text-black-jewel/75">
+              <span>De 1 a {MAX_PHOTOS} fotos</span>
+              <span>Até {MAX_PHOTO_SIZE_LABEL} cada</span>
+              <span>JPEG, PNG ou WebP</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
@@ -223,6 +259,7 @@ export default function ProfilePhotosPage() {
                   </span>
                   <input
                     type="file"
+                    aria-label={`Adicionar fotos. Restam ${remainingSlots} de ${MAX_PHOTOS}.`}
                     accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                     multiple
                     className="sr-only"
@@ -234,7 +271,9 @@ export default function ProfilePhotosPage() {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm font-bold text-black-jewel">
-              <span>{photos.length} de 3 fotos</span>
+              <span>
+                {photos.length} de {MAX_PHOTOS} fotos
+              </span>
               <span>Mínimo 1</span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--silver)_45%,white)]">
@@ -282,6 +321,23 @@ function fileToDataUrl(file: File) {
     reader.onerror = () => reject(new Error("Não foi possível ler a foto."));
     reader.readAsDataURL(file);
   });
+}
+
+function getOversizedPhotoMessage(files: File[]) {
+  if (files.length === 1) {
+    const file = files[0];
+    return `A foto “${file.name}” tem ${formatFileSize(file.size)} e ultrapassa o limite de ${MAX_PHOTO_SIZE_LABEL}.`;
+  }
+
+  const fileNames = files.map((file) => `“${file.name}”`).join(", ");
+  return `As fotos ${fileNames} ultrapassam o limite de ${MAX_PHOTO_SIZE_LABEL} por foto.`;
+}
+
+function formatFileSize(bytes: number) {
+  return `${(bytes / (1024 * 1024)).toLocaleString("pt-BR", {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
+  })} MB`;
 }
 
 function getPreviousStep() {
