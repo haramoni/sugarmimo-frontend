@@ -103,7 +103,7 @@ export default function PublicProfilePage() {
         }
 
         if (!response.ok) {
-          throw new Error(result?.message ?? "Perfil nao encontrado.");
+          throw new Error(result?.message ?? "Perfil não encontrado.");
         }
 
         return result as PublicProfile;
@@ -121,7 +121,7 @@ export default function PublicProfilePage() {
         setError(
           fetchError instanceof Error
             ? fetchError.message
-            : "Perfil nao encontrado.",
+            : "Perfil não encontrado.",
         );
         setProfile(null);
       })
@@ -164,14 +164,14 @@ export default function PublicProfilePage() {
             <StatePanel
               icon={Loader2}
               title="Carregando perfil"
-              description="Estamos preparando as informacoes publicas deste perfil."
+              description="Estamos preparando as informações públicas deste perfil."
               spin
             />
           ) : error || !profile ? (
             <StatePanel
               icon={ShieldCheck}
-              title="Perfil nao encontrado"
-              description={error || "Este perfil nao esta disponivel agora."}
+              title="Perfil não encontrado"
+              description={error || "Este perfil não está disponível agora."}
             />
           ) : (
             <ProfileView
@@ -368,12 +368,12 @@ function ProfileView({
             <ProfileFact
               icon={HeartHandshake}
               label="Idade"
-              value={age ? `${age} anos` : "Nao informada"}
+              value={age ? `${age} anos` : "Não informada"}
             />
             <ProfileFact
               icon={MapPin}
               label="Local"
-              value={location || "Nao informado"}
+              value={location || "Não informada"}
             />
             <ProfileFact
               icon={Ruler}
@@ -381,7 +381,7 @@ function ProfileView({
               value={
                 profile.appearance?.heightCm
                   ? `${profile.appearance.heightCm} cm`
-                  : "Nao informada"
+                  : "Não informada"
               }
             />
           </dl>
@@ -392,7 +392,7 @@ function ProfileView({
             title="Sobre"
             body={
               profile.preferences?.aboutMe ||
-              "Este perfil ainda nao adicionou uma descricao publica."
+              "Este perfil ainda não adicionou uma descrição pública."
             }
           />
 
@@ -402,7 +402,7 @@ function ProfileView({
             title="O que busca"
             body={
               profile.preferences?.lookingFor ||
-              "As preferencias ainda nao foram preenchidas."
+              "As preferências ainda não foram preenchidas."
             }
           />
 
@@ -441,7 +441,7 @@ function ProfileView({
                     <div className="h-full overflow-hidden rounded-[0.18rem]">
                       <PhotoZoom
                         src={photo.dataUrl}
-                        alt={`Foto publica ${index + 1}`}
+                        alt={`Foto pública ${index + 1}`}
                         imageClassName="h-full w-full object-cover"
                       />
                     </div>
@@ -451,7 +451,7 @@ function ProfileView({
             ) : (
               <div className="flex min-h-28 items-center gap-3 rounded-sm border border-emerald/22 bg-white/70 px-4 py-3 text-sm font-bold text-black-jewel/64">
                 <Camera className="h-5 w-5 shrink-0 text-emerald" />
-                Nenhuma foto publica adicionada.
+                Nenhuma foto pública adicionada.
               </div>
             )}
           </section>
@@ -654,7 +654,7 @@ function ContactSection({
         </div>
       ) : (
         <p className="text-sm font-medium leading-6 text-black-jewel/72">
-          Este perfil ainda nao liberou contatos para voce.
+          Este perfil ainda não liberou contatos para você.
         </p>
       )}
     </section>

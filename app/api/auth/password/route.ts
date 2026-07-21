@@ -10,8 +10,7 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-
-  const response = await fetch(`${API_URL}/auth/me`, {
+  const response = await fetch(`${API_URL}/auth/password`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -21,9 +20,8 @@ export async function PATCH(request: Request) {
   }).catch(() => null);
 
   if (!response) {
-    await clearSessionCookie();
     return NextResponse.json(
-      { message: "Não foi possível salvar o perfil agora." },
+      { message: "Não foi possível alterar a senha agora." },
       { status: 503 },
     );
   }

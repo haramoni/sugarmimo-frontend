@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
   if (!response) {
     return NextResponse.json(
-      { message: "Nao foi possivel conectar ao servidor de autenticacao." },
+      { message: "Não foi possível conectar ao servidor de autenticação." },
       { status: 503 },
     );
   }
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
   if (!result?.accessToken || !result?.user) {
     return NextResponse.json(
-      { message: "Resposta de login invalida." },
+      { message: "Resposta de login inválida." },
       { status: 502 },
     );
   }

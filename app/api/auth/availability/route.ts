@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
   if (!response) {
     return NextResponse.json(
-      { message: "Nao foi possivel validar usuario e e-mail agora." },
+      { message: "Não foi possível validar o usuário e o e-mail agora." },
       { status: 503 },
     );
   }

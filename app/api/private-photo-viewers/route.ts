@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const token = await getSessionToken();
 
   if (!token) {
-    return NextResponse.json({ message: "Nao autenticado." }, { status: 401 });
+    return NextResponse.json({ message: "Não autenticado." }, { status: 401 });
   }
 
   const search = new URL(request.url).searchParams.get("search")?.trim() ?? "";
@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
   if (!response) {
     return NextResponse.json(
-      { message: "Nao foi possivel buscar perfis ativos." },
+      { message: "Não foi possível buscar perfis ativos." },
       { status: 503 },
     );
   }

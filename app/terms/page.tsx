@@ -13,36 +13,36 @@ const termsSections = [
   {
     title: "Elegibilidade",
     paragraphs: [
-      "O SugarMimo e destinado exclusivamente a pessoas adultas. Ao criar uma conta, voce declara ter 18 anos ou mais e capacidade legal para aceitar estes termos.",
-      "Podemos solicitar verificacoes adicionais para preservar a seguranca da comunidade e remover contas que violem esta regra.",
+      "O SugarMimo é destinado exclusivamente a pessoas adultas. Ao criar uma conta, você declara ter 18 anos ou mais e capacidade legal para aceitar estes termos.",
+      "Podemos solicitar verificações adicionais para preservar a segurança da comunidade e remover contas que violem esta regra.",
     ],
   },
   {
     title: "Uso permitido",
     paragraphs: [
-      "A plataforma deve ser usada para conexoes consensuais, respeitosas e transparentes entre adultos.",
-      "E proibido usar o servico para exploracao, comercio sexual, fraude, assedio, ameacas, divulgacao nao autorizada de dados ou qualquer atividade ilegal.",
+      "A plataforma deve ser usada para conexões consensuais, respeitosas e transparentes entre adultos.",
+      "É proibido usar o serviço para exploração, comércio sexual, fraude, assédio, ameaças, divulgação não autorizada de dados ou qualquer atividade ilegal.",
     ],
   },
   {
-    title: "Conta e informacoes do perfil",
+    title: "Conta e informações do perfil",
     paragraphs: [
-      "Voce e responsavel por manter informacoes verdadeiras, atuais e compatveis com as regras da comunidade.",
-      "Nao compartilhe sua senha e avise a equipe caso suspeite de acesso indevido a sua conta.",
+      "Você é responsável por manter informações verdadeiras, atuais e compatíveis com as regras da comunidade.",
+      "Não compartilhe sua senha e avise a equipe caso suspeite de acesso indevido à sua conta.",
     ],
   },
   {
-    title: "Conteudo e conduta",
+    title: "Conteúdo e conduta",
     paragraphs: [
-      "Fotos, textos e interacoes devem respeitar direitos de terceiros, privacidade, consentimento e legislacao aplicavel.",
-      "Podemos revisar, ocultar ou remover conteudos e perfis quando houver suspeita de violacao dos termos, risco a usuarios ou exigencia legal.",
+      "Fotos, textos e interações devem respeitar direitos de terceiros, privacidade, consentimento e legislação aplicável.",
+      "Podemos revisar, ocultar ou remover conteúdos e perfis quando houver suspeita de violação dos termos, risco a usuários ou exigência legal.",
     ],
   },
   {
-    title: "Alteracoes e encerramento",
+    title: "Alterações e encerramento",
     paragraphs: [
-      "Podemos atualizar estes termos para refletir mudancas na plataforma ou requisitos legais. O uso continuo do servico apos a atualizacao indica concordancia com a nova versao.",
-      "Voce pode deixar de usar a plataforma a qualquer momento, e a SugarMimo pode limitar ou encerrar contas que violem estes termos.",
+      "Podemos atualizar estes termos para refletir mudanças na plataforma ou requisitos legais. O uso contínuo do serviço após a atualização indica concordância com a nova versão.",
+      "Você pode deixar de usar a plataforma a qualquer momento, e a SugarMimo pode limitar ou encerrar contas que violem estes termos.",
     ],
   },
 ];
@@ -61,12 +61,12 @@ export default function TermsPage() {
             Termos de Uso
           </h1>
           <p className="mt-5 text-base font-medium leading-8 text-black-jewel/76 sm:text-lg">
-            Estes termos definem as regras basicas para uso da plataforma
-            SugarMimo, criada para conexoes consensuais, seguras e transparentes
+            Estes termos definem as regras básicas para uso da plataforma
+            SugarMimo, criada para conexões consensuais, seguras e transparentes
             entre adultos.
           </p>
           <p className="mt-4 text-sm font-semibold text-black-jewel/60">
-            Ultima atualizacao: 6 de julho de 2026
+            Última atualização: 6 de julho de 2026
           </p>
         </div>
       </section>
@@ -88,15 +88,15 @@ export default function TermsPage() {
 
           <div className="border-t border-gold/25 pt-8 text-sm font-medium leading-7 text-black-jewel/72 sm:text-base">
             <p>
-              Estes termos nao substituem orientacao juridica especifica. Antes
-              da publicacao definitiva, recomendamos revisar o conteudo com um
+              Estes termos não substituem orientação jurídica específica. Antes
+              da publicação definitiva, recomendamos revisar o conteúdo com um
               profissional qualificado.
             </p>
             <Link
               href="/privacy"
               className="mt-5 inline-flex h-11 items-center justify-center rounded-md bg-emerald px-6 text-sm font-extrabold uppercase tracking-normal text-white transition hover:bg-emerald/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald"
             >
-              Ver politica de privacidade
+              Ver política de privacidade
             </Link>
           </div>
         </div>

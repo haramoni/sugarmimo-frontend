@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
   if (!response) {
     return NextResponse.json(
-      { message: "Nao foi possivel conectar ao servidor de cadastro." },
+      { message: "Não foi possível conectar ao servidor de cadastro." },
       { status: 503 },
     );
   }

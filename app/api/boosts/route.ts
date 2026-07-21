@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const token = await getSessionToken();
 
   if (!token) {
-    return NextResponse.json({ message: "Nao autenticado." }, { status: 401 });
+    return NextResponse.json({ message: "Não autenticado." }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
   if (!response) {
     return NextResponse.json(
-      { message: "Nao foi possivel carregar os destaques agora." },
+      { message: "Não foi possível carregar os destaques agora." },
       { status: 503 },
     );
   }

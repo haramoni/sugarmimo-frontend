@@ -59,7 +59,7 @@ export default function InicioPage() {
 
         if (!response.ok) {
           throw new Error(
-            result?.message ?? "Nao foi possivel carregar os destaques.",
+            result?.message ?? "Não foi possível carregar os destaques.",
           );
         }
 
@@ -78,7 +78,7 @@ export default function InicioPage() {
           setError(
             loadError instanceof Error
               ? loadError.message
-              : "Nao foi possivel carregar os destaques.",
+              : "Não foi possível carregar os destaques.",
           );
         }
       })
@@ -110,7 +110,7 @@ export default function InicioPage() {
 
       if (!response.ok || !result) {
         throw new Error(
-          result?.message ?? "Nao foi possivel carregar mais destaques.",
+          result?.message ?? "Não foi possível carregar mais destaques.",
         );
       }
 
@@ -126,7 +126,7 @@ export default function InicioPage() {
       setError(
         loadError instanceof Error
           ? loadError.message
-          : "Nao foi possivel carregar mais destaques.",
+          : "Não foi possível carregar mais destaques.",
       );
     } finally {
       setIsLoadingMore(false);
@@ -167,13 +167,13 @@ export default function InicioPage() {
             <StatePanel
               icon={ShieldCheck}
               title="Destaques indisponiveis"
-              description="Esta area esta disponivel para perfis Sugar Baby e Sugar Daddy."
+              description="Esta área está disponível para perfis Sugar Baby e Sugar Daddy."
             />
           ) : isLoading ? (
             <StatePanel
               icon={Loader2}
               title="Carregando destaques"
-              description="Buscando os perfis com boost ativo para voce."
+              description="Buscando os perfis com boost ativo para você."
               spin
             />
           ) : error && profiles.length === 0 ? (
@@ -186,7 +186,7 @@ export default function InicioPage() {
             <StatePanel
               icon={Sparkles}
               title="Novos destaques em breve"
-              description="Nenhum perfil compativel esta com boost ativo neste momento."
+              description="Nenhum perfil compatível está com boost ativo neste momento."
             />
           ) : (
             <div className="space-y-6">

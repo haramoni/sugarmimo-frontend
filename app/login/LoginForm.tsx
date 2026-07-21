@@ -1,7 +1,12 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import {
+  ArrowLeft,
+  CrownIcon,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -53,7 +58,7 @@ export function LoginForm() {
 
         if (response.status >= 500) {
           throw new Error(
-            message || "Nao foi possivel conectar ao servidor agora.",
+            message || "Não foi possível conectar ao servidor agora.",
           );
         }
 
@@ -94,6 +99,8 @@ export function LoginForm() {
             height={100}
             priority
             style={{ height: "auto" }}
+            onClick={() => router.push("/")}
+            className="cursor-pointer select-none"
           />
         </CardHeader>
 
@@ -160,6 +167,15 @@ export function LoginForm() {
               className="flex w-fit items-center gap-3 rounded-md mt-3 underline hover:text-gold font-semibold text-gold"
             >
               <span>Cadastre-se agora!</span>
+            </Link>
+          </div>
+          <div className="flex w-full justify-between items-center gap-3 rounded-md mt-3 underline hover:text-gold font-semibold text-gold cursor-pointer">
+            <Link href="/admin/login" className="flex items-center gap-3">
+              <CrownIcon />
+            </Link>
+            <Link href="/" className="flex items-center gap-3">
+              <ArrowLeft />
+              Voltar
             </Link>
           </div>
         </CardContent>

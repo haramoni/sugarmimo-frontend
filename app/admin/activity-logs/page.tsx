@@ -50,7 +50,7 @@ export default function AdminActivityLogsPage() {
       const result = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(result?.message ?? "Nao foi possivel carregar logs.");
+        throw new Error(result?.message ?? "Não foi possível carregar os logs.");
       }
 
       setLogs(result);
@@ -58,7 +58,7 @@ export default function AdminActivityLogsPage() {
       setError(
         loadError instanceof Error
           ? loadError.message
-          : "Nao foi possivel carregar logs.",
+          : "Não foi possível carregar os logs.",
       );
     } finally {
       setIsLoading(false);
@@ -159,9 +159,9 @@ export default function AdminActivityLogsPage() {
             <thead className="bg-[color:color-mix(in_srgb,var(--gold-soft)_34%,white)] text-xs uppercase text-[color:color-mix(in_srgb,var(--black)_70%,transparent)]">
               <tr>
                 <th className="px-4 py-3">Quando</th>
-                <th className="px-4 py-3">Acao</th>
-                <th className="px-4 py-3">Usuario</th>
-                <th className="px-4 py-3">Metodo</th>
+                <th className="px-4 py-3">Ação</th>
+                <th className="px-4 py-3">Usuário</th>
+                <th className="px-4 py-3">Método</th>
                 <th className="px-4 py-3">Rota</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">IP</th>

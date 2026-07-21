@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useSyncExternalStore } from "react";
 import { useAuth } from "../AuthProvider";
+import { AccountMenu } from "./AccountMenu";
 
 const menuItems = [
   { label: "Inicio", href: "/" },
@@ -38,7 +39,7 @@ function getHashSnapshot() {
 export default function NavBarMenu() {
   const pathname = usePathname();
   const hash = useSyncExternalStore(subscribeToHash, getHashSnapshot, () => "");
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const username = user?.username ?? "";
 
   return (
@@ -94,13 +95,7 @@ export default function NavBarMenu() {
             >
               {username}
             </Link>
-            <Link
-              href="/"
-              onClick={() => void logout()}
-              className="inline-flex h-11 items-center justify-center rounded-md border border-gold/55 bg-white/70 px-5 text-sm font-bold text-gold shadow-[0_2px_8px_rgba(20,17,14,0.08)] transition duration-200 hover:bg-gold hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
-            >
-              Sair
-            </Link>
+            <AccountMenu />
           </div>
         ) : (
           <div className="flex shrink-0 items-center gap-3">

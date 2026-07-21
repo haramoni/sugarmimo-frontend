@@ -19,7 +19,7 @@ export async function GET() {
   if (!response) {
     await clearSessionCookie();
     return NextResponse.json(
-      { message: "Nao foi possivel validar sua sessao." },
+      { message: "Não foi possível validar sua sessão." },
       { status: 503 },
     );
   }

@@ -134,7 +134,7 @@ export default function BuscarPage() {
 
         if (!response.ok) {
           throw new Error(
-            result?.message ?? "Nao foi possivel carregar a busca.",
+            result?.message ?? "Não foi possível carregar a busca.",
           );
         }
 
@@ -156,7 +156,7 @@ export default function BuscarPage() {
         setError(
           fetchError instanceof Error
             ? fetchError.message
-            : "Nao foi possivel carregar a busca.",
+            : "Não foi possível carregar a busca.",
         );
         setProfiles([]);
         setTotal(0);
@@ -290,7 +290,7 @@ export default function BuscarPage() {
               ) : error ? (
                 <StatePanel
                   icon={ShieldCheck}
-                  title="Busca indisponivel"
+                  title="Busca indisponível"
                   description={error}
                 />
               ) : isLoading ? (

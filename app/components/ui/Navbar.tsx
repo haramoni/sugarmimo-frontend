@@ -1,12 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { LogOut, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "../AuthProvider";
+import { AccountMenu } from "./AccountMenu";
 
 const menuItems = [
   { label: "Inicio", href: "/inicio" },
@@ -19,8 +19,7 @@ function isActivePath(pathname: string, href: string) {
 
 export function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { logout, user } = useAuth();
+  const { user } = useAuth();
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const canSearch = ["SUGAR_BABY", "SUGAR_DADDY"].includes(
     user?.role?.trim().toUpperCase() ?? "",
@@ -77,11 +76,6 @@ export function Navbar() {
       );
     };
   }, [user]);
-
-  async function handleLogout() {
-    await logout();
-    router.replace("/login");
-  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-[color:color-mix(in_srgb,var(--gold)_28%,transparent)] bg-[color:color-mix(in_srgb,var(--surface)_88%,white)] px-4 py-3 shadow-[0_10px_34px_rgba(20,17,14,0.08)] backdrop-blur-2xl sm:px-6 lg:px-8">
@@ -174,14 +168,7 @@ export function Navbar() {
               </span>
             </Link>
           ) : null}
-          <Button
-            type="button"
-            onClick={handleLogout}
-            className="h-auto min-h-12 w-fit rounded-full border border-white/28 px-4 py-2 text-sm font-extrabold text-white hover:bg-ruby hover:text-white sm:text-base"
-          >
-            <LogOut className="h-4 w-4" />
-            Sair
-          </Button>
+          <AccountMenu />
         </div>
       </nav>
     </header>

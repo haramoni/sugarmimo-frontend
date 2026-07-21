@@ -1,6 +1,6 @@
 export const bodyTypes = [
   "Magra",
-  "Medio",
+  "Médio",
   "Musculosa",
   "Em forma",
   "Um pouco acima do peso",
@@ -8,16 +8,16 @@ export const bodyTypes = [
 ];
 
 export const ethnicities = [
-  "Branca/Caucasiano",
+  "Branca/Caucasiana",
   "Parda",
   "Negra/Afrodescendente",
-  "Latina/Hispanico",
-  "Asiatica japonesa",
-  "Asiatica chinesa",
-  "Asiatica coreana",
-  "Asiatica outras",
+  "Latina/Hispânica",
+  "Asiática japonesa",
+  "Asiática chinesa",
+  "Asiática coreana",
+  "Asiática — outras",
   "Indiana",
-  "Do Oriente Medio",
+  "Do Oriente Médio",
   "Outros",
 ];
 
@@ -67,7 +67,7 @@ export const relationshipOptions = [
   "Solteira",
   "Separada",
   "Divorciada",
-  "Viuva",
+  "Viúva",
   "Casada, mas procurando",
 ];
 
@@ -81,13 +81,13 @@ export const childrenOptions = [
 ];
 
 export const educationOptions = [
-  "2 Grau",
-  "Tecnico Profissionalizante",
+  "2º Grau",
+  "Técnico Profissionalizante",
   "Superior Cursando",
   "Superior Incompleto",
   "Superior Completo",
-  "Pos-graduado",
-  "Ph.D. / Pos-graduado",
+  "Pós-graduado",
+  "Ph.D. / Pós-graduado",
   "Escola da Vida!",
 ];
 
@@ -97,26 +97,26 @@ export const occupationOptions = [
   "Arquiteta",
   "Assistente",
   "Atendente",
-  "Autonoma",
+  "Autônoma",
   "Cabeleireira",
   "Consultora",
   "Dentista",
   "Diretora de Empresas",
   "Economista",
   "Educadora",
-  "Empresaria",
+  "Empresária",
   "Enfermeira",
   "Engenheira",
-  "Estagiaria",
+  "Estagiária",
   "Esteticista",
   "Estudante",
-  "Funcionaria Publica",
+  "Funcionária Pública",
   "TI",
   "Jornalista",
-  "Medica",
+  "Médica",
   "Modelo",
   "Recepcionista",
-  "Secretaria",
+  "Secretária",
   "Vendedora",
   "Outras",
 ];
@@ -159,6 +159,28 @@ const masculineDescriptions: Record<string, string> = {
   outras: "Outros",
 };
 
+const canonicalDescriptions: Record<string, string> = {
+  medio: "Médio",
+  "branca/caucasiano": "Branca/Caucasiana",
+  "latina/hispanico": "Latina/Hispânica",
+  "asiatica japonesa": "Asiática japonesa",
+  "asiatica chinesa": "Asiática chinesa",
+  "asiatica coreana": "Asiática coreana",
+  "asiatica outras": "Asiática — outras",
+  "do oriente medio": "Do Oriente Médio",
+  viuva: "Viúva",
+  "2 grau": "2º Grau",
+  "tecnico profissionalizante": "Técnico Profissionalizante",
+  "pos-graduado": "Pós-graduado",
+  "ph.d. / pos-graduado": "Ph.D. / Pós-graduado",
+  autonoma: "Autônoma",
+  empresaria: "Empresária",
+  estagiaria: "Estagiária",
+  "funcionaria publica": "Funcionária Pública",
+  medica: "Médica",
+  secretaria: "Secretária",
+};
+
 export function isMasculineProfile(profileType?: string | null) {
   const normalized = profileType?.trim().toLowerCase();
   return (
@@ -171,11 +193,21 @@ export function describeForProfile(
   value: string,
   profileType?: string | null,
 ) {
-  if (!value || !isMasculineProfile(profileType)) {
+  if (!value) {
     return value;
   }
 
-  return masculineDescriptions[normalizeDescription(value)] ?? value;
+  const normalizedValue = normalizeDescription(value);
+
+  if (isMasculineProfile(profileType)) {
+    return (
+      masculineDescriptions[normalizedValue] ??
+      canonicalDescriptions[normalizedValue] ??
+      value
+    );
+  }
+
+  return canonicalDescriptions[normalizedValue] ?? value;
 }
 
 export function optionsForProfile(

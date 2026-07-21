@@ -1,0 +1,116 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { LogOut, Mail, Menu, Settings, UserRound } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+import { useAuth } from "../AuthProvider";
+
+export function AccountMenu() {
+  const router = useRouter();
+  const { logout, user } = useAuth();
+  const [open, setOpen] = useState(false);
+
+  if (!user) {
+    return null;
+  }
+
+  async function handleLogout() {
+    setOpen(false);
+    await logout();
+    router.replace("/login");
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-lg"
+          aria-label="Abrir menu da conta"
+          className="h-11 w-11 rounded-full border-[color:color-mix(in_srgb,var(--gold)_45%,var(--silver))] bg-white/75 text-[var(--black)] shadow-[0_8px_22px_rgba(20,17,14,0.08)] hover:border-[var(--emerald)] hover:bg-white hover:text-[var(--emerald)]"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent
+        showCloseButton
+        className="bottom-0 left-auto right-0 top-0 h-dvh max-h-none w-[min(90vw,24rem)] max-w-none translate-x-0 translate-y-0 grid-rows-[auto_1fr] gap-0 overflow-hidden rounded-none rounded-l-[2rem] border-l border-[color:color-mix(in_srgb,var(--gold)_35%,transparent)] bg-[var(--surface)] p-0 shadow-[-24px_0_70px_rgba(20,17,14,0.18)] sm:max-w-none"
+      >
+        <DialogHeader className="border-b border-[color:color-mix(in_srgb,var(--gold)_24%,transparent)] px-6 pb-6 pt-8 text-left">
+          <DialogTitle className="font-serif text-2xl font-semibold text-[var(--black)]">
+            Sua Conta
+          </DialogTitle>
+          <DialogDescription className="text-[color:color-mix(in_srgb,var(--black)_58%,var(--silver))]">
+            Acesse seu perfil e suas configurações.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex min-h-0 flex-1 flex-col px-5 py-6">
+          <div className="rounded-3xl border border-[color:color-mix(in_srgb,var(--gold)_28%,transparent)] bg-white/65 p-4 shadow-[0_14px_35px_rgba(20,17,14,0.06)]">
+            <div className="flex items-center gap-3">
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-[color:color-mix(in_srgb,var(--emerald)_12%,white)] text-[var(--emerald)]">
+                <UserRound className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate font-bold text-[var(--black)]">
+                  {user.username || "Minha conta"}
+                </p>
+                <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-[color:color-mix(in_srgb,var(--black)_55%,var(--silver))]">
+                  <Mail className="h-3.5 w-3.5 shrink-0" />
+                  {user.email || "E-mail não disponível"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-2">
+            <DialogClose asChild>
+              <Link
+                href="/perfil"
+                className="flex min-h-12 items-center gap-3 rounded-2xl px-4 font-bold text-[var(--black)] transition hover:bg-white hover:text-[var(--emerald)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--emerald)]"
+              >
+                <UserRound className="h-5 w-5" />
+                Meu Perfil
+              </Link>
+            </DialogClose>
+            <DialogClose asChild>
+              <Link
+                href="/configuracoes"
+                className="flex min-h-12 items-center gap-3 rounded-2xl px-4 font-bold text-[var(--black)] transition hover:bg-white hover:text-[var(--emerald)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--emerald)]"
+              >
+                <Settings className="h-5 w-5" />
+                Configurações
+              </Link>
+            </DialogClose>
+          </div>
+
+          <div className="mt-auto border-t border-[color:color-mix(in_srgb,var(--gold)_22%,transparent)] pt-5">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => void handleLogout()}
+              className="h-12 w-full justify-start rounded-2xl px-4 font-extrabold text-[var(--ruby)] hover:bg-[color:color-mix(in_srgb,var(--ruby)_10%,white)] hover:text-[var(--ruby)]"
+            >
+              <LogOut className="h-5 w-5" />
+              Sair da Conta
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

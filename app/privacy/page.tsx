@@ -5,43 +5,43 @@ import NavBarMenu from "../components/ui/NavBarMenu";
 import { SiteFooter } from "../components/ui/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "Politica de Privacidade | SugarMimo",
-  description: "Politica de Privacidade da plataforma SugarMimo.",
+  title: "Política de Privacidade | SugarMimo",
+  description: "Política de Privacidade da plataforma SugarMimo.",
 };
 
 const privacySections = [
   {
     title: "Dados que coletamos",
     paragraphs: [
-      "Coletamos as informacoes fornecidas durante o cadastro, como nome de usuario, e-mail, data de nascimento, localizacao, tipo de perfil, preferencias, fotos e respostas do formulario.",
-      "Tambem podemos registrar dados tecnicos, como endereco IP, identificadores de sessao, cookies essenciais, data de acesso e informacoes do dispositivo para seguranca e funcionamento da plataforma.",
+      "Coletamos as informações fornecidas durante o cadastro, como nome de usuário, e-mail, data de nascimento, localização, tipo de perfil, preferências, fotos e respostas do formulário.",
+      "Também podemos registrar dados técnicos, como endereço IP, identificadores de sessão, cookies essenciais, data de acesso e informações do dispositivo para segurança e funcionamento da plataforma.",
     ],
   },
   {
     title: "Como usamos os dados",
     paragraphs: [
-      "Usamos os dados para criar e proteger sua conta, exibir perfis, apoiar a curadoria da comunidade, prevenir abuso, cumprir obrigacoes legais e melhorar a experiencia do usuario.",
-      "Informacoes sensiveis de contato, como e-mail, nao sao exibidas publicamente no perfil.",
+      "Usamos os dados para criar e proteger sua conta, exibir perfis, apoiar a curadoria da comunidade, prevenir abusos, cumprir obrigações legais e melhorar a experiência do usuário.",
+      "Informações sensíveis de contato, como e-mail, não são exibidas publicamente no perfil.",
     ],
   },
   {
     title: "Compartilhamento",
     paragraphs: [
-      "Nao vendemos dados pessoais. Podemos compartilhar informacoes apenas com fornecedores necessarios para operacao do servico, autoridades competentes quando exigido por lei ou em situacoes necessarias para proteger usuarios e a plataforma.",
+      "Não vendemos dados pessoais. Podemos compartilhar informações apenas com fornecedores necessários para a operação do serviço, autoridades competentes quando exigido por lei ou em situações necessárias para proteger usuários e a plataforma.",
     ],
   },
   {
-    title: "Seguranca e retencao",
+    title: "Segurança e retenção",
     paragraphs: [
-      "Adotamos medidas tecnicas e administrativas para reduzir riscos de acesso indevido, perda, alteracao ou divulgacao nao autorizada.",
-      "Mantemos os dados pelo tempo necessario para prestar o servico, atender obrigacoes legais, resolver disputas e proteger a comunidade.",
+      "Adotamos medidas técnicas e administrativas para reduzir riscos de acesso indevido, perda, alteração ou divulgação não autorizada.",
+      "Mantemos os dados pelo tempo necessário para prestar o serviço, atender a obrigações legais, resolver disputas e proteger a comunidade.",
     ],
   },
   {
     title: "Seus direitos",
     paragraphs: [
-      "Voce pode solicitar acesso, correcao, exclusao, portabilidade ou revisao do tratamento dos seus dados, conforme a legislacao aplicavel.",
-      "Para exercer seus direitos, entre em contato pelo canal indicado no rodape do site.",
+      "Você pode solicitar acesso, correção, exclusão, portabilidade ou revisão do tratamento dos seus dados, conforme a legislação aplicável.",
+      "Para exercer seus direitos, entre em contato pelo canal indicado no rodapé do site.",
     ],
   },
 ];
@@ -57,15 +57,15 @@ export default function PrivacyPage() {
             SugarMimo
           </p>
           <h1 className="mt-3 font-serif text-4xl font-semibold leading-tight text-black-jewel sm:text-5xl">
-            Politica de Privacidade
+            Política de Privacidade
           </h1>
           <p className="mt-5 text-base font-medium leading-8 text-black-jewel/76 sm:text-lg">
-            Esta politica explica como tratamos dados pessoais na plataforma
-            SugarMimo. A plataforma e exclusiva para adultos e deve ser usada
+            Esta política explica como tratamos dados pessoais na plataforma
+            SugarMimo. A plataforma é exclusiva para adultos e deve ser usada
             apenas por pessoas com 18 anos ou mais.
           </p>
           <p className="mt-4 text-sm font-semibold text-black-jewel/60">
-            Ultima atualizacao: 6 de julho de 2026
+            Última atualização: 6 de julho de 2026
           </p>
         </div>
       </section>
@@ -87,9 +87,9 @@ export default function PrivacyPage() {
 
           <div className="border-t border-gold/25 pt-8 text-sm font-medium leading-7 text-black-jewel/72 sm:text-base">
             <p>
-              Esta pagina tem finalidade informativa e pode ser atualizada para
-              refletir mudancas no servico, na legislacao ou nas praticas de
-              seguranca.
+              Esta página tem finalidade informativa e pode ser atualizada para
+              refletir mudanças no serviço, na legislação ou nas práticas de
+              segurança.
             </p>
             <Link
               href="/terms"

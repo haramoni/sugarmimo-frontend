@@ -268,7 +268,7 @@ export default function PerfilPage() {
     fetch("/api/auth/me")
       .then(async (response) => {
         if (!response.ok) {
-          throw new Error("Sessao expirada.");
+          throw new Error("Sessão expirada.");
         }
 
         return (await response.json()) as ProfileUser;
@@ -369,7 +369,7 @@ export default function PerfilPage() {
           const result = await response.json().catch(() => null);
           if (!response.ok) {
             throw new Error(
-              result?.message ?? "Nao foi possivel buscar perfis.",
+              result?.message ?? "Não foi possível buscar perfis.",
             );
           }
           return Array.isArray(result)
@@ -387,7 +387,7 @@ export default function PerfilPage() {
             setPrivateViewerError(
               searchError instanceof Error
                 ? searchError.message
-                : "Nao foi possivel buscar perfis.",
+                : "Não foi possível buscar perfis.",
             );
           }
         })
@@ -569,7 +569,7 @@ export default function PerfilPage() {
     }
 
     if (form.customInterests.length >= MAX_INTERESTS) {
-      setError(`Voce pode adicionar no maximo ${MAX_INTERESTS} interesses.`);
+      setError(`Você pode adicionar no máximo ${MAX_INTERESTS} interesses.`);
       return;
     }
 
@@ -631,8 +631,8 @@ export default function PerfilPage() {
 
     if (remainingSlots <= 0) {
       setError(
-        `Voce pode enviar no maximo ${categoryLimit} fotos ${
-          isPrivate ? "privadas" : "publicas"
+        `Você pode enviar no máximo ${categoryLimit} fotos ${
+          isPrivate ? "privadas" : "públicas"
         }.`,
       );
       event.target.value = "";
@@ -716,7 +716,7 @@ export default function PerfilPage() {
       }
 
       if (!response.ok) {
-        throw new Error(result?.message ?? "Nao foi possivel salvar o perfil.");
+        throw new Error(result?.message ?? "Não foi possível salvar o perfil.");
       }
 
       saveAuthUser(result);
@@ -728,7 +728,7 @@ export default function PerfilPage() {
       setError(
         saveError instanceof Error
           ? saveError.message
-          : "Nao foi possivel salvar o perfil.",
+          : "Não foi possível salvar o perfil.",
       );
     } finally {
       setIsSaving(false);
@@ -820,13 +820,13 @@ export default function PerfilPage() {
                   <dl className="mx-auto grid max-w-64 grid-cols-[minmax(70px,0.8fr)_minmax(0,1fr)] gap-x-4 gap-y-2 text-left text-sm sm:text-base">
                     <dt className="font-semibold text-black-jewel/82">Idade</dt>
                     <dd className="min-w-0 font-medium wrap-anywhere">
-                      {age || "Nao informado"}
+                      {age || "Não informado"}
                     </dd>
                     <dt className="font-semibold text-black-jewel/82">
                       De onde é?
                     </dt>
                     <dd className="min-w-0 font-medium wrap-anywhere">
-                      {location || "Nao informado"}
+                      {location || "Não informado"}
                     </dd>
                   </dl>
                 </div>
@@ -1274,7 +1274,7 @@ function DetailsForm({
   return (
     <div className="grid min-w-0 gap-4 sm:grid-cols-2">
       <TextField
-        label="Nome de usuario"
+        label="Nome de usuário"
         value={form.username}
         onChange={(value) => updateField("username", value)}
       />
@@ -1342,13 +1342,13 @@ function DetailsForm({
         }))}
       />
       <ProfileSelect
-        label="Voce fuma?"
+        label="Você fuma?"
         value={form.smoke}
         onValueChange={(value) => updateField("smoke", value)}
         options={smokeOptions.map(optionToSelectItem)}
       />
       <ProfileSelect
-        label="Voce bebe?"
+        label="Você bebe?"
         value={form.drink}
         onValueChange={(value) => updateField("drink", value)}
         options={drinkOptions.map(optionToSelectItem)}
@@ -1374,7 +1374,7 @@ function DetailsForm({
         options={educationOptions.map(optionToSelectItem)}
       />
       <ProfileSelect
-        label="Profissao"
+        label="Profissão"
         value={form.occupation}
         onValueChange={(value) => updateField("occupation", value)}
         options={optionsForProfile(occupationOptions, profileType).map(
@@ -1667,7 +1667,7 @@ function ContactSection({
                 </div>
               ) : (
                 <p className="mt-2 text-xs font-medium leading-4 text-black-jewel/62">
-                  Nenhum username selecionado. Seus contatos nao aparecerao para
+                  Nenhum usuário selecionado. Seus contatos não aparecerão para
                   outros perfis.
                 </p>
               )}
@@ -1730,7 +1730,7 @@ function GalleryTile({
       <div className="h-full overflow-hidden rounded-[0.18rem]">
         <PhotoZoom
           src={photo.dataUrl}
-          alt={`${photo.isPrivate ? "Foto privada" : "Foto publica"} ${index + 1}`}
+          alt={`${photo.isPrivate ? "Foto privada" : "Foto pública"} ${index + 1}`}
           imageClassName="h-full w-full object-cover"
         />
       </div>
@@ -1812,7 +1812,7 @@ function ProfileSelect({
       <Label className="font-bold text-black-jewel">{label}</Label>
       <Select value={value} onValueChange={onValueChange}>
         <SelectTrigger className="h-11 w-full min-w-0 rounded-sm border border-emerald/25 bg-white px-3 shadow-none focus:border-emerald focus:ring-0">
-          <SelectValue placeholder="Selecione uma opcao" />
+          <SelectValue placeholder="Selecione uma opção" />
         </SelectTrigger>
         <SelectContent>
           {options.map((option) => (
@@ -1941,7 +1941,7 @@ function fileToDataUrl(file: File) {
     const reader = new FileReader();
 
     reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error("Nao foi possivel ler a foto."));
+    reader.onerror = () => reject(new Error("Não foi possível ler a foto."));
     reader.readAsDataURL(file);
   });
 }
@@ -2048,7 +2048,7 @@ function getContactPlaceholder(channel: ContactChannel) {
     return "+55 (11) 99999-9999";
   }
 
-  return "@usuario";
+  return "@usuário";
 }
 
 function getContactHref(channel: ContactChannel, value: string) {

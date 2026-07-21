@@ -129,7 +129,7 @@ export default function RegisterAccountForm() {
       if (!availability.usernameAvailable) {
         setAvailabilityErrors((currentErrors) => ({
           ...currentErrors,
-          username: "Este nome de usuário já esta em uso.",
+          username: "Este nome de usuário já está em uso.",
         }));
         return;
       }
@@ -137,7 +137,7 @@ export default function RegisterAccountForm() {
       if (!availability.emailAvailable) {
         setAvailabilityErrors((currentErrors) => ({
           ...currentErrors,
-          email: "Este e-mail já esta sendo usado.",
+          email: "Este e-mail já está sendo usado.",
         }));
         return;
       }
@@ -163,7 +163,7 @@ export default function RegisterAccountForm() {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Nao foi possivel validar seus dados. Tente novamente.",
+          : "Não foi possível validar seus dados. Tente novamente.",
       );
     } finally {
       setIsSubmitting(false);
@@ -234,17 +234,17 @@ export default function RegisterAccountForm() {
           ...currentErrors,
           username: availability.usernameAvailable
             ? undefined
-            : "Este nome de usuario ja esta em uso.",
+            : "Este nome de usuário já está em uso.",
           email: availability.emailAvailable
             ? undefined
-            : "Este e-mail ja esta sendo usado.",
+            : "Este e-mail já está sendo usado.",
         }));
       } catch (availabilityError) {
         if (availabilityError instanceof DOMException) {
           return;
         }
 
-        setError("Nao foi possivel validar usuario e e-mail agora.");
+        setError("Não foi possível validar o usuário e o e-mail agora.");
         setAvailabilityCheck(null);
       } finally {
         setIsCheckingAvailability(false);
@@ -637,7 +637,7 @@ function StatusMessage({
   isCheckingAvailability: boolean;
 }) {
   const message =
-    error || (isCheckingAvailability ? "Validando usuario e e-mail..." : "");
+    error || (isCheckingAvailability ? "Validando usuário e e-mail..." : "");
 
   return (
     <p
@@ -673,7 +673,7 @@ async function checkAccountAvailability(
     .catch(() => null)) as AvailabilityResponse | null;
 
   if (!response.ok || !availability) {
-    throw new Error("Nao foi possivel validar seus dados. Tente novamente.");
+    throw new Error("Não foi possível validar seus dados. Tente novamente.");
   }
 
   return availability;
@@ -693,20 +693,20 @@ function getValidationErrors({
   const errors: FieldErrors = {};
 
   if (showRequired && !username) {
-    errors.username = "Informe um nome de usuario.";
+    errors.username = "Informe um nome de usuário.";
   } else if (username && username.length < 2) {
-    errors.username = "O nome de usuario deve ter pelo menos 2 caracteres.";
+    errors.username = "O nome de usuário deve ter pelo menos 2 caracteres.";
   } else if (username.length > 50) {
-    errors.username = "O nome de usuario deve ter no maximo 50 caracteres.";
+    errors.username = "O nome de usuário deve ter no máximo 50 caracteres.";
   } else if (username && !/^[A-Za-z0-9._-]+$/.test(username)) {
     errors.username =
-      "Use apenas letras, numeros, ponto, hifen ou sublinhado, sem espacos.";
+      "Use apenas letras, números, ponto, hífen ou sublinhado, sem espaços.";
   }
 
   if (showRequired && !email) {
     errors.email = "Informe um e-mail.";
   } else if (email && !isValidEmail(email)) {
-    errors.email = "Informe um e-mail valido.";
+    errors.email = "Informe um e-mail válido.";
   }
 
   const passwordError = getPasswordError(password, showRequired);
@@ -732,19 +732,19 @@ function getPasswordError(password: string, showRequired = false) {
   }
 
   if (password.length < 8) {
-    return "A senha deve ter no minimo 8 caracteres.";
+    return "A senha deve ter no mínimo 8 caracteres.";
   }
 
   if (!/[A-Z]/.test(password)) {
-    return "A senha deve ter pelo menos uma letra maiuscula.";
+    return "A senha deve ter pelo menos uma letra maiúscula.";
   }
 
   if (!/[a-z]/.test(password)) {
-    return "A senha deve ter pelo menos uma letra minuscula.";
+    return "A senha deve ter pelo menos uma letra minúscula.";
   }
 
   if (!/\d/.test(password)) {
-    return "A senha deve ter pelo menos um numero.";
+    return "A senha deve ter pelo menos um número.";
   }
 
   if (!/[^A-Za-z\d]/.test(password)) {

@@ -119,13 +119,13 @@ export default function ProfileCard({
             <span className="flex min-w-0 items-center gap-2">
               <HeartHandshake className="h-4 w-4 shrink-0 text-ruby" />
               <span className="truncate">
-                {age ? `${age} anos` : "Idade nao informada"}
+                {age ? `${age} anos` : "Idade não informada"}
               </span>
             </span>
             <span className="flex min-w-0 items-center gap-2">
               <MapPin className="h-4 w-4 shrink-0 text-emerald" />
               <span className="truncate">
-                {location || "Localizacao nao informada"}
+                {location || "Localização não informada"}
               </span>
             </span>
           </div>
