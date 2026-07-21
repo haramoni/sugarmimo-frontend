@@ -46,6 +46,7 @@ import {
   saveAuthUser,
 } from "../lib/auth-storage";
 import { Navbar } from "../components/ui/Navbar";
+import { PhotoZoom } from "../components/ui/PhotoZoom";
 import {
   ProfileApprovalGuard,
   shouldShowPendingApproval,
@@ -787,12 +788,10 @@ export default function PerfilPage() {
                   <div className="aspect-4/5 overflow-hidden rounded-lg border-[3px] border-emerald/70 bg-[color-mix(in_srgb,var(--emerald)_10%,white)] p-1 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.86),0_18px_38px_rgba(0,55,44,0.18)] sm:aspect-[1/0.98]">
                     <div className="h-full overflow-hidden rounded-md">
                       {profilePhoto ? (
-                        // User uploads are data URLs and should not use Next image optimization.
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <PhotoZoom
                           src={profilePhoto.dataUrl}
                           alt={`Foto de ${form.username || "perfil"}`}
-                          className="h-full w-full object-cover"
+                          imageClassName="h-full w-full object-cover"
                         />
                       ) : (
                         <button
@@ -1729,12 +1728,10 @@ function GalleryTile({
       ].join(" ")}
     >
       <div className="h-full overflow-hidden rounded-[0.18rem]">
-        {/* User uploads are data URLs and should not use Next image optimization. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <PhotoZoom
           src={photo.dataUrl}
-          alt={`Foto publica ${index + 1}`}
-          className="h-full w-full object-cover"
+          alt={`${photo.isPrivate ? "Foto privada" : "Foto publica"} ${index + 1}`}
+          imageClassName="h-full w-full object-cover"
         />
       </div>
       {isEditing ? (

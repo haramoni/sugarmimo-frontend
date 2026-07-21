@@ -32,6 +32,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Navbar } from "../../components/ui/Navbar";
+import { PhotoZoom } from "../../components/ui/PhotoZoom";
 import { useAuth } from "../../components/AuthProvider";
 import {
   formatContactValue,
@@ -269,12 +270,10 @@ function ProfileView({
           <div className="relative mx-auto aspect-[4/5] max-w-88 overflow-hidden rounded-lg border-[3px] border-emerald/62 bg-white p-1 shadow-[0_20px_44px_rgba(0,55,44,0.18)]">
             <div className="h-full overflow-hidden rounded-md">
               {mainPhoto ? (
-                // User uploads are data URLs and should not use Next image optimization.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <PhotoZoom
                   src={mainPhoto.dataUrl}
                   alt={`Foto de ${profile.username ?? "perfil"}`}
-                  className="h-full w-full object-cover"
+                  imageClassName="h-full w-full object-cover"
                 />
               ) : (
                 <div className="grid h-full place-items-center bg-white/82 text-emerald">
@@ -282,19 +281,17 @@ function ProfileView({
                 </div>
               )}
             </div>
-            <span
-              className={[
-                "absolute left-4 top-4 inline-flex min-h-8 items-center gap-1.5 rounded-full border border-white/70 bg-white/90 px-3 py-1 text-xs font-extrabold shadow-[0_8px_18px_rgba(20,17,14,0.12)]",
-                profile.isOnline ? "text-emerald" : "text-black-jewel/62",
-              ].join(" ")}
-            >
-              {profile.isOnline ? (
+
+            {profile.isOnline && (
+              <span
+                className={[
+                  "absolute left-4 top-4 inline-flex min-h-8 items-center gap-1.5 rounded-full border border-white/70 bg-white/90 px-3 py-1 text-xs font-extrabold shadow-[0_8px_18px_rgba(20,17,14,0.12)]",
+                  profile.isOnline ? "text-emerald" : "text-black-jewel/62",
+                ].join(" ")}
+              >
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald shadow-[0_0_0_3px_rgba(0,108,88,0.14)]" />
-              ) : (
-                <BadgeCheck className="h-3.5 w-3.5" />
-              )}
-              {profile.isOnline ? "Online agora" : "Perfil ativo"}
-            </span>
+              </span>
+            )}
             {isNewProfile || isPremiumDaddy ? (
               <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
                 {isPremiumDaddy ? (
@@ -442,12 +439,10 @@ function ProfileView({
                     className="aspect-[1.18/1] overflow-hidden rounded-sm border-2 border-emerald/38 bg-white p-0.5 shadow-[0_12px_24px_rgba(0,55,44,0.12)]"
                   >
                     <div className="h-full overflow-hidden rounded-[0.18rem]">
-                      {/* User uploads are data URLs and should not use Next image optimization. */}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <PhotoZoom
                         src={photo.dataUrl}
                         alt={`Foto publica ${index + 1}`}
-                        className="h-full w-full object-cover"
+                        imageClassName="h-full w-full object-cover"
                       />
                     </div>
                   </div>
@@ -478,12 +473,10 @@ function ProfileView({
                     key={photo.id ?? `private-${index}`}
                     className="aspect-[1.18/1] overflow-hidden rounded-sm border-2 border-gold/45 bg-white p-0.5 shadow-[0_12px_24px_rgba(185,138,56,0.14)]"
                   >
-                    {/* User uploads are served through an authorized endpoint. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <PhotoZoom
                       src={photo.dataUrl}
                       alt={`Foto privada ${index + 1}`}
-                      className="h-full w-full rounded-[0.18rem] object-cover"
+                      imageClassName="h-full w-full rounded-[0.18rem] object-cover"
                     />
                   </div>
                 ))}

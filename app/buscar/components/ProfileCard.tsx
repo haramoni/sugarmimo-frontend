@@ -62,20 +62,19 @@ export default function ProfileCard({
               <UserRound className="h-16 w-16" />
             </div>
           )}
-          <span
-            aria-label={profile.isOnline ? "Online agora" : "Perfil ativo"}
-            title={profile.isOnline ? "Online agora" : "Perfil ativo"}
-            className={[
-              "absolute left-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/90 shadow-[0_8px_18px_rgba(20,17,14,0.12)] backdrop-blur-sm",
-              profile.isOnline ? "text-emerald" : "text-black-jewel/62",
-            ].join(" ")}
-          >
-            {profile.isOnline ? (
-              <Radio aria-hidden="true" className="h-5 w-5" />
-            ) : (
+          {profile.isOnline && (
+            <span
+              aria-label={profile.isOnline ? "Online agora" : "Perfil ativo"}
+              title={profile.isOnline ? "Online agora" : "Perfil ativo"}
+              className={[
+                "absolute left-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/90 shadow-[0_8px_18px_rgba(20,17,14,0.12)] backdrop-blur-sm",
+                profile.isOnline ? "text-emerald" : "text-black-jewel/62",
+              ].join(" ")}
+            >
               <BadgeCheck aria-hidden="true" className="h-5 w-5" />
-            )}
-          </span>
+            </span>
+          )}
+
           {isNewProfile || isPremiumDaddy || isBoosted ? (
             <div className="absolute right-3 top-3 flex items-center gap-2">
               {isBoosted ? (

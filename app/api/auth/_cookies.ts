@@ -4,6 +4,13 @@ export { API_URL, SESSION_COOKIE } from "@/app/lib/auth";
 import { SESSION_COOKIE } from "@/app/lib/auth";
 
 const isProduction = process.env.NODE_ENV === "production";
+const configuredSessionMaxAge = Number(
+  process.env.AUTH_SESSION_MAX_AGE_SECONDS ?? 86_400,
+);
+const sessionMaxAge =
+  Number.isSafeInteger(configuredSessionMaxAge) && configuredSessionMaxAge > 0
+    ? configuredSessionMaxAge
+    : 86_400;
 
 export async function setSessionCookie(accessToken: string) {
   const cookieStore = await cookies();
@@ -13,6 +20,7 @@ export async function setSessionCookie(accessToken: string) {
     secure: isProduction,
     sameSite: "lax",
     path: "/",
+    maxAge: sessionMaxAge,
   });
 }
 

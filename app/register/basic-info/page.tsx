@@ -60,7 +60,9 @@ export default function RegisterAccountForm() {
     useState<AvailabilityCheck | null>(null);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [username, setUsername] = useState(savedPayload.username);
+  const [username, setUsername] = useState(() =>
+    sanitizeUsername(savedPayload.username),
+  );
   const [email, setEmail] = useState(savedPayload.email);
   const [password, setPassword] = useState(savedPayload.password);
   const [birthDay, setBirthDay] = useState(savedPayload.birthDay);
@@ -313,7 +315,7 @@ export default function RegisterAccountForm() {
                 Nome de Usuário
               </Label>
               <p className="flex items-center gap-1 text-xs text-[color:color-mix(in_srgb,var(--black)_58%,transparent)]">
-                O nome escolhido não podera ser alterado depois.
+                Use letras, números, ponto, hífen ou sublinhado, sem espaços.
               </p>
 
               <div className="relative border-b border-silver bg-[color-mix(in_srgb,var(--gold-soft)_30%,white)]">
@@ -322,9 +324,22 @@ export default function RegisterAccountForm() {
                   name="username"
                   type="text"
                   required
+                  minLength={2}
+                  maxLength={50}
+                  pattern="[A-Za-z0-9._-]+"
                   value={username}
+                  onKeyDown={(event) => {
+                    if (
+                      event.key.length === 1 &&
+                      !event.ctrlKey &&
+                      !event.metaKey &&
+                      !/^[A-Za-z0-9._-]$/.test(event.key)
+                    ) {
+                      event.preventDefault();
+                    }
+                  }}
                   onChange={(event) => {
-                    setUsername(event.target.value);
+                    setUsername(sanitizeUsername(event.target.value));
                     setError("");
                     setAvailabilityCheck(null);
                     setAvailabilityErrors((currentErrors) => ({
@@ -681,6 +696,11 @@ function getValidationErrors({
     errors.username = "Informe um nome de usuario.";
   } else if (username && username.length < 2) {
     errors.username = "O nome de usuario deve ter pelo menos 2 caracteres.";
+  } else if (username.length > 50) {
+    errors.username = "O nome de usuario deve ter no maximo 50 caracteres.";
+  } else if (username && !/^[A-Za-z0-9._-]+$/.test(username)) {
+    errors.username =
+      "Use apenas letras, numeros, ponto, hifen ou sublinhado, sem espacos.";
   }
 
   if (showRequired && !email) {
@@ -700,6 +720,10 @@ function getValidationErrors({
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function sanitizeUsername(value: string) {
+  return value.replace(/[^A-Za-z0-9._-]/g, "").slice(0, 50);
 }
 
 function getPasswordError(password: string, showRequired = false) {
