@@ -163,7 +163,7 @@ export default function AdminPremiumPage() {
           <div className="border border-[var(--platinum)] bg-white p-6 text-sm font-bold">
             Carregando perfis...
           </div>
-        ) : profiles.length === 0 ? (
+        ) : profiles?.length === 0 ? (
           <div className="border border-[var(--platinum)] bg-white p-6 text-sm font-bold">
             Nenhum Sugar Daddy ativo no momento.
           </div>

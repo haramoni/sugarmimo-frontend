@@ -1,19 +1,14 @@
 "use client";
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  Crown,
-  Eye,
-  Loader2,
-  MoreHorizontal,
-  Search,
-  ShieldCheck,
-  SlidersHorizontal,
-  type LucideIcon,
-} from "lucide-react";
+import { Crown, Loader2, Search, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +20,6 @@ import {
 } from "../perfil/ProfileApprovalGuard";
 import StatePanel from "./components/StatePanel";
 import ProfileCard from "./components/ProfileCard";
-import { getProfilePhoto } from "./profile-utils";
 import type { PublicProfile, PublicProfilePage } from "./types";
 
 const PAGE_SIZE = 6;
@@ -36,6 +30,8 @@ type SavedSearchState = {
   search: string;
   page: number;
   scrollY: number;
+  anchorProfileId: string | null;
+  anchorOffset: number | null;
 };
 
 export default function BuscarPage() {
@@ -45,12 +41,23 @@ export default function BuscarPage() {
   const [search, setSearch] = useState("");
   const [profiles, setProfiles] = useState<PublicProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState("");
   const [hasRestoredState, setHasRestoredState] = useState(false);
+  const [isScrollRestored, setIsScrollRestored] = useState(false);
   const [scrollToRestore, setScrollToRestore] = useState<number | null>(null);
+  const [anchorToRestore, setAnchorToRestore] = useState<{
+    profileId: string;
+    offset: number;
+  } | null>(null);
+  const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
+  const restoredPageRef = useRef(1);
+  const navigationAnchorRef = useRef<{
+    profileId: string;
+    offset: number;
+  } | null>(null);
 
   const normalizedRole = user?.role?.trim().toUpperCase();
   const isDaddy = normalizedRole === "SUGAR_DADDY";
@@ -69,7 +76,16 @@ export default function BuscarPage() {
         setSearchDraft(savedState.searchDraft);
         setSearch(savedState.search);
         setPage(savedState.page);
+        restoredPageRef.current = savedState.page;
         setScrollToRestore(savedState.scrollY);
+        if (savedState.anchorProfileId && savedState.anchorOffset !== null) {
+          setAnchorToRestore({
+            profileId: savedState.anchorProfileId,
+            offset: savedState.anchorOffset,
+          });
+        }
+      } else {
+        setIsScrollRestored(true);
       }
 
       setHasRestoredState(true);
@@ -79,7 +95,7 @@ export default function BuscarPage() {
   }, []);
 
   useEffect(() => {
-    if (!hasRestoredState) {
+    if (!hasRestoredState || !isScrollRestored) {
       return;
     }
 
@@ -89,6 +105,8 @@ export default function BuscarPage() {
         search,
         page,
         scrollY: window.scrollY,
+        anchorProfileId: navigationAnchorRef.current?.profileId ?? null,
+        anchorOffset: navigationAnchorRef.current?.offset ?? null,
       });
     }
 
@@ -99,7 +117,7 @@ export default function BuscarPage() {
       window.removeEventListener("scroll", saveCurrentState);
       saveCurrentState();
     };
-  }, [hasRestoredState, page, search, searchDraft]);
+  }, [hasRestoredState, isScrollRestored, page, search, searchDraft]);
 
   useEffect(() => {
     if (!user) {
@@ -113,40 +131,38 @@ export default function BuscarPage() {
     }
 
     const controller = new AbortController();
-    const params = new URLSearchParams();
-    params.set("page", String(page));
-    params.set("limit", String(PAGE_SIZE));
+    const pagesToLoad = Array.from(
+      { length: Math.max(1, restoredPageRef.current) },
+      (_, index) => index + 1,
+    );
+    restoredPageRef.current = 1;
 
-    if (search.trim()) {
-      params.set("search", search.trim());
-    }
+    Promise.all(
+      pagesToLoad.map((pageNumber) =>
+        fetchMatchPage(pageNumber, search, controller.signal),
+      ),
+    )
+      .then((results) => {
+        if (controller.signal.aborted) {
+          return;
+        }
 
-    fetch(`/api/matches${params.size ? `?${params.toString()}` : ""}`, {
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        const result = await response.json().catch(() => null);
+        const validResults = results.filter(
+          (result): result is PublicProfilePage => result !== null,
+        );
+        const lastResult = validResults.at(-1);
 
-        if (response.status === 401) {
+        if (!lastResult) {
           router.replace("/login");
-          return null;
+          return;
         }
 
-        if (!response.ok) {
-          throw new Error(
-            result?.message ?? "Não foi possível carregar a busca.",
-          );
-        }
-
-        return result as PublicProfilePage;
-      })
-      .then((result) => {
-        if (!controller.signal.aborted && result) {
-          setProfiles(Array.isArray(result.items) ? result.items : []);
-          setTotal(Number(result.total) || 0);
-          setTotalPages(Number(result.totalPages) || 0);
-          setError("");
-        }
+        setProfiles(
+          deduplicateProfiles(validResults.flatMap((result) => result.items)),
+        );
+        setPage(Number(lastResult.page) || 1);
+        setHasMore(Boolean(lastResult.hasMore));
+        setError("");
       })
       .catch((fetchError) => {
         if (controller.signal.aborted) {
@@ -159,8 +175,7 @@ export default function BuscarPage() {
             : "Não foi possível carregar a busca.",
         );
         setProfiles([]);
-        setTotal(0);
-        setTotalPages(0);
+        setHasMore(false);
       })
       .finally(() => {
         if (!controller.signal.aborted) {
@@ -169,37 +184,32 @@ export default function BuscarPage() {
       });
 
     return () => controller.abort();
-  }, [
-    canSearch,
-    hasRestoredState,
-    isApprovalPending,
-    page,
-    router,
-    search,
-    user,
-  ]);
+  }, [canSearch, hasRestoredState, isApprovalPending, router, search, user]);
 
   useEffect(() => {
-    if (isLoading || scrollToRestore === null) {
+    if (isLoading || isScrollRestored || scrollToRestore === null) {
       return;
     }
 
-    const frame = window.requestAnimationFrame(() => {
-      window.scrollTo({ top: scrollToRestore, behavior: "auto" });
-      setScrollToRestore(null);
+    let secondFrame: number | null = null;
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        restoreListPosition(scrollToRestore, anchorToRestore);
+        setScrollToRestore(null);
+        setAnchorToRestore(null);
+        setIsScrollRestored(true);
+      });
+
+      navigationAnchorRef.current = null;
     });
 
-    return () => window.cancelAnimationFrame(frame);
-  }, [isLoading, scrollToRestore]);
-
-  const featuredCount = useMemo(
-    () => profiles.filter((profile) => getProfilePhoto(profile)).length,
-    [profiles],
-  );
-  const onlineCount = useMemo(
-    () => profiles.filter((profile) => profile.isOnline).length,
-    [profiles],
-  );
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      if (secondFrame !== null) {
+        window.cancelAnimationFrame(secondFrame);
+      }
+    };
+  }, [anchorToRestore, isLoading, isScrollRestored, scrollToRestore]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -212,28 +222,70 @@ export default function BuscarPage() {
     setIsLoading(true);
     setError("");
     setPage(1);
+    setProfiles([]);
+    restoredPageRef.current = 1;
     setSearch(nextSearch);
   }
 
-  function goToPage(nextPage: number) {
+  const loadMore = useCallback(async () => {
+    if (isLoading || isLoadingMore || !hasMore) {
+      return;
+    }
+
+    setIsLoadingMore(true);
+    setError("");
+
+    try {
+      const nextPage = page + 1;
+      const result = await fetchMatchPage(nextPage, search);
+
+      if (!result) {
+        router.replace("/login");
+        return;
+      }
+
+      setProfiles((current) =>
+        deduplicateProfiles([...current, ...result.items]),
+      );
+      setPage(Number(result.page) || nextPage);
+      setHasMore(Boolean(result.hasMore));
+    } catch (fetchError) {
+      setError(
+        fetchError instanceof Error
+          ? fetchError.message
+          : "Não foi possível carregar mais perfis.",
+      );
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [hasMore, isLoading, isLoadingMore, page, router, search]);
+
+  useEffect(() => {
+    const sentinel = loadMoreSentinelRef.current;
+
     if (
+      !sentinel ||
+      !isScrollRestored ||
       isLoading ||
-      nextPage === page ||
-      nextPage < 1 ||
-      nextPage > totalPages
+      isLoadingMore ||
+      error ||
+      !hasMore
     ) {
       return;
     }
 
-    setIsLoading(true);
-    setError("");
-    setPage(nextPage);
-    window.requestAnimationFrame(() => {
-      document
-        .getElementById("profile-results")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          void loadMore();
+        }
+      },
+      { rootMargin: "500px 0px" },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [error, hasMore, isLoading, isLoadingMore, isScrollRestored, loadMore]);
 
   if (!user || isApprovalPending) {
     return <ProfileApprovalGuard user={user} />;
@@ -287,7 +339,7 @@ export default function BuscarPage() {
             <section id="profile-results" className="min-w-0 scroll-mt-24">
               {!canSearch ? (
                 <AccessNotice />
-              ) : error ? (
+              ) : error && profiles?.length === 0 ? (
                 <StatePanel
                   icon={ShieldCheck}
                   title="Busca indisponível"
@@ -300,7 +352,7 @@ export default function BuscarPage() {
                   description={`Estamos buscando ${targetLabel.toLocaleLowerCase("pt-BR")} para você.`}
                   spin
                 />
-              ) : profiles.length === 0 ? (
+              ) : profiles?.length === 0 ? (
                 <StatePanel
                   icon={Search}
                   title="Nenhum perfil encontrado"
@@ -313,24 +365,52 @@ export default function BuscarPage() {
                       <ProfileCard
                         key={profile.id}
                         profile={profile}
-                        onNavigate={() =>
+                        onNavigate={() => {
+                          navigationAnchorRef.current = getProfileAnchor(
+                            profile.id,
+                          );
                           saveSearchState({
                             searchDraft,
                             search,
                             page,
                             scrollY: window.scrollY,
-                          })
-                        }
+                            anchorProfileId:
+                              navigationAnchorRef.current?.profileId ?? null,
+                            anchorOffset:
+                              navigationAnchorRef.current?.offset ?? null,
+                          });
+                        }}
                       />
                     ))}
                   </div>
 
-                  <Pagination
-                    page={page}
-                    total={total}
-                    totalPages={totalPages}
-                    onPageChange={goToPage}
-                  />
+                  {error ? (
+                    <p className="text-center text-sm font-bold text-ruby">
+                      {error}
+                    </p>
+                  ) : null}
+
+                  <div
+                    ref={loadMoreSentinelRef}
+                    className="flex min-h-16 items-center justify-center"
+                    aria-live="polite"
+                  >
+                    {isLoadingMore ? (
+                      <div className="flex items-center gap-2 text-sm font-bold text-black-jewel/62">
+                        <Loader2 className="h-4 w-4 animate-spin text-emerald" />
+                        Carregando mais perfis
+                      </div>
+                    ) : error && hasMore ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => void loadMore()}
+                        className="rounded-full border-emerald/30 bg-white/82 font-extrabold text-emerald hover:bg-emerald hover:text-white"
+                      >
+                        Tentar carregar novamente
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
               )}
             </section>
@@ -338,6 +418,40 @@ export default function BuscarPage() {
         </section>
       </main>
     </ProfileApprovalGuard>
+  );
+}
+
+async function fetchMatchPage(
+  page: number,
+  search: string,
+  signal?: AbortSignal,
+): Promise<PublicProfilePage | null> {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(PAGE_SIZE),
+  });
+
+  if (search.trim()) {
+    params.set("search", search.trim());
+  }
+
+  const response = await fetch(`/api/matches?${params.toString()}`, { signal });
+  const result = await response.json().catch(() => null);
+
+  if (response.status === 401) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(result?.message ?? "Não foi possível carregar a busca.");
+  }
+
+  return result as PublicProfilePage;
+}
+
+function deduplicateProfiles(profiles: PublicProfile[]) {
+  return Array.from(
+    new Map(profiles.map((profile) => [profile.id, profile])).values(),
   );
 }
 
@@ -352,13 +466,20 @@ function readSavedSearchState(): SavedSearchState | null {
     }
 
     return {
-      searchDraft: typeof parsed.searchDraft === "string" ? parsed.searchDraft : "",
+      searchDraft:
+        typeof parsed.searchDraft === "string" ? parsed.searchDraft : "",
       search: typeof parsed.search === "string" ? parsed.search : "",
       page: Number(parsed.page),
       scrollY:
         typeof parsed.scrollY === "number" && parsed.scrollY >= 0
           ? parsed.scrollY
           : 0,
+      anchorProfileId:
+        typeof parsed.anchorProfileId === "string"
+          ? parsed.anchorProfileId
+          : null,
+      anchorOffset:
+        typeof parsed.anchorOffset === "number" ? parsed.anchorOffset : null,
     };
   } catch {
     return null;
@@ -373,125 +494,32 @@ function saveSearchState(state: SavedSearchState) {
   }
 }
 
-function Pagination({
-  page,
-  total,
-  totalPages,
-  onPageChange,
-}: {
-  page: number;
-  total: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-}) {
-  if (totalPages <= 1) {
-    return null;
-  }
+function getProfileAnchor(profileId: string) {
+  const card = document.getElementById(`profile-card-${profileId}`);
 
-  const firstProfile = (page - 1) * PAGE_SIZE + 1;
-  const lastProfile = Math.min(page * PAGE_SIZE, total);
-  const pageItems = getPaginationItems(page, totalPages);
-  const navigationButton =
-    "inline-flex h-10 items-center justify-center gap-1 rounded-full border border-emerald/22 bg-white/82 px-3 text-sm font-extrabold text-black-jewel shadow-[0_6px_16px_rgba(0,55,44,0.06)] transition hover:border-emerald/45 hover:bg-emerald hover:text-white disabled:pointer-events-none disabled:opacity-35 sm:px-4";
-
-  return (
-    <nav
-      aria-label="Paginação de perfis"
-      className="overflow-hidden rounded-lg border border-emerald/20 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--surface)_94%,white),color-mix(in_srgb,var(--emerald)_7%,white))] px-3 py-4 shadow-[0_16px_38px_rgba(20,17,14,0.09)] ring-1 ring-white/70 sm:px-5"
-    >
-      <div className="flex items-center justify-center gap-1.5 sm:gap-2">
-        <button
-          type="button"
-          className={navigationButton}
-          onClick={() => onPageChange(page - 1)}
-          disabled={page === 1}
-          aria-label="Ir para a página anterior"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          <span className="hidden sm:inline">Anterior</span>
-        </button>
-
-        <div className="flex items-center gap-1" aria-label="Páginas">
-          {pageItems.map((item, index) =>
-            typeof item === "number" ? (
-              <button
-                key={item}
-                type="button"
-                onClick={() => onPageChange(item)}
-                aria-label={`Ir para a página ${item}`}
-                aria-current={item === page ? "page" : undefined}
-                className={[
-                  "grid h-10 min-w-10 place-items-center rounded-full border px-2 text-sm font-extrabold transition",
-                  item === page
-                    ? "border-emerald bg-emerald text-white shadow-[0_9px_22px_rgba(0,108,88,0.24)]"
-                    : "border-transparent bg-transparent text-black-jewel/70 hover:border-emerald/28 hover:bg-white/85 hover:text-emerald",
-                ].join(" ")}
-              >
-                {item}
-              </button>
-            ) : (
-              <span
-                key={`${item}-${index}`}
-                className="grid h-10 w-7 place-items-center text-black-jewel/45"
-                aria-hidden="true"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </span>
-            ),
-          )}
-        </div>
-
-        <button
-          type="button"
-          className={navigationButton}
-          onClick={() => onPageChange(page + 1)}
-          disabled={page === totalPages}
-          aria-label="Ir para a próxima página"
-        >
-          <span className="hidden sm:inline">Próxima</span>
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
-    </nav>
-  );
+  return card ? { profileId, offset: card.getBoundingClientRect().top } : null;
 }
 
-function getPaginationItems(currentPage: number, totalPages: number) {
-  if (totalPages <= 5) {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
+function restoreListPosition(
+  scrollY: number,
+  anchor: { profileId: string; offset: number } | null,
+) {
+  const card = anchor
+    ? document.getElementById(`profile-card-${anchor.profileId}`)
+    : null;
+
+  if (card && anchor) {
+    window.scrollTo({
+      top: Math.max(
+        0,
+        window.scrollY + card.getBoundingClientRect().top - anchor.offset,
+      ),
+      behavior: "auto",
+    });
+    return;
   }
 
-  if (currentPage <= 3) {
-    return [1, 2, 3, "ellipsis" as const, totalPages];
-  }
-
-  if (currentPage >= totalPages - 2) {
-    return [1, "ellipsis" as const, totalPages - 2, totalPages - 1, totalPages];
-  }
-
-  return [1, "ellipsis" as const, currentPage, "ellipsis" as const, totalPages];
-}
-
-function Metric({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex min-h-14 items-center justify-between gap-3 rounded-sm border border-emerald/20 bg-white/74 px-3 py-2 shadow-[0_8px_18px_rgba(0,55,44,0.06)]">
-      <span className="flex min-w-0 items-center gap-2 text-sm font-bold text-black-jewel/68">
-        <Icon className="h-4 w-4 shrink-0 text-emerald" />
-        <span className="truncate">{label}</span>
-      </span>
-      <span className="shrink-0 text-lg font-extrabold text-black-jewel">
-        {value}
-      </span>
-    </div>
-  );
+  window.scrollTo({ top: scrollY, behavior: "auto" });
 }
 
 function AccessNotice() {

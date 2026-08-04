@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ClipboardList, LogOut, RefreshCw, Users } from "lucide-react";
+import { ClipboardList, Flag, LogOut, RefreshCw, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -88,6 +88,16 @@ export default function AdminActivityLogsPage() {
             style={{ height: "auto" }}
           />
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Denúncias do chat"
+              onClick={() => router.push("/admin/chat-reports")}
+              className="rounded-sm"
+            >
+              <Flag className="h-4 w-4" />
+            </Button>
             <Button
               type="button"
               variant="ghost"

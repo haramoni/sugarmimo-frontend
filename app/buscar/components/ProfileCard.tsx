@@ -3,7 +3,6 @@ import {
   Crown,
   HeartHandshake,
   MapPin,
-  Radio,
   Sparkles,
   UserRound,
   Zap,
@@ -40,7 +39,10 @@ export default function ProfileCard({
     : false;
 
   return (
-    <article className="min-w-0 overflow-hidden rounded-lg border border-emerald/24 bg-[color-mix(in_srgb,var(--surface)_92%,white)] shadow-[0_18px_44px_rgba(20,17,14,0.12)] ring-1 ring-white/70 transition duration-300 hover:-translate-y-0.5 hover:border-gold/55 hover:shadow-[0_24px_56px_rgba(20,17,14,0.16)]">
+    <article
+      id={`profile-card-${profile.id}`}
+      className="min-w-0 overflow-hidden rounded-lg border border-emerald/24 bg-[color-mix(in_srgb,var(--surface)_92%,white)] shadow-[0_18px_44px_rgba(20,17,14,0.12)] ring-1 ring-white/70 transition duration-300 hover:-translate-y-0.5 hover:border-gold/55 hover:shadow-[0_24px_56px_rgba(20,17,14,0.16)]"
+    >
       <Link
         href={href}
         onClick={onNavigate}

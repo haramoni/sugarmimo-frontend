@@ -60,7 +60,5 @@ export type PublicProfilePage = {
   items: PublicProfile[];
   page: number;
   pageSize: number;
-  total: number;
-  totalPages: number;
   hasMore: boolean;
 };

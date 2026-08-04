@@ -2,7 +2,7 @@
 
 import { Loader2, Rocket, ShieldCheck, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import ProfileCard from "../buscar/components/ProfileCard";
@@ -16,6 +16,14 @@ import {
 } from "../perfil/ProfileApprovalGuard";
 
 const PAGE_SIZE = 6;
+const HOME_STATE_KEY = "sugarmimo:inicio-state";
+
+type SavedHomeState = {
+  page: number;
+  scrollY: number;
+  anchorProfileId: string | null;
+  anchorOffset: number | null;
+};
 
 export default function InicioPage() {
   const router = useRouter();
@@ -26,6 +34,19 @@ export default function InicioPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState("");
+  const [hasRestoredState, setHasRestoredState] = useState(false);
+  const [isScrollRestored, setIsScrollRestored] = useState(false);
+  const [scrollToRestore, setScrollToRestore] = useState<number | null>(null);
+  const [anchorToRestore, setAnchorToRestore] = useState<{
+    profileId: string;
+    offset: number;
+  } | null>(null);
+  const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
+  const restoredPageRef = useRef(1);
+  const navigationAnchorRef = useRef<{
+    profileId: string;
+    offset: number;
+  } | null>(null);
   const isApprovalPending = shouldShowPendingApproval(user);
   const canView = ["SUGAR_BABY", "SUGAR_DADDY"].includes(
     user?.role?.trim().toUpperCase() ?? "",
@@ -36,42 +57,94 @@ export default function InicioPage() {
       : "Sugar Daddies em destaque";
 
   useEffect(() => {
+    const savedState = readSavedHomeState();
+    const frame = window.requestAnimationFrame(() => {
+      if (savedState) {
+        setPage(savedState.page);
+        restoredPageRef.current = savedState.page;
+        setScrollToRestore(savedState.scrollY);
+        if (savedState.anchorProfileId && savedState.anchorOffset !== null) {
+          setAnchorToRestore({
+            profileId: savedState.anchorProfileId,
+            offset: savedState.anchorOffset,
+          });
+        }
+      } else {
+        setIsScrollRestored(true);
+      }
+
+      setHasRestoredState(true);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    if (!hasRestoredState || !isScrollRestored) {
+      return;
+    }
+
+    function saveCurrentState() {
+      saveHomeState({
+        page,
+        scrollY: window.scrollY,
+        anchorProfileId: navigationAnchorRef.current?.profileId ?? null,
+        anchorOffset: navigationAnchorRef.current?.offset ?? null,
+      });
+    }
+
+    saveCurrentState();
+    window.addEventListener("scroll", saveCurrentState, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", saveCurrentState);
+      saveCurrentState();
+    };
+  }, [hasRestoredState, isScrollRestored, page]);
+
+  useEffect(() => {
     if (!user) {
       router.replace("/login");
       return;
     }
 
-    if (isApprovalPending || !canView) {
+    if (!hasRestoredState || isApprovalPending || !canView) {
       return;
     }
 
     const controller = new AbortController();
-    fetch(`/api/boosts?page=1&limit=${PAGE_SIZE}`, {
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        const result = await response.json().catch(() => null);
+    const pagesToLoad = Array.from(
+      { length: Math.max(1, restoredPageRef.current) },
+      (_, index) => index + 1,
+    );
+    restoredPageRef.current = 1;
 
-        if (response.status === 401) {
+    Promise.all(
+      pagesToLoad.map((pageNumber) =>
+        fetchBoostPage(pageNumber, controller.signal),
+      ),
+    )
+      .then((results) => {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        const validResults = results.filter(
+          (result): result is PublicProfilePage => result !== null,
+        );
+        const lastResult = validResults.at(-1);
+
+        if (!lastResult) {
           router.replace("/login");
-          return null;
+          return;
         }
 
-        if (!response.ok) {
-          throw new Error(
-            result?.message ?? "Não foi possível carregar os destaques.",
-          );
-        }
-
-        return result as PublicProfilePage;
-      })
-      .then((result) => {
-        if (!controller.signal.aborted && result) {
-          setProfiles(Array.isArray(result.items) ? result.items : []);
-          setPage(Number(result.page) || 1);
-          setHasMore(Boolean(result.hasMore));
-          setError("");
-        }
+        setProfiles(
+          deduplicateProfiles(validResults.flatMap((result) => result.items)),
+        );
+        setPage(Number(lastResult.page) || 1);
+        setHasMore(Boolean(lastResult.hasMore));
+        setError("");
       })
       .catch((loadError) => {
         if (!controller.signal.aborted) {
@@ -89,9 +162,34 @@ export default function InicioPage() {
       });
 
     return () => controller.abort();
-  }, [canView, isApprovalPending, router, user]);
+  }, [canView, hasRestoredState, isApprovalPending, router, user]);
 
-  async function loadMore() {
+  useEffect(() => {
+    if (isLoading || isScrollRestored || scrollToRestore === null) {
+      return;
+    }
+
+    let secondFrame: number | null = null;
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        restoreListPosition(scrollToRestore, anchorToRestore);
+        setScrollToRestore(null);
+        setAnchorToRestore(null);
+        setIsScrollRestored(true);
+      });
+
+      navigationAnchorRef.current = null;
+    });
+
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      if (secondFrame !== null) {
+        window.cancelAnimationFrame(secondFrame);
+      }
+    };
+  }, [anchorToRestore, isLoading, isScrollRestored, scrollToRestore]);
+
+  const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore) {
       return;
     }
@@ -101,25 +199,16 @@ export default function InicioPage() {
 
     try {
       const nextPage = page + 1;
-      const response = await fetch(
-        `/api/boosts?page=${nextPage}&limit=${PAGE_SIZE}`,
-      );
-      const result = (await response.json().catch(() => null)) as
-        | (PublicProfilePage & { message?: string })
-        | null;
+      const result = await fetchBoostPage(nextPage);
 
-      if (!response.ok || !result) {
-        throw new Error(
-          result?.message ?? "Não foi possível carregar mais destaques.",
-        );
+      if (!result) {
+        router.replace("/login");
+        return;
       }
 
-      setProfiles((current) => [
-        ...current,
-        ...result.items.filter(
-          (profile) => !current.some((item) => item.id === profile.id),
-        ),
-      ]);
+      setProfiles((current) =>
+        deduplicateProfiles([...current, ...result.items]),
+      );
       setPage(nextPage);
       setHasMore(Boolean(result.hasMore));
     } catch (loadError) {
@@ -131,7 +220,34 @@ export default function InicioPage() {
     } finally {
       setIsLoadingMore(false);
     }
-  }
+  }, [hasMore, isLoadingMore, page, router]);
+
+  useEffect(() => {
+    const sentinel = loadMoreSentinelRef.current;
+
+    if (
+      !sentinel ||
+      !isScrollRestored ||
+      isLoading ||
+      isLoadingMore ||
+      error ||
+      !hasMore
+    ) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          void loadMore();
+        }
+      },
+      { rootMargin: "500px 0px" },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [error, hasMore, isLoading, isLoadingMore, isScrollRestored, loadMore]);
 
   if (!user || isApprovalPending) {
     return <ProfileApprovalGuard user={user} />;
@@ -176,13 +292,13 @@ export default function InicioPage() {
               description="Buscando os perfis com boost ativo para você."
               spin
             />
-          ) : error && profiles.length === 0 ? (
+          ) : error && profiles?.length === 0 ? (
             <StatePanel
               icon={ShieldCheck}
               title="Destaques indisponiveis"
               description={error}
             />
-          ) : profiles.length === 0 ? (
+          ) : profiles?.length === 0 ? (
             <StatePanel
               icon={Sparkles}
               title="Novos destaques em breve"
@@ -192,7 +308,23 @@ export default function InicioPage() {
             <div className="space-y-6">
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {profiles.map((profile) => (
-                  <ProfileCard key={profile.id} profile={profile} />
+                  <ProfileCard
+                    key={profile.id}
+                    profile={profile}
+                    onNavigate={() => {
+                      navigationAnchorRef.current = getProfileAnchor(
+                        profile.id,
+                      );
+                      saveHomeState({
+                        page,
+                        scrollY: window.scrollY,
+                        anchorProfileId:
+                          navigationAnchorRef.current?.profileId ?? null,
+                        anchorOffset:
+                          navigationAnchorRef.current?.offset ?? null,
+                      });
+                    }}
+                  />
                 ))}
               </div>
 
@@ -202,27 +334,127 @@ export default function InicioPage() {
                 </p>
               ) : null}
 
-              {hasMore ? (
-                <div className="flex justify-center">
+              <div
+                ref={loadMoreSentinelRef}
+                className="flex min-h-16 items-center justify-center"
+                aria-live="polite"
+              >
+                {isLoadingMore ? (
+                  <div className="flex items-center gap-2 text-sm font-bold text-black-jewel/62">
+                    <Loader2 className="h-4 w-4 animate-spin text-emerald" />
+                    Carregando mais destaques
+                  </div>
+                ) : error && hasMore ? (
                   <Button
                     type="button"
+                    variant="outline"
                     onClick={() => void loadMore()}
-                    disabled={isLoadingMore}
-                    className="h-11 rounded-full bg-emerald px-6 font-extrabold text-white hover:bg-emerald/84"
+                    className="rounded-full border-emerald/30 bg-white/82 font-extrabold text-emerald hover:bg-emerald hover:text-white"
                   >
-                    {isLoadingMore ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-4 w-4" />
-                    )}
-                    {isLoadingMore ? "Carregando" : "Carregar mais"}
+                    Tentar carregar novamente
                   </Button>
-                </div>
-              ) : null}
+                ) : !hasMore ? (
+                  <p className="text-center text-sm font-bold text-black-jewel/48">
+                    Todos os destaques foram carregados.
+                  </p>
+                ) : null}
+              </div>
             </div>
           )}
         </section>
       </main>
     </ProfileApprovalGuard>
   );
+}
+
+async function fetchBoostPage(
+  page: number,
+  signal?: AbortSignal,
+): Promise<PublicProfilePage | null> {
+  const response = await fetch(`/api/boosts?page=${page}&limit=${PAGE_SIZE}`, {
+    signal,
+  });
+  const result = await response.json().catch(() => null);
+
+  if (response.status === 401) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      result?.message ?? "Não foi possível carregar os destaques.",
+    );
+  }
+
+  return result as PublicProfilePage;
+}
+
+function deduplicateProfiles(profiles: PublicProfile[]) {
+  return Array.from(
+    new Map(profiles.map((profile) => [profile.id, profile])).values(),
+  );
+}
+
+function readSavedHomeState(): SavedHomeState | null {
+  try {
+    const parsed = JSON.parse(
+      window.sessionStorage.getItem(HOME_STATE_KEY) ?? "null",
+    ) as Partial<SavedHomeState> | null;
+
+    if (!parsed || !Number.isInteger(parsed.page) || Number(parsed.page) < 1) {
+      return null;
+    }
+
+    return {
+      page: Number(parsed.page),
+      scrollY:
+        typeof parsed.scrollY === "number" && parsed.scrollY >= 0
+          ? parsed.scrollY
+          : 0,
+      anchorProfileId:
+        typeof parsed.anchorProfileId === "string"
+          ? parsed.anchorProfileId
+          : null,
+      anchorOffset:
+        typeof parsed.anchorOffset === "number" ? parsed.anchorOffset : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveHomeState(state: SavedHomeState) {
+  try {
+    window.sessionStorage.setItem(HOME_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // The home list still works if session storage is unavailable.
+  }
+}
+
+function getProfileAnchor(profileId: string) {
+  const card = document.getElementById(`profile-card-${profileId}`);
+
+  return card ? { profileId, offset: card.getBoundingClientRect().top } : null;
+}
+
+function restoreListPosition(
+  scrollY: number,
+  anchor: { profileId: string; offset: number } | null,
+) {
+  const card = anchor
+    ? document.getElementById(`profile-card-${anchor.profileId}`)
+    : null;
+
+  if (card && anchor) {
+    window.scrollTo({
+      top: Math.max(
+        0,
+        window.scrollY + card.getBoundingClientRect().top - anchor.offset,
+      ),
+      behavior: "auto",
+    });
+    return;
+  }
+
+  window.scrollTo({ top: scrollY, behavior: "auto" });
 }

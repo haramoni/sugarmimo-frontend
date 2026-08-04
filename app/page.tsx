@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Gem, HeartHandshake, ShieldCheck, UserCheck } from "lucide-react";
 import NavBarMenu from "./components/ui/NavBarMenu";
 import { SiteFooter } from "./components/ui/SiteFooter";
+import WhatsappBubble from "@/components/whatsapp-bubble";
 
 const modelHighlights = [
   {
@@ -144,6 +145,7 @@ export default function Home() {
       </section>
 
       <SiteFooter />
+      <WhatsappBubble />
     </main>
   );
 }

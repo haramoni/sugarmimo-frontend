@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ChevronLeft,
+  ChevronRight,
   Check,
   ClipboardList,
   Crown,
@@ -13,6 +15,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 
 type PendingPhoto = {
   id: string;
@@ -41,48 +44,95 @@ type PendingProfile = {
   photos: PendingPhoto[];
 };
 
+type Pagination = {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+};
+
+const PAGE_SIZE = 6;
+
 export default function AdminApprovalsPage() {
   const router = useRouter();
   const [profiles, setProfiles] = useState<PendingProfile[]>([]);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<Pagination>({
+    page: 1,
+    pageSize: PAGE_SIZE,
+    totalItems: 0,
+    totalPages: 0,
+    hasPreviousPage: false,
+    hasNextPage: false,
+  });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [reviewingId, setReviewingId] = useState("");
+  const latestRequestId = useRef(0);
 
-  const loadProfiles = useCallback(async () => {
-    setError("");
-    setIsLoading(true);
+  const loadProfiles = useCallback(
+    async (requestedPage: number) => {
+      const requestId = ++latestRequestId.current;
+      setError("");
+      setIsLoading(true);
 
-    try {
-      const response = await fetch("/api/admin/pending-babies");
+      try {
+        const response = await fetch(
+          `/api/admin/pending-babies?page=${requestedPage}&pageSize=${PAGE_SIZE}`,
+        );
 
-      if (response.status === 401 || response.status === 403) {
-        router.push("/admin/login");
-        return;
+        if (response.status === 401 || response.status === 403) {
+          router.push("/admin/login");
+          return;
+        }
+
+        const result = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          throw new Error(
+            result?.message ?? "Não foi possível carregar perfis.",
+          );
+        }
+
+        if (requestId !== latestRequestId.current) {
+          return;
+        }
+
+        setProfiles(result.items);
+        setPagination(result.pagination);
+
+        if (
+          result.pagination?.totalPages > 0 &&
+          requestedPage > result.pagination?.totalPages
+        ) {
+          setPage(result.pagination?.totalPages);
+        }
+      } catch (loadError) {
+        if (requestId !== latestRequestId.current) {
+          return;
+        }
+
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Não foi possível carregar perfis.",
+        );
+      } finally {
+        if (requestId === latestRequestId.current) {
+          setIsLoading(false);
+        }
       }
-
-      const result = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        throw new Error(result?.message ?? "Não foi possível carregar perfis.");
-      }
-
-      setProfiles(result);
-    } catch (loadError) {
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : "Não foi possível carregar perfis.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [router]);
+    },
+    [router],
+  );
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => void loadProfiles(), 0);
+    const timeoutId = window.setTimeout(() => void loadProfiles(page), 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [loadProfiles]);
+  }, [loadProfiles, page]);
 
   async function reviewProfile(id: string, action: "approve" | "reject") {
     setReviewingId(id);
@@ -101,9 +151,11 @@ export default function AdminApprovalsPage() {
         );
       }
 
-      setProfiles((currentProfiles) =>
-        currentProfiles.filter((profile) => profile.id !== id),
-      );
+      if (profiles?.length === 1 && page > 1) {
+        setPage((currentPage) => currentPage - 1);
+      } else {
+        await loadProfiles(page);
+      }
     } catch (reviewError) {
       setError(
         reviewError instanceof Error
@@ -157,7 +209,8 @@ export default function AdminApprovalsPage() {
               variant="ghost"
               size="icon"
               aria-label="Atualizar lista"
-              onClick={() => void loadProfiles()}
+              disabled={isLoading}
+              onClick={() => void loadProfiles(page)}
               className="rounded-sm"
             >
               <RefreshCw className="h-4 w-4" />
@@ -185,7 +238,7 @@ export default function AdminApprovalsPage() {
             </p>
           </div>
           <span className="text-sm font-bold text-[var(--gold)]">
-            {profiles.length} pendente(s)
+            {pagination?.totalItems} pendente(s)
           </span>
         </div>
 
@@ -196,16 +249,16 @@ export default function AdminApprovalsPage() {
         )}
 
         {isLoading ? (
-          <div className="border border-[var(--platinum)] bg-white p-6 text-sm font-bold">
-            Carregando perfis...
+          <div className="border border-[var(--platinum)] bg-white">
+            <LoadingSpinner label="Carregando perfis..." />
           </div>
-        ) : profiles.length === 0 ? (
+        ) : profiles?.length === 0 ? (
           <div className="border border-[var(--platinum)] bg-white p-6 text-sm font-bold">
             Nenhum perfil pendente no momento.
           </div>
         ) : (
           <div className="grid gap-5">
-            {profiles.map((profile) => (
+            {profiles?.map((profile) => (
               <article
                 key={profile.id}
                 className="grid gap-5 border border-[var(--platinum)] bg-white p-4 shadow-[0_12px_32px_rgba(20,17,14,0.08)] lg:grid-cols-[1fr_1.2fr]"
@@ -221,6 +274,8 @@ export default function AdminApprovalsPage() {
                       <img
                         src={photo.dataUrl}
                         alt={`Foto ${index + 1} de ${profile.username}`}
+                        loading="lazy"
+                        decoding="async"
                         className="h-full w-full object-cover"
                       />
                     </div>
@@ -279,6 +334,34 @@ export default function AdminApprovalsPage() {
                 </div>
               </article>
             ))}
+            <nav
+              aria-label="Paginação de perfis pendentes"
+              className="flex items-center justify-between gap-3 border border-[var(--platinum)] bg-white p-3"
+            >
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isLoading || !pagination?.hasPreviousPage}
+                onClick={() => setPage((currentPage) => currentPage - 1)}
+                className="rounded-sm"
+              >
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Anterior
+              </Button>
+              <span className="text-center text-sm font-bold">
+                Página {pagination?.page} de {pagination?.totalPages}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isLoading || !pagination?.hasNextPage}
+                onClick={() => setPage((currentPage) => currentPage + 1)}
+                className="rounded-sm"
+              >
+                Próxima
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </nav>
           </div>
         )}
       </section>

@@ -21,11 +21,17 @@ export function Navbar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [unreadChat, setUnreadChat] = useState(0);
   const canSearch = ["SUGAR_BABY", "SUGAR_DADDY"].includes(
     user?.role?.trim().toUpperCase() ?? "",
   );
   const loggedMenuItems = canSearch
-    ? [menuItems[0], { label: "Buscar", href: "/buscar" }, menuItems[1]]
+    ? [
+        menuItems[0],
+        { label: "Buscar", href: "/buscar" },
+        { label: "Chat", href: "/inicio" },
+        menuItems[1],
+      ]
     : menuItems;
   const profilePhoto = user?.photos
     ?.filter((photo) => !photo.isPrivate)
@@ -76,6 +82,42 @@ export function Navbar() {
       );
     };
   }, [user]);
+
+  useEffect(() => {
+    if (!user || !canSearch) {
+      return;
+    }
+
+    let isActive = true;
+    async function loadUnreadChat() {
+      const response = await fetch("/api/chat/conversations", {
+        cache: "no-store",
+      }).catch(() => null);
+      if (!response?.ok || !isActive) {
+        return;
+      }
+      const conversations = (await response.json().catch(() => [])) as Array<{
+        unreadCount?: number;
+      }>;
+      setUnreadChat(
+        conversations.reduce(
+          (total, conversation) => total + (conversation.unreadCount ?? 0),
+          0,
+        ),
+      );
+    }
+
+    void loadUnreadChat();
+    const interval = window.setInterval(loadUnreadChat, 30_000);
+    window.addEventListener("focus", loadUnreadChat);
+    window.addEventListener("sugarmimo-chat-updated", loadUnreadChat);
+    return () => {
+      isActive = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", loadUnreadChat);
+      window.removeEventListener("sugarmimo-chat-updated", loadUnreadChat);
+    };
+  }, [canSearch, user]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-[color:color-mix(in_srgb,var(--gold)_28%,transparent)] bg-[color:color-mix(in_srgb,var(--surface)_88%,white)] px-4 py-3 shadow-[0_10px_34px_rgba(20,17,14,0.08)] backdrop-blur-2xl sm:px-6 lg:px-8">
@@ -132,6 +174,16 @@ export function Navbar() {
                   >
                     <span className="sr-only">
                       {unreadNotifications} notificações não lidas
+                    </span>
+                  </span>
+                ) : null}
+                {item.href === "/chat" && unreadChat > 0 ? (
+                  <span
+                    title={`${unreadChat} mensagem${unreadChat === 1 ? "" : "s"} não lida${unreadChat === 1 ? "" : "s"}`}
+                    className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-ruby shadow-[0_0_0_2px_rgba(190,35,62,0.14)]"
+                  >
+                    <span className="sr-only">
+                      {unreadChat} mensagens não lidas
                     </span>
                   </span>
                 ) : null}

@@ -315,7 +315,8 @@ export default function RegisterAccountForm() {
                 Nome de Usuário
               </Label>
               <p className="flex items-center gap-1 text-xs text-[color:color-mix(in_srgb,var(--black)_58%,transparent)]">
-                Use letras, números, ponto, hífen ou sublinhado, sem espaços.
+                Use até 30 caracteres entre letras, números, ponto, hífen ou
+                sublinhado. Não use seu e-mail.
               </p>
 
               <div className="relative border-b border-silver bg-[color-mix(in_srgb,var(--gold-soft)_30%,white)]">
@@ -325,7 +326,7 @@ export default function RegisterAccountForm() {
                   type="text"
                   required
                   minLength={2}
-                  maxLength={50}
+                  maxLength={30}
                   pattern="[A-Za-z0-9._-]+"
                   value={username}
                   onKeyDown={(event) => {
@@ -336,9 +337,24 @@ export default function RegisterAccountForm() {
                       !/^[A-Za-z0-9._-]$/.test(event.key)
                     ) {
                       event.preventDefault();
+                      if (event.key === "@") {
+                        setAvailabilityErrors((currentErrors) => ({
+                          ...currentErrors,
+                          username:
+                            "Não use seu e-mail como nome de usuário.",
+                        }));
+                      }
                     }
                   }}
                   onChange={(event) => {
+                    if (event.target.value.includes("@")) {
+                      setAvailabilityErrors((currentErrors) => ({
+                        ...currentErrors,
+                        username: "Não use seu e-mail como nome de usuário.",
+                      }));
+                      return;
+                    }
+
                     setUsername(sanitizeUsername(event.target.value));
                     setError("");
                     setAvailabilityCheck(null);
@@ -696,8 +712,8 @@ function getValidationErrors({
     errors.username = "Informe um nome de usuário.";
   } else if (username && username.length < 2) {
     errors.username = "O nome de usuário deve ter pelo menos 2 caracteres.";
-  } else if (username.length > 50) {
-    errors.username = "O nome de usuário deve ter no máximo 50 caracteres.";
+  } else if (username.length > 30) {
+    errors.username = "O nome de usuário deve ter no máximo 30 caracteres.";
   } else if (username && !/^[A-Za-z0-9._-]+$/.test(username)) {
     errors.username =
       "Use apenas letras, números, ponto, hífen ou sublinhado, sem espaços.";
@@ -723,7 +739,11 @@ function isValidEmail(email: string) {
 }
 
 function sanitizeUsername(value: string) {
-  return value.replace(/[^A-Za-z0-9._-]/g, "").slice(0, 50);
+  if (value.includes("@")) {
+    return "";
+  }
+
+  return value.replace(/[^A-Za-z0-9._-]/g, "").slice(0, 30);
 }
 
 function getPasswordError(password: string, showRequired = false) {

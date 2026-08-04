@@ -3,7 +3,6 @@
 import {
   ArrowLeft,
   AtSign,
-  BadgeCheck,
   Briefcase,
   Camera,
   Check,
@@ -15,6 +14,7 @@ import {
   Loader2,
   Lock,
   MapPin,
+  MessageCircle,
   Phone,
   Crown,
   Ruler,
@@ -357,6 +357,18 @@ function ProfileView({
                     : "Curtir e liberar contatos"}
                 </Button>
               ) : isBabyViewingDaddy ? null : null}
+
+              {interaction.daddyLiked && interaction.babyLiked ? (
+                <Button
+                  asChild
+                  className="h-11 rounded-sm bg-emerald px-4 font-extrabold text-white hover:bg-emerald/84"
+                >
+                  <Link href={`/chat?with=${encodeURIComponent(profile.id)}`}>
+                    <MessageCircle className="h-4 w-4" />
+                    Enviar mensagem
+                  </Link>
+                </Button>
+              ) : null}
 
               {actionError ? (
                 <p className="text-xs font-bold text-ruby">{actionError}</p>
