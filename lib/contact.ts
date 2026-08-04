@@ -1,5 +1,5 @@
 export const contact = {
-  whatsappNumber: "551199775-2731",
+  whatsappNumber: "5511997752731",
   whatsappMessage: "Olá, gostaria de informações sobre Sugar Mimo",
 };
 
