@@ -1,9 +1,6 @@
 export const contact = {
-  email: "comercial@prospectshouse.com",
-  whatsappDisplay: "(11) 98610-6525",
-  whatsappNumber: "5511986106525",
-  whatsappMessage:
-    "Olá! Gostaria de conversar sobre geração de demanda para minha empresa.",
+  whatsappNumber: "551199775-2731",
+  whatsappMessage: "Olá, gostaria de informações sobre Sugar Mimo",
 };
 
 export const whatsappUrl = `https://wa.me/${contact.whatsappNumber}?text=${encodeURIComponent(contact.whatsappMessage)}`;
