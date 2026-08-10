@@ -361,10 +361,11 @@ export default function BuscarPage() {
               ) : (
                 <div className="space-y-5">
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {profiles.map((profile) => (
+                    {profiles.map((profile, index) => (
                       <ProfileCard
                         key={profile.id}
                         profile={profile}
+                        eager={index < 3}
                         onNavigate={() => {
                           navigationAnchorRef.current = getProfileAnchor(
                             profile.id,

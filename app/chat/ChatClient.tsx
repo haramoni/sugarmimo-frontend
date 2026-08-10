@@ -188,70 +188,77 @@ export function ChatClient() {
       return;
     }
     let active = true;
-    void (async () => {
-      const response = await fetch("/api/chat/socket-ticket", {
-        method: "POST",
-      }).catch(() => null);
-      if (!response?.ok || !active) {
-        return;
+    const socket = io(`${API_URL}/chat`, {
+      autoConnect: false,
+      // Polling establishes a reliable connection through reverse proxies and
+      // Socket.IO upgrades it to WebSocket automatically when the proxy allows it.
+      transports: ["polling", "websocket"],
+      auth: async (callback) => {
+        const response = await fetch("/api/chat/socket-ticket", {
+          method: "POST",
+        }).catch(() => null);
+        if (!response?.ok || !active) {
+          callback({ token: "" });
+          return;
+        }
+        const { token } = (await response.json()) as { token: string };
+        callback({ token });
+      },
+    });
+    socketRef.current = socket;
+    socket.on("connect", () => {
+      if (selectedIdRef.current) {
+        socket.emit("conversation:join", {
+          conversationId: selectedIdRef.current,
+        });
       }
-      const { token } = (await response.json()) as { token: string };
-      const socket = io(`${API_URL}/chat`, {
-        auth: { token },
-        transports: ["websocket", "polling"],
-      });
-      socketRef.current = socket;
-      socket.on("connect", () => {
-        if (selectedIdRef.current) {
-          socket.emit("conversation:join", {
-            conversationId: selectedIdRef.current,
-          });
+    });
+    socket.on("message:new", (message: ChatMessage) => {
+      if (message.conversationId === selectedIdRef.current) {
+        setMessages((current) => deduplicateMessages([...current, message]));
+        window.setTimeout(
+          () => bottomRef.current?.scrollIntoView({ behavior: "smooth" }),
+          20,
+        );
+        if (message.senderId !== user.id) {
+          void markRead(message.conversationId);
         }
-      });
-      socket.on("message:new", (message: ChatMessage) => {
-        if (message.conversationId === selectedIdRef.current) {
-          setMessages((current) => deduplicateMessages([...current, message]));
-          window.setTimeout(
-            () => bottomRef.current?.scrollIntoView({ behavior: "smooth" }),
-            20,
-          );
-          if (message.senderId !== user.id) {
-            void markRead(message.conversationId);
-          }
-        }
-        void loadConversations();
-        window.dispatchEvent(new Event("sugarmimo-chat-updated"));
-      });
-      socket.on(
-        "messages:read",
-        (event: { conversationId: string; readAt: string }) => {
-          setMessages((current) =>
-            current.map((message) =>
-              message.conversationId === event.conversationId &&
-              message.senderId === user.id
-                ? { ...message, readAt: event.readAt }
-                : message,
-            ),
-          );
-        },
-      );
-      socket.on(
-        "conversation:blocked",
-        (event: { conversationId: string }) => {
-          setConversations((current) =>
-            current.map((conversation) =>
-              conversation.id === event.conversationId
-                ? { ...conversation, blocked: true }
-                : conversation,
-            ),
-          );
-        },
-      );
-    })();
+      }
+      void loadConversations();
+      window.dispatchEvent(new Event("sugarmimo-chat-updated"));
+    });
+    socket.on(
+      "messages:read",
+      (event: { conversationId: string; readAt: string }) => {
+        setMessages((current) =>
+          current.map((message) =>
+            message.conversationId === event.conversationId &&
+            message.senderId === user.id
+              ? { ...message, readAt: event.readAt }
+              : message,
+          ),
+        );
+      },
+    );
+    socket.on(
+      "conversation:blocked",
+      (event: { conversationId: string }) => {
+        setConversations((current) =>
+          current.map((conversation) =>
+            conversation.id === event.conversationId
+              ? { ...conversation, blocked: true }
+              : conversation,
+          ),
+        );
+      },
+    );
+    socket.connect();
     return () => {
       active = false;
-      socketRef.current?.disconnect();
-      socketRef.current = null;
+      socket.disconnect();
+      if (socketRef.current === socket) {
+        socketRef.current = null;
+      }
     };
   }, [loadConversations, markRead, user?.id]);
 

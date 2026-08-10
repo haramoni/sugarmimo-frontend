@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { API_URL, clearSessionCookie, getSessionToken } from "../../auth/_cookies";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const token = await getSessionToken();
@@ -13,8 +13,15 @@ export async function GET(
   }
 
   const { id } = await context.params;
+  const variant = new URL(request.url).searchParams.get("variant");
+  const backendParams = new URLSearchParams();
+
+  if (variant === "card") {
+    backendParams.set("variant", variant);
+  }
+
   const response = await fetch(
-    `${API_URL}/auth/match-photos/${encodeURIComponent(id)}`,
+    `${API_URL}/auth/match-photos/${encodeURIComponent(id)}${backendParams.size ? `?${backendParams}` : ""}`,
     {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
@@ -33,11 +40,14 @@ export async function GET(
     return new NextResponse(null, { status: response.status });
   }
 
-  return new NextResponse(await response.arrayBuffer(), {
+  return new NextResponse(response.body, {
     status: 200,
     headers: {
       "Content-Type":
         response.headers.get("content-type") ?? "application/octet-stream",
+      ...(response.headers.get("content-length")
+        ? { "Content-Length": response.headers.get("content-length")! }
+        : {}),
       "Cache-Control": "private, max-age=3600, immutable",
     },
   });

@@ -19,9 +19,11 @@ import type { PublicProfile } from "../types";
 export default function ProfileCard({
   profile,
   onNavigate,
+  eager = false,
 }: {
   profile: PublicProfile;
   onNavigate?: () => void;
+  eager?: boolean;
 }) {
   const photo = getProfilePhoto(profile);
   const age = getAge(profile.birthDate);
@@ -55,7 +57,8 @@ export default function ProfileCard({
             <img
               src={photo.dataUrl}
               alt={`Foto de ${profile.username ?? "perfil"}`}
-              loading="lazy"
+              loading={eager ? "eager" : "lazy"}
+              fetchPriority={eager ? "high" : "auto"}
               decoding="async"
               className="h-full w-full object-cover"
             />
