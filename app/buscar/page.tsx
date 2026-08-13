@@ -36,7 +36,7 @@ type SavedSearchState = {
 
 export default function BuscarPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAuthLoading } = useAuth();
   const [searchDraft, setSearchDraft] = useState("");
   const [search, setSearch] = useState("");
   const [profiles, setProfiles] = useState<PublicProfile[]>([]);
@@ -120,10 +120,10 @@ export default function BuscarPage() {
   }, [hasRestoredState, isScrollRestored, page, search, searchDraft]);
 
   useEffect(() => {
-    if (!user) {
+    if (!isAuthLoading && !user) {
       router.replace("/login");
     }
-  }, [router, user]);
+  }, [isAuthLoading, router, user]);
 
   useEffect(() => {
     if (!hasRestoredState || !user || isApprovalPending || !canSearch) {
@@ -287,7 +287,7 @@ export default function BuscarPage() {
     return () => observer.disconnect();
   }, [error, hasMore, isLoading, isLoadingMore, isScrollRestored, loadMore]);
 
-  if (!user || isApprovalPending) {
+  if (isAuthLoading || !user || isApprovalPending) {
     return <ProfileApprovalGuard user={user} />;
   }
 

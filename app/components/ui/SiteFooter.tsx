@@ -7,7 +7,6 @@ const footerGroups = [
     title: "SugarMimo",
     links: [
       { label: "Como funciona", href: "/#como-funciona" },
-      { label: "Galeria de Elite", href: "/galeria-de-elite" },
       { label: "Blog", href: "/blog" },
       { label: "Contato", href: "/contato" },
     ],

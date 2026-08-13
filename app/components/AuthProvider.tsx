@@ -21,6 +21,7 @@ import {
 type AuthContextValue = {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  isAuthLoading: boolean;
   refreshUser: () => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -29,12 +30,11 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({
   children,
-  initialUser,
 }: {
   children: ReactNode;
-  initialUser: AuthUser | null;
 }) {
-  const [user, setUser] = useState<AuthUser | null>(initialUser);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -44,6 +44,7 @@ export function AuthProvider({
     if (!response?.ok) {
       setUser(null);
       removeAuthUser();
+      setIsAuthLoading(false);
       return;
     }
 
@@ -51,13 +52,8 @@ export function AuthProvider({
     setUser(nextUser);
     saveAuthUser(nextUser);
 
-    if (
-      shouldShowPendingApproval(nextUser) &&
-      pathname !== PENDING_APPROVAL_ROUTE
-    ) {
-      router.replace(PENDING_APPROVAL_ROUTE);
-    }
-  }, [pathname, router]);
+    setIsAuthLoading(false);
+  }, []);
 
   const logout = useCallback(async () => {
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
@@ -67,23 +63,28 @@ export function AuthProvider({
   }, []);
 
   useEffect(() => {
-    if (initialUser) {
-      saveAuthUser(initialUser);
-    }
+    const timeoutId = window.setTimeout(() => void refreshUser(), 0);
 
     function handleAuthChange() {
       void refreshUser();
     }
 
     window.addEventListener("sugarmimo-auth", handleAuthChange);
-    return () => window.removeEventListener("sugarmimo-auth", handleAuthChange);
-  }, [initialUser, refreshUser]);
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.removeEventListener("sugarmimo-auth", handleAuthChange);
+    };
+  }, [refreshUser]);
 
   useEffect(() => {
-    if (shouldShowPendingApproval(user) && pathname !== PENDING_APPROVAL_ROUTE) {
+    if (
+      !isAuthLoading &&
+      shouldShowPendingApproval(user) &&
+      pathname !== PENDING_APPROVAL_ROUTE
+    ) {
       router.replace(PENDING_APPROVAL_ROUTE);
     }
-  }, [pathname, router, user]);
+  }, [isAuthLoading, pathname, router, user]);
 
   useEffect(() => {
     if (!user) {
@@ -110,10 +111,11 @@ export function AuthProvider({
     () => ({
       user,
       isAuthenticated: Boolean(user),
+      isAuthLoading,
       refreshUser,
       logout,
     }),
-    [logout, refreshUser, user],
+    [isAuthLoading, logout, refreshUser, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

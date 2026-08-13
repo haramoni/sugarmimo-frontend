@@ -28,13 +28,17 @@ type NotificationItem = {
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAuthLoading } = useAuth();
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const isApprovalPending = shouldShowPendingApproval(user);
 
   useEffect(() => {
+    if (isAuthLoading) {
+      return;
+    }
+
     if (!user) {
       router.replace("/login");
       return;
@@ -78,7 +82,7 @@ export default function NotificationsPage() {
       });
 
     return () => controller.abort();
-  }, [isApprovalPending, router, user]);
+  }, [isApprovalPending, isAuthLoading, router, user]);
 
   async function openNotification(notification: NotificationItem) {
     if (!notification.readAt) {
@@ -95,7 +99,7 @@ export default function NotificationsPage() {
     router.push(`/perfil/${encodeURIComponent(notification.actor.username)}`);
   }
 
-  if (!user || isApprovalPending) {
+  if (isAuthLoading || !user || isApprovalPending) {
     return <ProfileApprovalGuard user={user} />;
   }
 

@@ -17,7 +17,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   FormEvent,
   KeyboardEvent,
@@ -48,7 +48,8 @@ const reportCategories = [
 ] as const;
 
 export function ChatClient() {
-  const { user } = useAuth();
+  const { user, isAuthLoading } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const openWithUserId = searchParams.get("with");
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -95,12 +96,20 @@ export function ChatClient() {
   }, []);
 
   useEffect(() => {
+    if (isAuthLoading) {
+      return;
+    }
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
+
     const timeoutId = window.setTimeout(() => void loadConversations(), 0);
     return () => window.clearTimeout(timeoutId);
-  }, [loadConversations]);
+  }, [isAuthLoading, loadConversations, router, user]);
 
   useEffect(() => {
-    if (!openWithUserId) {
+    if (isAuthLoading || !user || !openWithUserId) {
       return;
     }
     void (async () => {
@@ -115,7 +124,7 @@ export function ChatClient() {
       await loadConversations();
       setSelectedId(result.id);
     })();
-  }, [loadConversations, openWithUserId]);
+  }, [isAuthLoading, loadConversations, openWithUserId, user]);
 
   const loadMessages = useCallback(
     async (conversationId: string, cursor?: string, prepend = false) => {

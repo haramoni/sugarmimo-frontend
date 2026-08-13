@@ -65,7 +65,7 @@ const contactOptions: {
 export default function PublicProfilePage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAuthLoading } = useAuth();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -80,10 +80,10 @@ export default function PublicProfilePage() {
   const isApprovalPending = shouldShowPendingApproval(user);
 
   useEffect(() => {
-    if (!user) {
+    if (!isAuthLoading && !user) {
       router.replace("/login");
     }
-  }, [router, user]);
+  }, [isAuthLoading, router, user]);
 
   useEffect(() => {
     if (!identifier || !user || isApprovalPending || !canView) {
@@ -134,7 +134,7 @@ export default function PublicProfilePage() {
     return () => controller.abort();
   }, [canView, identifier, isApprovalPending, router, user]);
 
-  if (!user || isApprovalPending) {
+  if (isAuthLoading || !user || isApprovalPending) {
     return <ProfileApprovalGuard user={user} />;
   }
 

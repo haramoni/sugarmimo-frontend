@@ -51,6 +51,10 @@ export function Navbar() {
     let isActive = true;
 
     async function loadUnreadNotifications() {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+
       const response = await fetch("/api/interactions/notifications", {
         cache: "no-store",
       }).catch(() => null);
@@ -93,6 +97,10 @@ export function Navbar() {
 
     let isActive = true;
     async function loadUnreadChat() {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+
       const response = await fetch("/api/chat/conversations", {
         cache: "no-store",
       }).catch(() => null);

@@ -1,5 +1,3 @@
-import { cookies } from "next/headers";
-
 export const SESSION_COOKIE = "sugarmimo_session";
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
@@ -28,24 +26,3 @@ export type AuthUser = {
   }>;
   createdAt?: string | null;
 };
-
-export async function getCurrentUser(): Promise<AuthUser | null> {
-  const token = (await cookies()).get(SESSION_COOKIE)?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  const response = await fetch(`${API_URL}/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    cache: "no-store",
-  }).catch(() => null);
-
-  if (!response?.ok) {
-    return null;
-  }
-
-  return response.json();
-}

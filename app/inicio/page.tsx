@@ -27,7 +27,7 @@ type SavedHomeState = {
 
 export default function InicioPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAuthLoading } = useAuth();
   const [profiles, setProfiles] = useState<PublicProfile[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -103,6 +103,10 @@ export default function InicioPage() {
   }, [hasRestoredState, isScrollRestored, page]);
 
   useEffect(() => {
+    if (isAuthLoading) {
+      return;
+    }
+
     if (!user) {
       router.replace("/login");
       return;
@@ -162,7 +166,14 @@ export default function InicioPage() {
       });
 
     return () => controller.abort();
-  }, [canView, hasRestoredState, isApprovalPending, router, user]);
+  }, [
+    canView,
+    hasRestoredState,
+    isApprovalPending,
+    isAuthLoading,
+    router,
+    user,
+  ]);
 
   useEffect(() => {
     if (isLoading || isScrollRestored || scrollToRestore === null) {
@@ -249,7 +260,7 @@ export default function InicioPage() {
     return () => observer.disconnect();
   }, [error, hasMore, isLoading, isLoadingMore, isScrollRestored, loadMore]);
 
-  if (!user || isApprovalPending) {
+  if (isAuthLoading || !user || isApprovalPending) {
     return <ProfileApprovalGuard user={user} />;
   }
 

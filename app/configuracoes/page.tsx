@@ -15,7 +15,7 @@ const strongPassword =
 
 export default function ConfiguracoesPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAuthLoading } = useAuth();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,10 +24,10 @@ export default function ConfiguracoesPage() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    if (!user) {
+    if (!isAuthLoading && !user) {
       router.replace("/login");
     }
-  }, [router, user]);
+  }, [isAuthLoading, router, user]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -75,7 +75,7 @@ export default function ConfiguracoesPage() {
     }
   }
 
-  if (!user) {
+  if (isAuthLoading || !user) {
     return null;
   }
 

@@ -7,13 +7,14 @@ import {
   Check,
   ClipboardList,
   Crown,
+  Hourglass,
   LogOut,
   RefreshCw,
   Trash2,
   X,
 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 import { Button } from "@/components/ui/button";
@@ -57,8 +58,13 @@ type Pagination = {
 
 const PAGE_SIZE = 6;
 
-export default function AdminApprovalsPage() {
+function AdminReviewQueue({
+  queue,
+}: {
+  queue: "pending" | "waiting";
+}) {
   const router = useRouter();
+  const isWaitingQueue = queue === "waiting";
   const [profiles, setProfiles] = useState<PendingProfile[]>([]);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState<Pagination>({
@@ -83,7 +89,7 @@ export default function AdminApprovalsPage() {
 
       try {
         const response = await fetch(
-          `/api/admin/pending-babies?page=${requestedPage}&pageSize=${PAGE_SIZE}`,
+          `/api/admin/${isWaitingQueue ? "waiting-babies" : "pending-babies"}?page=${requestedPage}&pageSize=${PAGE_SIZE}`,
         );
 
         if (response.status === 401 || response.status === 403) {
@@ -128,7 +134,7 @@ export default function AdminApprovalsPage() {
         }
       }
     },
-    [router],
+    [isWaitingQueue, router],
   );
 
   useEffect(() => {
@@ -137,7 +143,10 @@ export default function AdminApprovalsPage() {
     return () => window.clearTimeout(timeoutId);
   }, [loadProfiles, page]);
 
-  async function reviewProfile(id: string, action: "approve" | "reject") {
+  async function reviewProfile(
+    id: string,
+    action: "approve" | "reject" | "wait",
+  ) {
     setReviewingId(id);
     setError("");
 
@@ -248,6 +257,27 @@ export default function AdminApprovalsPage() {
               type="button"
               variant="ghost"
               size="icon"
+              aria-label={
+                isWaitingQueue
+                  ? "Voltar para perfis pendentes"
+                  : "Ver perfis aguardando"
+              }
+              title={
+                isWaitingQueue ? "Perfis pendentes" : "Perfis aguardando"
+              }
+              onClick={() =>
+                router.push(
+                  isWaitingQueue ? "/admin/approvals" : "/admin/waiting",
+                )
+              }
+              className="rounded-sm"
+            >
+              <Hourglass className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
               aria-label="Gerenciar Premium"
               onClick={() => router.push("/admin/premium")}
               className="rounded-sm"
@@ -292,13 +322,18 @@ export default function AdminApprovalsPage() {
       <section className="mx-auto max-w-6xl space-y-5 px-5 py-8">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Aprovar Babies</h1>
+            <h1 className="text-2xl font-bold">
+              {isWaitingQueue ? "Aguardando" : "Aprovar Babies"}
+            </h1>
             <p className="text-sm text-[color:color-mix(in_srgb,var(--black)_62%,transparent)]">
-              Perfis aguardando avaliação manual.
+              {isWaitingQueue
+                ? "Perfis separados para uma decisão posterior."
+                : "Perfis aguardando avaliação manual."}
             </p>
           </div>
           <span className="text-sm font-bold text-[var(--gold)]">
-            {pagination?.totalItems} pendente(s)
+            {pagination?.totalItems}{" "}
+            {isWaitingQueue ? "aguardando" : "pendente(s)"}
           </span>
         </div>
 
@@ -314,7 +349,9 @@ export default function AdminApprovalsPage() {
           </div>
         ) : profiles?.length === 0 ? (
           <div className="border border-[var(--platinum)] bg-white p-6 text-sm font-bold">
-            Nenhum perfil pendente no momento.
+            {isWaitingQueue
+              ? "Nenhum perfil na fila de espera."
+              : "Nenhum perfil pendente no momento."}
           </div>
         ) : (
           <div className="grid gap-5">
@@ -385,7 +422,11 @@ export default function AdminApprovalsPage() {
                     />
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div
+                    className={`grid gap-3 ${
+                      isWaitingQueue ? "sm:grid-cols-2" : "sm:grid-cols-3"
+                    }`}
+                  >
                     <Button
                       type="button"
                       disabled={reviewingId === profile.id}
@@ -395,6 +436,17 @@ export default function AdminApprovalsPage() {
                       <X className="mr-2 h-4 w-4" />
                       Rejeitar
                     </Button>
+                    {!isWaitingQueue ? (
+                      <Button
+                        type="button"
+                        disabled={reviewingId === profile.id}
+                        onClick={() => void reviewProfile(profile.id, "wait")}
+                        className="h-11 rounded-sm bg-[var(--gold)] font-bold text-white hover:bg-[color-mix(in_srgb,var(--gold)_86%,var(--black))]"
+                      >
+                        <Hourglass className="mr-2 h-4 w-4" />
+                        Aguardar
+                      </Button>
+                    ) : null}
                     <Button
                       type="button"
                       disabled={reviewingId === profile.id}
@@ -409,7 +461,9 @@ export default function AdminApprovalsPage() {
               </article>
             ))}
             <nav
-              aria-label="Paginação de perfis pendentes"
+              aria-label={`Paginação de perfis ${
+                isWaitingQueue ? "aguardando" : "pendentes"
+              }`}
               className="flex items-center justify-between gap-3 border border-[var(--platinum)] bg-white p-3"
             >
               <Button
@@ -440,6 +494,15 @@ export default function AdminApprovalsPage() {
         )}
       </section>
     </main>
+  );
+}
+
+export default function AdminApprovalsPage() {
+  const pathname = usePathname();
+  return (
+    <AdminReviewQueue
+      queue={pathname === "/admin/waiting" ? "waiting" : "pending"}
+    />
   );
 }
 

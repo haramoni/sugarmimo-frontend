@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "./components/AuthProvider";
-import { getCurrentUser } from "./lib/auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,13 +26,11 @@ export const metadata: Metadata = {
     "Conexões entre adultos com transparência, respeito e experiências especiais.",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getCurrentUser();
-
   return (
     <html
       lang="pt-BR"
@@ -44,7 +41,7 @@ export default async function RootLayout({
       )}
     >
       <body className="min-h-full bg-[var(--background)] text-[var(--foreground)]">
-        <AuthProvider initialUser={user}>{children}</AuthProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
