@@ -9,10 +9,12 @@ import {
   Crown,
   LogOut,
   RefreshCw,
+  Trash2,
   X,
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
@@ -70,6 +72,7 @@ export default function AdminApprovalsPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [reviewingId, setReviewingId] = useState("");
+  const [deletingPhotoId, setDeletingPhotoId] = useState("");
   const latestRequestId = useRef(0);
 
   const loadProfiles = useCallback(
@@ -164,6 +167,63 @@ export default function AdminApprovalsPage() {
       );
     } finally {
       setReviewingId("");
+    }
+  }
+
+  async function removePhoto(profile: PendingProfile, photo: PendingPhoto) {
+    const confirmation = await Swal.fire({
+      title: "Remover esta foto?",
+      text: `A foto será excluída permanentemente do perfil de ${profile.username}.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sim, remover",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "var(--ruby)",
+    });
+
+    if (!confirmation.isConfirmed) {
+      return;
+    }
+
+    setDeletingPhotoId(photo.id);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `/api/admin/profiles/${profile.id}/photos/${photo.id}`,
+        { method: "DELETE" },
+      );
+      const result = await response.json().catch(() => null);
+
+      if (response.status === 401 || response.status === 403) {
+        router.push("/admin/login");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(result?.message ?? "Não foi possível remover a foto.");
+      }
+
+      setProfiles((currentProfiles) =>
+        currentProfiles.map((currentProfile) =>
+          currentProfile.id === profile.id
+            ? {
+                ...currentProfile,
+                photos: currentProfile.photos.filter(
+                  (currentPhoto) => currentPhoto.id !== photo.id,
+                ),
+              }
+            : currentProfile,
+        ),
+      );
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Não foi possível remover a foto.",
+      );
+    } finally {
+      setDeletingPhotoId("");
     }
   }
 
@@ -267,7 +327,7 @@ export default function AdminApprovalsPage() {
                   {profile.photos.map((photo, index) => (
                     <div
                       key={photo.id}
-                      className="aspect-[3/4] overflow-hidden rounded-sm bg-[var(--platinum)]"
+                      className="group relative aspect-[3/4] overflow-hidden rounded-sm bg-[var(--platinum)]"
                     >
                       {/* Data URLs are uploaded user previews and cannot be optimized by next/image. */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -278,6 +338,20 @@ export default function AdminApprovalsPage() {
                         decoding="async"
                         className="h-full w-full object-cover"
                       />
+                      <Button
+                        type="button"
+                        size="icon"
+                        aria-label={`Remover foto ${index + 1} de ${profile.username}`}
+                        title="Remover foto"
+                        disabled={
+                          deletingPhotoId === photo.id ||
+                          reviewingId === profile.id
+                        }
+                        onClick={() => void removePhoto(profile, photo)}
+                        className="absolute right-2 top-2 rounded-sm bg-[var(--ruby)] text-white shadow-md hover:bg-[color-mix(in_srgb,var(--ruby)_86%,var(--black))]"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   ))}
                 </div>

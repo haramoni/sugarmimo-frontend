@@ -21,6 +21,7 @@ import {
   Rocket,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 import {
   type ChangeEvent,
   useEffect,
@@ -282,6 +283,32 @@ export default function PerfilPage() {
         }
 
         hydrateProfile(profile);
+
+        if (
+          window.sessionStorage.getItem("sugarmimo-chat-online-toast") === "1"
+        ) {
+          window.sessionStorage.removeItem("sugarmimo-chat-online-toast");
+
+          void Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: "O chat já está ON! 💬",
+            text: "Aproveite para explorar por lá!",
+            confirmButtonText: "Entendi",
+            showConfirmButton: true,
+          }).then(() =>
+            Swal.fire({
+              toast: true,
+              position: "top-end",
+              icon: "info",
+              title: "Área do Blog em desenvolvimento!",
+              text: "Fique atenta para novas dicas e novidades.",
+              confirmButtonText: "Legal!",
+              showConfirmButton: true,
+            }),
+          );
+        }
       })
       .catch(() => {
         removeAuthUser();
@@ -747,7 +774,7 @@ export default function PerfilPage() {
 
   return (
     <ProfileApprovalGuard user={user}>
-      <main className="min-h-screen bg-[radial-gradient(circle_at_18%_12%,color-mix(in_srgb,var(--emerald)_13%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--gold-soft)_22%,transparent),transparent_30%),url('/wallpaper-marble.png')] bg-cover bg-fixed bg-center text-black-jewel">
+      <main className="min-h-screen bg-[radial-gradient(circle_at_18%_12%,color-mix(in_srgb,var(--emerald)_13%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--gold-soft)_22%,transparent),transparent_30%),url('/wallpaper-marble.webp')] bg-cover bg-center text-black-jewel md:bg-fixed">
         <Navbar />
 
         <section className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8 lg:px-8">

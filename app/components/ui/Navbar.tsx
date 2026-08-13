@@ -10,6 +10,7 @@ import { AccountMenu } from "./AccountMenu";
 
 const menuItems = [
   { label: "Inicio", href: "/inicio" },
+  { label: "Blog", href: "/blog" },
   { label: "Notificações", href: "/notificacoes" },
 ];
 
@@ -29,8 +30,10 @@ export function Navbar() {
     ? [
         menuItems[0],
         { label: "Buscar", href: "/buscar" },
-        { label: "Chat", href: "/inicio" },
+        { label: "Chat", href: "/chat" },
+        { label: "Clube VIP", href: "/clube-vip" },
         menuItems[1],
+        menuItems[2],
       ]
     : menuItems;
   const profilePhoto = user?.photos

@@ -34,13 +34,13 @@ const modelHighlights = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen overflow-hidden bg-[url('/wallpaper-marble.jpg')] bg-cover bg-center text-black-jewel">
+    <main className="page-marble-background min-h-screen overflow-hidden bg-cover bg-center text-black-jewel">
       <NavBarMenu />
 
       <section className="relative isolate min-h-screen border-b border-gold/45">
         <div className="absolute inset-0 -z-10">
           <Image
-            src="/hero-casal-sugarmimo-v2.png"
+            src="/hero-casal-sugarmimo-v2.webp"
             alt="Casal elegante em um encontro sofisticado"
             fill
             priority

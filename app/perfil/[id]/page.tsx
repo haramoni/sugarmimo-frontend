@@ -140,7 +140,7 @@ export default function PublicProfilePage() {
 
   return (
     <ProfileApprovalGuard user={user}>
-      <main className="min-h-screen bg-[radial-gradient(circle_at_14%_12%,color-mix(in_srgb,var(--emerald)_12%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--gold-soft)_20%,transparent),transparent_30%),url('/wallpaper-marble.png')] bg-cover bg-fixed bg-center text-black-jewel">
+      <main className="min-h-screen bg-[radial-gradient(circle_at_14%_12%,color-mix(in_srgb,var(--emerald)_12%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--gold-soft)_20%,transparent),transparent_30%),url('/wallpaper-marble.webp')] bg-cover bg-center text-black-jewel md:bg-fixed">
         <Navbar />
 
         <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">

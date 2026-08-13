@@ -62,7 +62,7 @@
   --color-emerald: var(--emerald);
   --color-ruby: var(--ruby);
   --color-secondary: var(--secondary);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -103,6 +103,16 @@
 
 body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.page-marble-background {
+  background-image: url("/wallpaper-marble.webp");
+}
+
+@media (min-width: 768px) {
+  .page-marble-background {
+    background-attachment: fixed;
+  }
 }
 
 html {

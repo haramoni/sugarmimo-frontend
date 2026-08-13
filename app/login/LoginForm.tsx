@@ -76,6 +76,10 @@ export function LoginForm() {
         return;
       }
 
+      if (result.user.gender?.trim().toLowerCase() === "sugar-baby-woman") {
+        window.sessionStorage.setItem("sugarmimo-chat-online-toast", "1");
+      }
+
       router.push("/perfil");
     } catch (loginError) {
       setError(

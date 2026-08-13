@@ -49,7 +49,7 @@ const termsSections = [
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-[url('/wallpaper-marble.jpg')] bg-cover bg-center text-black-jewel">
+    <main className="page-marble-background min-h-screen bg-cover bg-center text-black-jewel">
       <NavBarMenu />
 
       <section className="border-b border-gold/35 bg-[color-mix(in_srgb,var(--surface)_94%,transparent)] px-6 pb-16 pt-32 sm:px-10 lg:px-16">

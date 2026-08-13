@@ -101,7 +101,7 @@ export default function NotificationsPage() {
 
   return (
     <ProfileApprovalGuard user={user}>
-      <main className="min-h-screen bg-[url('/wallpaper-marble.png')] bg-cover bg-fixed bg-center text-black-jewel">
+      <main className="page-marble-background min-h-screen bg-cover bg-center text-black-jewel">
         <Navbar />
         <section className="mx-auto max-w-4xl px-4 py-7 sm:px-6">
           <div className="rounded-lg border border-emerald/24 bg-[color-mix(in_srgb,var(--surface)_92%,white)] p-4 shadow-[0_22px_58px_rgba(20,17,14,0.12)] sm:p-6">

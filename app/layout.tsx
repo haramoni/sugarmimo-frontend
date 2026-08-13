@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "./components/AuthProvider";
 import { getCurrentUser } from "./lib/auth";
-
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,8 +16,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SugarMimo",
-  description: "Relacionamentos requintados",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://sugarmimo.com",
+  ),
+  title: {
+    default: "SugarMimo | Relacionamentos requintados",
+    template: "%s",
+  },
+  description:
+    "Conexões entre adultos com transparência, respeito e experiências especiais.",
 };
 
 export default async function RootLayout({
@@ -32,7 +37,11 @@ export default async function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
+      className={cn(
+        "h-full antialiased font-sans",
+        geistSans.variable,
+        geistMono.variable,
+      )}
     >
       <body className="min-h-full bg-[var(--background)] text-[var(--foreground)]">
         <AuthProvider initialUser={user}>{children}</AuthProvider>

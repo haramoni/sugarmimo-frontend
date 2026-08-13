@@ -77,24 +77,20 @@ export function SiteFooter() {
           </h2>
           <div className="grid gap-3 text-sm font-semibold text-white/76">
             <a
-              href="mailto:contato@sugarmimo.example"
+              href="mailto:contato.sugarmimo@gmail.com"
               className="flex items-center gap-3 transition hover:text-gold-soft"
             >
               <Mail className="h-4 w-4 text-gold-soft" />
-              contato@sugarmimo.example
+              contato.sugarmimo@gmail.com
             </a>
             <a
-              href="tel:+5511999990000"
+              href="tel:+55 11 99775-2731"
               className="flex items-center gap-3 transition hover:text-gold-soft"
             >
               <Phone className="h-4 w-4 text-gold-soft" />
-              (11) 99999-0000
+              (11) 99775-2731
             </a>
           </div>
-          <p className="text-xs font-medium leading-6 text-white/55">
-            Atendimento fictício para ambiente de desenvolvimento. Substitua
-            pelos canais oficiais antes da publicação.
-          </p>
         </div>
       </div>
 

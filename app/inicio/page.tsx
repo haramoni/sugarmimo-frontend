@@ -255,7 +255,7 @@ export default function InicioPage() {
 
   return (
     <ProfileApprovalGuard user={user}>
-      <main className="min-h-screen bg-[radial-gradient(circle_at_12%_12%,color-mix(in_srgb,var(--gold)_14%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--emerald)_12%,transparent),transparent_28%),url('/wallpaper-marble.png')] bg-cover bg-fixed bg-center text-black-jewel">
+      <main className="min-h-screen bg-[radial-gradient(circle_at_12%_12%,color-mix(in_srgb,var(--gold)_14%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--emerald)_12%,transparent),transparent_28%),url('/wallpaper-marble.webp')] bg-cover bg-center text-black-jewel md:bg-fixed">
         <Navbar />
 
         <section className="mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:px-8">
