@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  getStoredReferralUsername,
   REGISTER_PAYLOAD_KEY,
   REGISTER_STEP_ONE_KEY,
   setRegisterStep,
@@ -144,6 +145,7 @@ export default function RegisterAccountForm() {
 
       const payload = {
         ...stepOne,
+        referralUsername: getStoredReferralUsername(),
         username: normalizedUsername,
         email: normalizedEmail,
         password,

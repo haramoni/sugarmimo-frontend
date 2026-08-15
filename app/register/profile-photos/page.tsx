@@ -11,7 +11,11 @@ import { ImagePlus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { REGISTER_PAYLOAD_KEY, setRegisterStep } from "../register-flow";
+import {
+  getStoredReferralUsername,
+  REGISTER_PAYLOAD_KEY,
+  setRegisterStep,
+} from "../register-flow";
 import { RegisterStepDots } from "../RegisterStepDots";
 import { useRegistrationCompletion } from "./useRegistrationCompletion";
 
@@ -162,6 +166,7 @@ export default function ProfilePhotosPage() {
 
       const payload = {
         ...currentPayload,
+        referralUsername: getStoredReferralUsername(),
         profilePhotos,
       };
 

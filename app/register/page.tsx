@@ -6,7 +6,11 @@ import { ArrowLeft, ChevronRight, Crown, Heart, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { getSavedRegisterStep, setRegisterStep } from "./register-flow";
+import {
+  captureReferralFromUrl,
+  getSavedRegisterStep,
+  setRegisterStep,
+} from "./register-flow";
 import { RegisterStepDots } from "./RegisterStepDots";
 
 type ProfileCategory = "daddy" | "baby";
@@ -17,6 +21,7 @@ export default function Register() {
     useState<ProfileCategory | null>(null);
 
   useEffect(() => {
+    captureReferralFromUrl();
     const savedStep = getSavedRegisterStep();
 
     if (savedStep && savedStep !== "/register") {

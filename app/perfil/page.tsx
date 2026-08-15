@@ -5,6 +5,7 @@ import {
   Check,
   ChevronDown,
   Crown,
+  Copy,
   ImagePlus,
   Loader2,
   Lock,
@@ -221,6 +222,7 @@ export default function PerfilPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [invitationCopied, setInvitationCopied] = useState(false);
   const [error, setError] = useState("");
   const [photos, setPhotos] = useState<ProfilePhoto[]>(() => {
     const profile = getStoredProfile();
@@ -444,15 +446,9 @@ export default function PerfilPage() {
   const isPremiereDaddy =
     user.role?.trim().toUpperCase() === "SUGAR_DADDY" &&
     Boolean(user.isPremiere);
+  const isSugarBaby = user.role?.trim().toUpperCase() === "SUGAR_BABY";
   const age = getAge(form.birthDate || user.birthDate);
   const location = [form.city, form.state].filter(Boolean).join(", ");
-  const statusLabel =
-    user.approvalStatus === "APPROVED"
-      ? "Active"
-      : user.approvalStatus === "PENDING"
-        ? "Pending"
-        : "Review";
-
   function updateField(field: TextProfileField, value: string) {
     setForm((current) => ({
       ...current,
@@ -460,6 +456,25 @@ export default function PerfilPage() {
     }));
     setFeedback("");
     setError("");
+  }
+
+  async function copyInvitationLink() {
+    const username = (user?.username ?? form.username).trim();
+
+    if (!username) {
+      setError("Não foi possível gerar o link de convite.");
+      return;
+    }
+
+    const invitationUrl = `${window.location.origin}/register?ref=${encodeURIComponent(username)}`;
+
+    try {
+      await navigator.clipboard.writeText(invitationUrl);
+      setInvitationCopied(true);
+      window.setTimeout(() => setInvitationCopied(false), 2500);
+    } catch {
+      setError("Não foi possível copiar o link de convite.");
+    }
   }
 
   function updateContactVisibility(channel: ContactChannel, checked: boolean) {
@@ -1116,6 +1131,28 @@ export default function PerfilPage() {
                     </Button> */}
                     {user.role?.trim().toUpperCase() === "SUGAR_DADDY" ? (
                       <PremiereOfferDialog />
+                    ) : null}
+                    {isSugarBaby ? (
+                      <div className="rounded-xl border border-gold/35 bg-white/10 p-4">
+                        <p className="text-sm font-extrabold text-gold-soft">
+                          Seu link de convite
+                        </p>
+                        <p className="mt-1 text-xs leading-5 text-white/75">
+                          Compartilhe com quem você quer convidar para o SugarMimo.
+                        </p>
+                        <Button
+                          type="button"
+                          onClick={() => void copyInvitationLink()}
+                          className="mt-3 h-auto min-h-11 w-full rounded-full border border-gold/55 bg-gold/15 px-4 py-2 text-sm font-extrabold text-white hover:bg-gold hover:text-espresso"
+                        >
+                          {invitationCopied ? (
+                            <Check className="h-4 w-4" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                          {invitationCopied ? "Link copiado!" : "Copiar link"}
+                        </Button>
+                      </div>
                     ) : null}
                     <Button
                       disabled

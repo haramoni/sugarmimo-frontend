@@ -13,7 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { REGISTER_PAYLOAD_KEY, setRegisterStep } from "../register-flow";
+import {
+  getStoredReferralUsername,
+  REGISTER_PAYLOAD_KEY,
+  setRegisterStep,
+} from "../register-flow";
 import { RegisterStepDots } from "../RegisterStepDots";
 import { useRegistrationCompletion } from "../profile-photos/useRegistrationCompletion";
 import {
@@ -126,6 +130,7 @@ export default function AlmostTherePage() {
         },
         body: JSON.stringify({
           ...nextPayload,
+          referralUsername: getStoredReferralUsername(),
           profilePhotos: [],
         }),
       });
