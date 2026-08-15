@@ -1,7 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, Crown, LogOut, RefreshCw, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  Crown,
+  LogOut,
+  RefreshCw,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -14,6 +21,7 @@ type DaddyProfile = {
   city: string | null;
   state: string | null;
   isPremium: boolean;
+  isPremiere: boolean;
   createdAt: string | null;
 };
 
@@ -22,7 +30,7 @@ export default function AdminPremiumPage() {
   const [profiles, setProfiles] = useState<DaddyProfile[]>([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [updatingId, setUpdatingId] = useState("");
+  const [updatingKey, setUpdatingKey] = useState("");
 
   const loadProfiles = useCallback(async () => {
     setError("");
@@ -61,7 +69,7 @@ export default function AdminPremiumPage() {
   }, [loadProfiles]);
 
   async function updatePremium(profile: DaddyProfile) {
-    setUpdatingId(profile.id);
+    setUpdatingKey(`${profile.id}:premium`);
     setError("");
     const status = profile.isPremium ? "standard" : "premium";
 
@@ -90,7 +98,43 @@ export default function AdminPremiumPage() {
           : "Não foi possível alterar o plano.",
       );
     } finally {
-      setUpdatingId("");
+      setUpdatingKey("");
+    }
+  }
+
+  async function updatePremiere(profile: DaddyProfile) {
+    setUpdatingKey(`${profile.id}:premiere`);
+    setError("");
+    const status = profile.isPremiere ? "regular" : "premiere";
+
+    try {
+      const response = await fetch(
+        `/api/admin/premium-daddies/${encodeURIComponent(profile.id)}/${status}`,
+        { method: "PATCH" },
+      );
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message ?? "Não foi possível alterar o selo Premiere.",
+        );
+      }
+
+      setProfiles((current) =>
+        current.map((item) =>
+          item.id === profile.id
+            ? { ...item, isPremiere: Boolean(result.isPremiere) }
+            : item,
+        ),
+      );
+    } catch (updateError) {
+      setError(
+        updateError instanceof Error
+          ? updateError.message
+          : "Não foi possível alterar o selo Premiere.",
+      );
+    } finally {
+      setUpdatingKey("");
     }
   }
 
@@ -146,10 +190,11 @@ export default function AdminPremiumPage() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <Crown className="h-6 w-6 text-[var(--gold)]" />
-            Sugar Daddies Premium
+            Sugar Daddies Premium e Premiere
           </h1>
           <p className="text-sm text-[color:color-mix(in_srgb,var(--black)_62%,transparent)]">
-            Somente perfis Premium podem dar e receber likes de Sugar Babies.
+            Premium controla os benefícios do plano; Premiere identifica os
+            Sugar Daddies que se cadastraram antes do lançamento.
           </p>
         </div>
 
@@ -186,6 +231,11 @@ export default function AdminPremiumPage() {
                     >
                       {profile.isPremium ? "PREMIUM" : "PADRÃO"}
                     </span>
+                    {profile.isPremiere ? (
+                      <span className="rounded-full border border-[var(--gold)] bg-black px-2.5 py-1 text-xs font-extrabold tracking-wider text-[var(--gold-soft)]">
+                        PREMIERE
+                      </span>
+                    ) : null}
                   </div>
                   <p className="truncate text-sm text-black/60">
                     {profile.email}
@@ -195,23 +245,40 @@ export default function AdminPremiumPage() {
                       "Local não informado"}
                   </p>
                 </div>
-                <Button
-                  type="button"
-                  disabled={updatingId === profile.id}
-                  onClick={() => void updatePremium(profile)}
-                  className={
-                    profile.isPremium
-                      ? "min-h-11 rounded-sm bg-black/70 font-bold text-white hover:bg-black/80"
-                      : "min-h-11 rounded-sm bg-[var(--gold)] font-bold text-white hover:bg-[color-mix(in_srgb,var(--gold)_86%,black)]"
-                  }
-                >
-                  {profile.isPremium ? (
-                    <ShieldCheck className="h-4 w-4" />
-                  ) : (
-                    <Crown className="h-4 w-4" />
-                  )}
-                  {profile.isPremium ? "Remover Premium" : "Ativar Premium"}
-                </Button>
+                <div className="grid gap-2 sm:min-w-48">
+                  <Button
+                    type="button"
+                    disabled={Boolean(updatingKey)}
+                    onClick={() => void updatePremium(profile)}
+                    className={
+                      profile.isPremium
+                        ? "min-h-11 rounded-sm bg-black/70 font-bold text-white hover:bg-black/80"
+                        : "min-h-11 rounded-sm bg-[var(--gold)] font-bold text-white hover:bg-[color-mix(in_srgb,var(--gold)_86%,black)]"
+                    }
+                  >
+                    {profile.isPremium ? (
+                      <ShieldCheck className="h-4 w-4" />
+                    ) : (
+                      <Crown className="h-4 w-4" />
+                    )}
+                    {profile.isPremium ? "Remover Premium" : "Ativar Premium"}
+                  </Button>
+                  <Button
+                    type="button"
+                    disabled={Boolean(updatingKey)}
+                    onClick={() => void updatePremiere(profile)}
+                    className={
+                      profile.isPremiere
+                        ? "min-h-11 rounded-sm bg-[var(--ruby)] font-bold text-white hover:bg-[color-mix(in_srgb,var(--ruby)_84%,black)]"
+                        : "min-h-11 rounded-sm border border-[var(--gold)] bg-black font-bold text-[var(--gold-soft)] hover:bg-black/85"
+                    }
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    {profile.isPremiere
+                      ? "Remover Premiere"
+                      : "Ativar Premiere"}
+                  </Button>
+                </div>
               </article>
             ))}
           </div>

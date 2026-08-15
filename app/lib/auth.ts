@@ -18,6 +18,7 @@ export type AuthUser = {
   instagram?: string | null;
   approvalStatus?: string;
   isPremium?: boolean;
+  isPremiere?: boolean;
   photos?: Array<{
     id?: string;
     dataUrl: string;

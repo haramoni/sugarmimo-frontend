@@ -185,7 +185,8 @@ export function isMasculineProfile(profileType?: string | null) {
   const normalized = profileType?.trim().toLowerCase();
   return (
     normalized?.startsWith("sugar-daddy") === true ||
-    normalized === "sugar-baby-man"
+    normalized === "sugar-baby-man" ||
+    normalized === "sugar-baby-trans-man"
   );
 }
 

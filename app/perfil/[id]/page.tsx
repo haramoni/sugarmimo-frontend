@@ -178,6 +178,7 @@ export default function PublicProfilePage() {
               profile={profile}
               viewerRole={user.role}
               viewerIsPremium={Boolean(user.isPremium)}
+              viewerIsPremiere={Boolean(user.isPremiere)}
             />
           )}
         </section>
@@ -190,10 +191,12 @@ function ProfileView({
   profile,
   viewerRole,
   viewerIsPremium,
+  viewerIsPremiere,
 }: {
   profile: PublicProfile;
   viewerRole?: string | null;
   viewerIsPremium: boolean;
+  viewerIsPremiere: boolean;
 }) {
   const [interaction, setInteraction] = useState(
     profile.interaction ?? {
@@ -225,10 +228,16 @@ function ProfileView({
   const isBabyViewingDaddy =
     normalizedViewerRole === "SUGAR_BABY" &&
     normalizedProfileRole === "SUGAR_DADDY";
-  const canLike = isDaddyViewingBaby && viewerIsPremium;
-  const canBabyLike = isBabyViewingDaddy && Boolean(profile.isPremium);
+  const viewerHasMessagingAccess = viewerIsPremium || viewerIsPremiere;
+  const canLike = isDaddyViewingBaby && viewerHasMessagingAccess;
+  const canBabyLike =
+    isBabyViewingDaddy && Boolean(profile.isPremium || profile.isPremiere);
   const isPremiumDaddy =
     normalizedProfileRole === "SUGAR_DADDY" && Boolean(profile.isPremium);
+  const isPremiereDaddy =
+    normalizedProfileRole === "SUGAR_DADDY" && Boolean(profile.isPremiere);
+  const showMessageButton = isDaddyViewingBaby || isBabyViewingDaddy;
+  const canOpenChat = isDaddyViewingBaby || isBabyViewingDaddy;
 
   const isNewProfile = profile.createdAt
     ? new Date().getTime() - new Date(profile.createdAt).getTime() <
@@ -267,7 +276,23 @@ function ProfileView({
     <div className="overflow-hidden rounded-lg border border-emerald/28 bg-[color:color-mix(in_srgb,var(--surface)_91%,white)] shadow-[0_28px_70px_rgba(0,55,44,0.15)] ring-1 ring-white/70 backdrop-blur-sm">
       <div className="grid min-w-0 lg:grid-cols-[minmax(260px,360px)_minmax(0,1fr)]">
         <aside className="bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_10%,white),color-mix(in_srgb,var(--surface)_94%,white)_48%,color-mix(in_srgb,var(--gold-soft)_16%,white))] p-4 sm:p-6">
-          <div className="relative mx-auto aspect-[4/5] max-w-88 overflow-hidden rounded-lg border-[3px] border-emerald/62 bg-white p-1 shadow-[0_20px_44px_rgba(0,55,44,0.18)]">
+          {isPremiereDaddy ? (
+            <div className="mx-auto flex max-w-88 items-center justify-center gap-3 rounded-t-xl border-x border-t border-[#b99658] bg-[linear-gradient(135deg,#211912,#38291e_52%,#241a13)] px-4 py-3.5 font-serif text-xl font-semibold uppercase tracking-[0.13em] text-[#e4c787] shadow-[0_10px_22px_rgba(70,47,24,0.16)]">
+              <Crown
+                className="h-6 w-6 stroke-[1.5] text-[#d7b66f]"
+                aria-hidden="true"
+              />
+              Premiere
+            </div>
+          ) : null}
+          <div
+            className={[
+              "relative mx-auto aspect-[4/5] max-w-88 overflow-hidden bg-white p-1 shadow-[0_20px_44px_rgba(0,55,44,0.18)]",
+              isPremiereDaddy
+                ? "rounded-b-xl border-2 border-[#c4a266] ring-1 ring-[#ead6aa]"
+                : "rounded-lg border-[3px] border-emerald/62",
+            ].join(" ")}
+          >
             <div className="h-full overflow-hidden rounded-md">
               {mainPhoto ? (
                 <PhotoZoom
@@ -292,8 +317,14 @@ function ProfileView({
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald shadow-[0_0_0_3px_rgba(0,108,88,0.14)]" />
               </span>
             )}
-            {isNewProfile || isPremiumDaddy ? (
+            {isNewProfile || isPremiumDaddy || isPremiereDaddy ? (
               <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
+                {isPremiereDaddy ? (
+                  <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-[#c4a266] bg-[#fff8ea]/94 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#8e6730] shadow-[0_6px_14px_rgba(70,47,24,0.14)]">
+                    <Crown className="h-3.5 w-3.5 stroke-[1.5] text-[#b78945]" />
+                    Premiere
+                  </span>
+                ) : null}
                 {isPremiumDaddy ? (
                   <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-gold/55 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--gold-soft)_42%,white),white)] px-3 py-1 text-xs font-extrabold text-black-jewel shadow-[0_8px_18px_rgba(20,17,14,0.12)]">
                     <Crown className="h-3.5 w-3.5 text-gold" />
@@ -336,7 +367,7 @@ function ProfileView({
                   className="h-auto min-h-11 rounded-sm bg-black-jewel/70 px-4 py-2 font-extrabold text-white"
                 >
                   <Crown className="h-4 w-4 text-gold-soft" />
-                  Seja Premium para dar likes
+                  Seja Premiere para dar Like
                 </Button>
               ) : null}
 
@@ -358,17 +389,31 @@ function ProfileView({
                 </Button>
               ) : isBabyViewingDaddy ? null : null}
 
-              {interaction.daddyLiked && interaction.babyLiked ? (
-                <Button
-                  asChild
-                  className="h-11 rounded-sm bg-emerald px-4 font-extrabold text-white hover:bg-emerald/84"
-                >
-                  <Link href={`/chat?with=${encodeURIComponent(profile.id)}`}>
+              {showMessageButton &&
+                (canOpenChat ? (
+                  <Button
+                    asChild
+                    className="h-11 rounded-sm bg-emerald px-4 font-extrabold text-white hover:bg-emerald/84"
+                  >
+                    <Link href={`/chat?with=${encodeURIComponent(profile.id)}`}>
+                      <MessageCircle className="h-4 w-4" />
+                      {isDaddyViewingBaby && !viewerHasMessagingAccess
+                        ? "Enviar mensagem grátis"
+                        : "Enviar mensagem"}
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    disabled
+                    className="h-auto min-h-11 rounded-sm bg-emerald px-4 py-2 font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-55"
+                  >
                     <MessageCircle className="h-4 w-4" />
-                    Enviar mensagem
-                  </Link>
-                </Button>
-              ) : null}
+                    {isDaddyViewingBaby && !viewerHasMessagingAccess
+                      ? "Seja Premiere para enviar mensagem"
+                      : "Disponível após o match"}
+                  </Button>
+                ))}
 
               {actionError ? (
                 <p className="text-xs font-bold text-ruby">{actionError}</p>

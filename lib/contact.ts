@@ -1,6 +1,17 @@
 export const contact = {
+  email: "contato.sugarmimo@gmail.com",
   whatsappNumber: "5511997752731",
+  whatsappNumber2: "554199071059",
+  whatsappDisplay: "(11) 99775-2731",
   whatsappMessage: "Olá, gostaria de informações sobre Sugar Mimo",
+  technicalSupportNumber: "+55419907-1059",
+  technicalSupportDisplay: "(41) 99907-1059",
 };
 
 export const whatsappUrl = `https://wa.me/${contact.whatsappNumber}?text=${encodeURIComponent(contact.whatsappMessage)}`;
+export const whatsappUrl2 = `https://wa.me/${contact.whatsappNumber2}?text=${encodeURIComponent(contact.whatsappMessage)}`;
+
+export const PREMIERE_PIX_KEY = "68575595000155";
+export const PREMIERE_PIX_KEY_DISPLAY = "68.575.595/0001-55";
+
+export const premierePaymentWhatsappUrl = `https://wa.me/${contact.whatsappNumber}?text=${encodeURIComponent("Olá! Realizei o pagamento do Premiere da SugarMimo e gostaria de enviar o comprovante para confirmar minha vaga.")}`;

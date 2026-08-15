@@ -15,6 +15,7 @@ import {
   getProfilePhoto,
 } from "../profile-utils";
 import type { PublicProfile } from "../types";
+import styles from "./ProfileCard.module.css";
 
 export default function ProfileCard({
   profile,
@@ -36,6 +37,8 @@ export default function ProfileCard({
     : false;
   const isPremiumDaddy =
     profile.role?.trim().toUpperCase() === "SUGAR_DADDY" && profile.isPremium;
+  const isPremiereDaddy =
+    profile.role?.trim().toUpperCase() === "SUGAR_DADDY" && profile.isPremiere;
   const isBoosted = profile.boostedUntil
     ? new Date(profile.boostedUntil).getTime() > new Date().getTime()
     : false;
@@ -43,14 +46,32 @@ export default function ProfileCard({
   return (
     <article
       id={`profile-card-${profile.id}`}
-      className="min-w-0 overflow-hidden rounded-lg border border-emerald/24 bg-[color-mix(in_srgb,var(--surface)_92%,white)] shadow-[0_18px_44px_rgba(20,17,14,0.12)] ring-1 ring-white/70 transition duration-300 hover:-translate-y-0.5 hover:border-gold/55 hover:shadow-[0_24px_56px_rgba(20,17,14,0.16)]"
+      className={
+        isPremiereDaddy
+          ? styles.premiereCard
+          : "min-w-0 overflow-hidden rounded-lg border border-emerald/24 bg-[color-mix(in_srgb,var(--surface)_92%,white)] shadow-[0_18px_44px_rgba(20,17,14,0.12)] ring-1 ring-white/70 transition duration-300 hover:-translate-y-0.5 hover:border-gold/55 hover:shadow-[0_24px_56px_rgba(20,17,14,0.16)]"
+      }
     >
       <Link
         href={href}
         onClick={onNavigate}
-        className="block focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-emerald"
+        className={[
+          "block focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-emerald",
+          isPremiereDaddy ? styles.premiereInner : "",
+        ].join(" ")}
       >
-        <div className="relative aspect-4/3 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--emerald)_18%,white),color-mix(in_srgb,var(--gold-soft)_35%,white))]">
+        {isPremiereDaddy ? (
+          <div className={styles.premiereHeader} aria-label="Perfil Premiere">
+            <Crown aria-hidden="true" className={styles.premiereCrown} />
+            <span>Premiere</span>
+          </div>
+        ) : null}
+        <div
+          className={[
+            "relative bg-[linear-gradient(135deg,color-mix(in_srgb,var(--emerald)_18%,white),color-mix(in_srgb,var(--gold-soft)_35%,white))]",
+            isPremiereDaddy ? styles.premierePhoto : "aspect-4/3",
+          ].join(" ")}
+        >
           {photo ? (
             // User uploads are data URLs and should not use Next image optimization.
             // eslint-disable-next-line @next/next/no-img-element
@@ -60,14 +81,20 @@ export default function ProfileCard({
               loading={eager ? "eager" : "lazy"}
               fetchPriority={eager ? "high" : "auto"}
               decoding="async"
-              className="h-full w-full object-cover"
+              className={[
+                "h-full w-full object-cover",
+                isPremiereDaddy ? styles.premiereImage : "",
+              ].join(" ")}
             />
           ) : (
             <div className="grid h-full place-items-center text-emerald">
               <UserRound className="h-16 w-16" />
             </div>
           )}
-          {profile.isOnline && (
+          {isPremiereDaddy ? (
+            <span className={styles.premiereVignette} aria-hidden="true" />
+          ) : null}
+          {profile.isOnline && !isPremiereDaddy && (
             <span
               aria-label={profile.isOnline ? "Online agora" : "Perfil ativo"}
               title={profile.isOnline ? "Online agora" : "Perfil ativo"}
@@ -80,7 +107,7 @@ export default function ProfileCard({
             </span>
           )}
 
-          {isNewProfile || isPremiumDaddy || isBoosted ? (
+          {!isPremiereDaddy && (isNewProfile || isPremiumDaddy || isBoosted) ? (
             <div className="absolute right-3 top-3 flex items-center gap-2">
               {isBoosted ? (
                 <span
@@ -113,7 +140,18 @@ export default function ProfileCard({
           ) : null}
         </div>
 
-        <div className="space-y-3 p-4">
+        {isPremiereDaddy ? (
+          <div className={styles.premiereCrest} aria-hidden="true">
+            <span>⚜</span>
+          </div>
+        ) : null}
+
+        <div
+          className={[
+            "space-y-3 p-4",
+            isPremiereDaddy ? styles.premiereDetails : "",
+          ].join(" ")}
+        >
           <div className="min-w-0">
             <h2 className="truncate text-xl font-extrabold tracking-tight text-black-jewel">
               {profile.username}
@@ -135,7 +173,7 @@ export default function ProfileCard({
             </span>
           </div>
 
-          {interests.length > 0 ? (
+          {interests.length > 0 && !isPremiereDaddy ? (
             <div className="flex flex-wrap gap-2">
               {interests.map((interest) => (
                 <span
@@ -145,6 +183,13 @@ export default function ProfileCard({
                   {interest}
                 </span>
               ))}
+            </div>
+          ) : null}
+          {isPremiereDaddy ? (
+            <div className={styles.premiereFlourish} aria-hidden="true">
+              <span />
+              <b>❖</b>
+              <span />
             </div>
           ) : null}
         </div>

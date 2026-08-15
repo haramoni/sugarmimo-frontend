@@ -20,6 +20,7 @@ import {
 } from "../perfil/ProfileApprovalGuard";
 import StatePanel from "./components/StatePanel";
 import ProfileCard from "./components/ProfileCard";
+import AgeRangeFilter from "./components/AgeRangeFilter";
 import type { PublicProfile, PublicProfilePage } from "./types";
 
 const PAGE_SIZE = 6;
@@ -28,6 +29,12 @@ const SEARCH_STATE_KEY = "sugarmimo:buscar-state";
 type SavedSearchState = {
   searchDraft: string;
   search: string;
+  minAgeDraft: string;
+  maxAgeDraft: string;
+  genderDraft: string;
+  minAge: string;
+  maxAge: string;
+  gender: string;
   page: number;
   scrollY: number;
   anchorProfileId: string | null;
@@ -39,6 +46,12 @@ export default function BuscarPage() {
   const { user, isAuthLoading } = useAuth();
   const [searchDraft, setSearchDraft] = useState("");
   const [search, setSearch] = useState("");
+  const [minAgeDraft, setMinAgeDraft] = useState("18");
+  const [maxAgeDraft, setMaxAgeDraft] = useState("80");
+  const [genderDraft, setGenderDraft] = useState("");
+  const [minAge, setMinAge] = useState("18");
+  const [maxAge, setMaxAge] = useState("80");
+  const [gender, setGender] = useState("");
   const [profiles, setProfiles] = useState<PublicProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -75,6 +88,12 @@ export default function BuscarPage() {
       if (savedState) {
         setSearchDraft(savedState.searchDraft);
         setSearch(savedState.search);
+        setMinAgeDraft(savedState.minAgeDraft);
+        setMaxAgeDraft(savedState.maxAgeDraft);
+        setGenderDraft(savedState.genderDraft);
+        setMinAge(savedState.minAge);
+        setMaxAge(savedState.maxAge);
+        setGender(savedState.gender);
         setPage(savedState.page);
         restoredPageRef.current = savedState.page;
         setScrollToRestore(savedState.scrollY);
@@ -103,6 +122,12 @@ export default function BuscarPage() {
       saveSearchState({
         searchDraft,
         search,
+        minAgeDraft,
+        maxAgeDraft,
+        genderDraft,
+        minAge,
+        maxAge,
+        gender,
         page,
         scrollY: window.scrollY,
         anchorProfileId: navigationAnchorRef.current?.profileId ?? null,
@@ -117,13 +142,62 @@ export default function BuscarPage() {
       window.removeEventListener("scroll", saveCurrentState);
       saveCurrentState();
     };
-  }, [hasRestoredState, isScrollRestored, page, search, searchDraft]);
+  }, [
+    gender,
+    genderDraft,
+    hasRestoredState,
+    isScrollRestored,
+    maxAge,
+    maxAgeDraft,
+    minAge,
+    minAgeDraft,
+    page,
+    search,
+    searchDraft,
+  ]);
 
   useEffect(() => {
     if (!isAuthLoading && !user) {
       router.replace("/login");
     }
   }, [isAuthLoading, router, user]);
+
+  useEffect(() => {
+    if (!hasRestoredState || !canSearch || isApprovalPending) {
+      return;
+    }
+
+    if (
+      minAgeDraft === minAge &&
+      maxAgeDraft === maxAge &&
+      genderDraft === gender
+    ) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setIsLoading(true);
+      setError("");
+      setPage(1);
+      setProfiles([]);
+      restoredPageRef.current = 1;
+      setMinAge(minAgeDraft);
+      setMaxAge(maxAgeDraft);
+      setGender(genderDraft);
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [
+    canSearch,
+    gender,
+    genderDraft,
+    hasRestoredState,
+    isApprovalPending,
+    maxAge,
+    maxAgeDraft,
+    minAge,
+    minAgeDraft,
+  ]);
 
   useEffect(() => {
     if (!hasRestoredState || !user || isApprovalPending || !canSearch) {
@@ -139,7 +213,11 @@ export default function BuscarPage() {
 
     Promise.all(
       pagesToLoad.map((pageNumber) =>
-        fetchMatchPage(pageNumber, search, controller.signal),
+        fetchMatchPage(
+          pageNumber,
+          { search, minAge, maxAge, gender: isDaddy ? gender : "" },
+          controller.signal,
+        ),
       ),
     )
       .then((results) => {
@@ -184,7 +262,18 @@ export default function BuscarPage() {
       });
 
     return () => controller.abort();
-  }, [canSearch, hasRestoredState, isApprovalPending, router, search, user]);
+  }, [
+    canSearch,
+    gender,
+    hasRestoredState,
+    isDaddy,
+    isApprovalPending,
+    maxAge,
+    minAge,
+    router,
+    search,
+    user,
+  ]);
 
   useEffect(() => {
     if (isLoading || isScrollRestored || scrollToRestore === null) {
@@ -214,8 +303,20 @@ export default function BuscarPage() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextSearch = searchDraft.trim();
+    const nextMinAge = minAgeDraft.trim();
+    const nextMaxAge = maxAgeDraft.trim();
 
-    if (nextSearch === search) {
+    if (nextMinAge && nextMaxAge && Number(nextMinAge) > Number(nextMaxAge)) {
+      setError("A idade mínima não pode ser maior que a idade máxima.");
+      return;
+    }
+
+    if (
+      nextSearch === search &&
+      nextMinAge === minAge &&
+      nextMaxAge === maxAge &&
+      genderDraft === gender
+    ) {
       return;
     }
 
@@ -225,6 +326,9 @@ export default function BuscarPage() {
     setProfiles([]);
     restoredPageRef.current = 1;
     setSearch(nextSearch);
+    setMinAge(nextMinAge);
+    setMaxAge(nextMaxAge);
+    setGender(genderDraft);
   }
 
   const loadMore = useCallback(async () => {
@@ -237,7 +341,12 @@ export default function BuscarPage() {
 
     try {
       const nextPage = page + 1;
-      const result = await fetchMatchPage(nextPage, search);
+      const result = await fetchMatchPage(nextPage, {
+        search,
+        minAge,
+        maxAge,
+        gender: isDaddy ? gender : "",
+      });
 
       if (!result) {
         router.replace("/login");
@@ -258,7 +367,18 @@ export default function BuscarPage() {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [hasMore, isLoading, isLoadingMore, page, router, search]);
+  }, [
+    gender,
+    hasMore,
+    isLoading,
+    isLoadingMore,
+    isDaddy,
+    maxAge,
+    minAge,
+    page,
+    router,
+    search,
+  ]);
 
   useEffect(() => {
     const sentinel = loadMoreSentinelRef.current;
@@ -333,6 +453,41 @@ export default function BuscarPage() {
                     <Search className="h-4 w-4" />
                   </Button>
                 </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-black-jewel">
+                    Faixa etária
+                  </label>
+                  <AgeRangeFilter
+                    minAge={minAgeDraft}
+                    maxAge={maxAgeDraft}
+                    onMinAgeChange={setMinAgeDraft}
+                    onMaxAgeChange={setMaxAgeDraft}
+                  />
+                </div>
+
+                {isDaddy ? (
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="gender-filter"
+                      className="block text-sm font-bold text-black-jewel"
+                    >
+                      Estou procurando
+                    </label>
+                    <select
+                      id="gender-filter"
+                      defaultValue="sugar-baby-woman"
+                      onChange={(event) => setGenderDraft(event.target.value)}
+                      className="h-11 w-full rounded-sm border border-emerald/28 bg-white/88 px-3 text-sm font-semibold text-black-jewel outline-none transition focus:border-emerald focus:ring-2 focus:ring-emerald/20"
+                    >
+                      <option value="">Todas</option>
+                      <option value="sugar-baby-woman">Mulheres</option>
+                      <option value="sugar-baby-trans-woman">
+                        Mulheres trans
+                      </option>
+                    </select>
+                  </div>
+                ) : null}
               </form>
             </aside>
 
@@ -373,6 +528,12 @@ export default function BuscarPage() {
                           saveSearchState({
                             searchDraft,
                             search,
+                            minAgeDraft,
+                            maxAgeDraft,
+                            genderDraft,
+                            minAge,
+                            maxAge,
+                            gender,
                             page,
                             scrollY: window.scrollY,
                             anchorProfileId:
@@ -424,7 +585,12 @@ export default function BuscarPage() {
 
 async function fetchMatchPage(
   page: number,
-  search: string,
+  filters: {
+    search: string;
+    minAge: string;
+    maxAge: string;
+    gender: string;
+  },
   signal?: AbortSignal,
 ): Promise<PublicProfilePage | null> {
   const params = new URLSearchParams({
@@ -432,8 +598,20 @@ async function fetchMatchPage(
     limit: String(PAGE_SIZE),
   });
 
-  if (search.trim()) {
-    params.set("search", search.trim());
+  if (filters.search.trim()) {
+    params.set("search", filters.search.trim());
+  }
+
+  if (filters.minAge) {
+    params.set("minAge", filters.minAge);
+  }
+
+  if (filters.maxAge && Number(filters.maxAge) < 80) {
+    params.set("maxAge", filters.maxAge);
+  }
+
+  if (filters.gender) {
+    params.set("gender", filters.gender);
   }
 
   const response = await fetch(`/api/matches?${params.toString()}`, { signal });
@@ -470,6 +648,13 @@ function readSavedSearchState(): SavedSearchState | null {
       searchDraft:
         typeof parsed.searchDraft === "string" ? parsed.searchDraft : "",
       search: typeof parsed.search === "string" ? parsed.search : "",
+      minAgeDraft: normalizeSavedAge(parsed.minAgeDraft, 18),
+      maxAgeDraft: normalizeSavedAge(parsed.maxAgeDraft, 80),
+      genderDraft:
+        typeof parsed.genderDraft === "string" ? parsed.genderDraft : "",
+      minAge: normalizeSavedAge(parsed.minAge, 18),
+      maxAge: normalizeSavedAge(parsed.maxAge, 80),
+      gender: typeof parsed.gender === "string" ? parsed.gender : "",
       page: Number(parsed.page),
       scrollY:
         typeof parsed.scrollY === "number" && parsed.scrollY >= 0
@@ -485,6 +670,16 @@ function readSavedSearchState(): SavedSearchState | null {
   } catch {
     return null;
   }
+}
+
+function normalizeSavedAge(value: unknown, fallback: number) {
+  const age = Number(value);
+
+  if (!value || !Number.isFinite(age)) {
+    return String(fallback);
+  }
+
+  return String(Math.min(80, Math.max(18, Math.round(age))));
 }
 
 function saveSearchState(state: SavedSearchState) {

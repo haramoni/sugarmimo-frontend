@@ -13,6 +13,9 @@ export async function GET(request: Request) {
   const search = searchParams.get("search")?.trim();
   const page = searchParams.get("page")?.trim() || "1";
   const limit = searchParams.get("limit")?.trim() || "6";
+  const minAge = searchParams.get("minAge")?.trim();
+  const maxAge = searchParams.get("maxAge")?.trim();
+  const gender = searchParams.get("gender")?.trim();
   const backendParams = new URLSearchParams();
 
   backendParams.set("page", page);
@@ -20,6 +23,18 @@ export async function GET(request: Request) {
 
   if (search) {
     backendParams.set("search", search);
+  }
+
+  if (minAge) {
+    backendParams.set("minAge", minAge);
+  }
+
+  if (maxAge) {
+    backendParams.set("maxAge", maxAge);
+  }
+
+  if (gender) {
+    backendParams.set("gender", gender);
   }
 
   const response = await fetch(

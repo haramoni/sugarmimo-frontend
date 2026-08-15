@@ -8,7 +8,7 @@ export async function PATCH(
 ) {
   const { id, status } = await context.params;
 
-  if (!["premium", "standard", "premiere", "regular"].includes(status)) {
+  if (!["feature", "unfeature"].includes(status)) {
     return NextResponse.json({ message: "Status inválido." }, { status: 400 });
   }
 

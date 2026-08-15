@@ -10,6 +10,7 @@ import {
   Hourglass,
   LogOut,
   RefreshCw,
+  Star,
   Trash2,
   X,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import Swal from "sweetalert2";
 
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+import { PhotoZoom } from "@/app/components/ui/PhotoZoom";
 
 type PendingPhoto = {
   id: string;
@@ -257,6 +259,17 @@ function AdminReviewQueue({
               type="button"
               variant="ghost"
               size="icon"
+              aria-label="Impulsionar Sugar Babies"
+              title="Impulsionar Sugar Babies"
+              onClick={() => router.push("/admin/featured")}
+              className="rounded-sm"
+            >
+              <Star className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
               aria-label={
                 isWaitingQueue
                   ? "Voltar para perfis pendentes"
@@ -366,14 +379,10 @@ function AdminReviewQueue({
                       key={photo.id}
                       className="group relative aspect-[3/4] overflow-hidden rounded-sm bg-[var(--platinum)]"
                     >
-                      {/* Data URLs are uploaded user previews and cannot be optimized by next/image. */}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <PhotoZoom
                         src={photo.dataUrl}
                         alt={`Foto ${index + 1} de ${profile.username}`}
-                        loading="lazy"
-                        decoding="async"
-                        className="h-full w-full object-cover"
+                        buttonClassName="absolute inset-0 z-0 block h-full w-full cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--gold)]"
                       />
                       <Button
                         type="button"
@@ -385,7 +394,7 @@ function AdminReviewQueue({
                           reviewingId === profile.id
                         }
                         onClick={() => void removePhoto(profile, photo)}
-                        className="absolute right-2 top-2 rounded-sm bg-[var(--ruby)] text-white shadow-md hover:bg-[color-mix(in_srgb,var(--ruby)_86%,var(--black))]"
+                        className="absolute right-2 top-2 z-10 rounded-sm bg-[var(--ruby)] text-white shadow-md hover:bg-[color-mix(in_srgb,var(--ruby)_86%,var(--black))]"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

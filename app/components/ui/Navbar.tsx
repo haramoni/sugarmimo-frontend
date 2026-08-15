@@ -226,8 +226,10 @@ export function Navbar() {
                   <UserRound className="h-5 w-5" />
                 )}
               </span>
-              <span className="max-w-20 truncate sm:max-w-28">
-                {user.username || "Meu perfil"}
+              <span className="hidden max-w-36 truncate rounded-md px-2 py-1 text-sm font-bold text-black-jewel transition duration-200 hover:text-gold sm:block">
+                <span>Olá, {user.username}</span>
+                <br />
+                <span className="text-xs text-gold">Minha Conta</span>
               </span>
             </Link>
           ) : null}

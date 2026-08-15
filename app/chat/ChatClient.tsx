@@ -33,8 +33,7 @@ import { useAuth } from "@/app/components/AuthProvider";
 import { Navbar } from "@/app/components/ui/Navbar";
 import type { ChatMessage, Conversation } from "./types";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
 
 const reportCategories = [
   ["HARASSMENT", "Assédio"],
@@ -46,6 +45,15 @@ const reportCategories = [
   ["FAKE_PROFILE", "Perfil falso"],
   ["OTHER", "Outro"],
 ] as const;
+
+type MessageAccess = {
+  canSend: boolean;
+  isTrial: boolean;
+  freeMessagesLimit: number | null;
+  freeMessagesUsed: number | null;
+  freeMessagesRemaining: number | null;
+  requiresUpgrade: boolean;
+};
 
 export function ChatClient() {
   const { user, isAuthLoading } = useAuth();
@@ -65,11 +73,21 @@ export function ChatClient() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [blockOpen, setBlockOpen] = useState(false);
+  const [messageAccess, setMessageAccess] = useState<MessageAccess | null>(
+    null,
+  );
+  const [upgradeAlertOpen, setUpgradeAlertOpen] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const selectedIdRef = useRef<string | null>(null);
 
   const selected = conversations.find(({ id }) => id === selectedId) ?? null;
+  const isStandardDaddy =
+    user?.role?.trim().toUpperCase() === "SUGAR_DADDY" &&
+    !user.isPremium &&
+    !user.isPremiere;
+  const canSendMessages =
+    !isStandardDaddy || Boolean(messageAccess?.freeMessagesRemaining);
   const filteredConversations = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("pt-BR");
     return term
@@ -95,6 +113,16 @@ export function ChatClient() {
     setLoadingConversations(false);
   }, []);
 
+  const loadMessageAccess = useCallback(async () => {
+    const response = await fetch("/api/chat/message-access", {
+      cache: "no-store",
+    }).catch(() => null);
+    if (!response?.ok) {
+      return;
+    }
+    setMessageAccess((await response.json()) as MessageAccess);
+  }, []);
+
   useEffect(() => {
     if (isAuthLoading) {
       return;
@@ -104,9 +132,12 @@ export function ChatClient() {
       return;
     }
 
-    const timeoutId = window.setTimeout(() => void loadConversations(), 0);
+    const timeoutId = window.setTimeout(() => {
+      void loadConversations();
+      void loadMessageAccess();
+    }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [isAuthLoading, loadConversations, router, user]);
+  }, [isAuthLoading, loadConversations, loadMessageAccess, router, user]);
 
   useEffect(() => {
     if (isAuthLoading || !user || !openWithUserId) {
@@ -118,6 +149,8 @@ export function ChatClient() {
         { method: "POST" },
       ).catch(() => null);
       if (!response?.ok) {
+        const result = await response?.json().catch(() => null);
+        setError(result?.message ?? "Não foi possível abrir esta conversa.");
         return;
       }
       const result = (await response.json()) as { id: string };
@@ -146,7 +179,9 @@ export function ChatClient() {
         nextCursor: string | null;
       };
       setMessages((current) =>
-        prepend ? deduplicateMessages([...result.items, ...current]) : result.items,
+        prepend
+          ? deduplicateMessages([...result.items, ...current])
+          : result.items,
       );
       setNextCursor(result.nextCursor);
       setLoadingMessages(false);
@@ -249,18 +284,15 @@ export function ChatClient() {
         );
       },
     );
-    socket.on(
-      "conversation:blocked",
-      (event: { conversationId: string }) => {
-        setConversations((current) =>
-          current.map((conversation) =>
-            conversation.id === event.conversationId
-              ? { ...conversation, blocked: true }
-              : conversation,
-          ),
-        );
-      },
-    );
+    socket.on("conversation:blocked", (event: { conversationId: string }) => {
+      setConversations((current) =>
+        current.map((conversation) =>
+          conversation.id === event.conversationId
+            ? { ...conversation, blocked: true }
+            : conversation,
+        ),
+      );
+    });
     socket.connect();
     return () => {
       active = false;
@@ -273,7 +305,13 @@ export function ChatClient() {
 
   async function sendMessage(event?: FormEvent) {
     event?.preventDefault();
-    if (!selectedId || !draft.trim() || sending || selected?.blocked) {
+    if (
+      !selectedId ||
+      !draft.trim() ||
+      sending ||
+      selected?.blocked ||
+      !canSendMessages
+    ) {
       return;
     }
     const body = draft.trim();
@@ -291,9 +329,32 @@ export function ChatClient() {
       const result = await response?.json().catch(() => null);
       setDraft(body);
       setError(result?.message ?? "Não foi possível enviar a mensagem.");
+      if (response?.status === 403 && isStandardDaddy) {
+        await loadMessageAccess();
+        setUpgradeAlertOpen(true);
+      }
     } else {
-      const message = (await response.json()) as ChatMessage;
+      const message = (await response.json()) as ChatMessage & {
+        freeMessagesRemaining?: number | null;
+      };
       setMessages((current) => deduplicateMessages([...current, message]));
+      if (
+        isStandardDaddy &&
+        typeof message.freeMessagesRemaining === "number"
+      ) {
+        const remaining = message.freeMessagesRemaining;
+        setMessageAccess((current) => ({
+          canSend: remaining > 0,
+          isTrial: true,
+          freeMessagesLimit: current?.freeMessagesLimit ?? 10,
+          freeMessagesUsed: (current?.freeMessagesLimit ?? 10) - remaining,
+          freeMessagesRemaining: remaining,
+          requiresUpgrade: remaining === 0,
+        }));
+        if (remaining === 0) {
+          setUpgradeAlertOpen(true);
+        }
+      }
       await loadConversations();
       window.setTimeout(
         () => bottomRef.current?.scrollIntoView({ behavior: "smooth" }),
@@ -403,8 +464,8 @@ export function ChatClient() {
                         <span className="min-w-0 flex-1 truncate text-xs text-black/52">
                           {conversation.blocked
                             ? "Conversa bloqueada"
-                            : conversation.lastMessage?.body ??
-                              "Comece a conversa"}
+                            : (conversation.lastMessage?.body ??
+                              "Comece a conversa")}
                         </span>
                         {conversation.unreadCount > 0 ? (
                           <span className="grid min-w-5 place-items-center rounded-full bg-[var(--ruby)] px-1.5 py-0.5 text-[0.65rem] font-bold text-white">
@@ -435,8 +496,8 @@ export function ChatClient() {
                     Conversas privadas
                   </h2>
                   <p className="mt-2 max-w-sm text-sm leading-6 text-black/55">
-                    Selecione um match. As mensagens são protegidas e removidas
-                    automaticamente após 60 dias.
+                    Selecione uma conversa. As mensagens são protegidas e
+                    removidas automaticamente após 60 dias.
                   </p>
                 </div>
               </div>
@@ -525,7 +586,7 @@ export function ChatClient() {
                   ) : messages.length === 0 ? (
                     <div className="mx-auto mt-10 max-w-sm text-center">
                       <p className="font-serif text-xl font-semibold">
-                        Vocês deram match
+                        Comece uma conversa
                       </p>
                       <p className="mt-2 text-sm leading-6 text-black/50">
                         Este pode ser o começo de uma ótima conversa. Envie uma
@@ -554,9 +615,24 @@ export function ChatClient() {
                       </button>
                     </div>
                   ) : null}
+                  {isStandardDaddy &&
+                  messageAccess?.isTrial &&
+                  canSendMessages ? (
+                    <div className="mb-2 rounded-xl border border-[var(--gold)]/25 bg-[var(--gold-soft)]/15 px-3 py-2 text-center text-xs font-semibold text-black/58">
+                      Você ainda tem {messageAccess.freeMessagesRemaining} de{" "}
+                      {messageAccess.freeMessagesLimit} mensagens gratuitas.
+                    </div>
+                  ) : null}
                   {selected.blocked ? (
                     <div className="rounded-2xl bg-black/5 px-4 py-3 text-center text-sm font-semibold text-black/50">
                       Esta conversa está bloqueada.
+                    </div>
+                  ) : !canSendMessages ? (
+                    <div className="flex items-center justify-center gap-2 rounded-2xl border border-[var(--gold)]/25 bg-[var(--gold-soft)]/20 px-4 py-3 text-center text-sm font-semibold text-black/60">
+                      <LockKeyhole className="h-4 w-4 text-[var(--gold)]" />
+                      {isStandardDaddy && !messageAccess
+                        ? "Carregando suas mensagens gratuitas…"
+                        : "Você já enviou as 10 mensagens gratuitas. Faça upgrade para continuar conversando."}
                     </div>
                   ) : (
                     <div className="flex items-end gap-2 rounded-2xl border border-black/10 bg-[#fcfaf6] p-2 focus-within:border-[var(--gold)]">
@@ -609,6 +685,39 @@ export function ChatClient() {
             }
           }}
         />
+      ) : null}
+
+      {upgradeAlertOpen ? (
+        <ModalShell onClose={() => setUpgradeAlertOpen(false)}>
+          <div className="text-center">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[var(--gold-soft)]/30 text-[var(--gold)]">
+              <LockKeyhole className="h-6 w-6" />
+            </span>
+            <h2 className="mt-4 font-serif text-2xl font-semibold">
+              Mensagens gratuitas utilizadas
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-black/55">
+              Você já enviou suas 10 mensagens de teste. Faça um upgrade para
+              Premium ou Premiere para continuar enviando e respondendo
+              mensagens sem esse limite.
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setUpgradeAlertOpen(false)}
+                className="rounded-xl border border-black/12 px-4 py-3 text-sm font-bold"
+              >
+                Agora não
+              </button>
+              <Link
+                href="/perfil"
+                className="rounded-xl bg-[var(--gold)] px-4 py-3 text-sm font-bold text-white"
+              >
+                Fazer upgrade
+              </Link>
+            </div>
+          </div>
+        </ModalShell>
       ) : null}
 
       {blockOpen && selected ? (
@@ -700,7 +809,9 @@ function MessageList({
                     : "rounded-bl-md border border-black/8 bg-white text-[var(--black)]",
                 ].join(" ")}
               >
-                <p className="whitespace-pre-wrap break-words">{message.body}</p>
+                <p className="whitespace-pre-wrap break-words">
+                  {message.body}
+                </p>
                 <span
                   className={[
                     "mt-1 flex items-center justify-end gap-1 text-[0.62rem]",
@@ -873,7 +984,9 @@ function ReportDialog({
         </label>
 
         {error ? (
-          <p className="mt-3 text-sm font-semibold text-[var(--ruby)]">{error}</p>
+          <p className="mt-3 text-sm font-semibold text-[var(--ruby)]">
+            {error}
+          </p>
         ) : null}
         <button
           type="submit"

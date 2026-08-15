@@ -12,6 +12,7 @@ export type PublicProfile = {
   username?: string | null;
   role?: string | null;
   isPremium?: boolean;
+  isPremiere?: boolean;
   boostedUntil?: string | null;
   gender?: string | null;
   lookingFor?: string | null;

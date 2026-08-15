@@ -304,8 +304,7 @@ function ResolutionDialog({
   onClose: () => void;
   onResolved: () => void;
 }) {
-  const [action, setAction] =
-    useState<keyof typeof actionLabels>("DISMISSED");
+  const [action, setAction] = useState<keyof typeof actionLabels>("DISMISSED");
   const [resolution, setResolution] = useState("");
   const [suspensionDays, setSuspensionDays] = useState(7);
   const [error, setError] = useState("");
@@ -363,9 +362,7 @@ function ResolutionDialog({
             <button
               type="button"
               key={value}
-              onClick={() =>
-                setAction(value as keyof typeof actionLabels)
-              }
+              onClick={() => setAction(value as keyof typeof actionLabels)}
               className={[
                 "rounded-xl border px-3 py-2.5 text-sm font-bold",
                 action === value
@@ -396,15 +393,17 @@ function ResolutionDialog({
           Justificativa
           <textarea
             value={resolution}
-            onChange={(event) => setResolution(event.target.value.slice(0, 1000))}
+            onChange={(event) =>
+              setResolution(event.target.value.slice(0, 1000))
+            }
             rows={4}
             className="mt-2 w-full resize-none rounded-xl border border-black/12 p-3 outline-none focus:border-[var(--gold)]"
           />
         </label>
         {action === "BANNED" ? (
           <p className="mt-3 flex gap-2 rounded-xl bg-[var(--ruby)]/8 p-3 text-xs font-semibold text-[var(--ruby)]">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
-            O perfil perderá o acesso imediatamente.
+            <AlertTriangle className="h-4 w-4 shrink-0" />O perfil perderá o
+            acesso imediatamente.
           </p>
         ) : null}
         {error ? (
@@ -463,7 +462,9 @@ function StatusBadge({ status }: { status: string }) {
       ) : (
         <CheckCircle2 className="h-3 w-3" />
       )}
-      {pending ? "Pendente" : actionLabels[status as keyof typeof actionLabels] ?? status}
+      {pending
+        ? "Pendente"
+        : (actionLabels[status as keyof typeof actionLabels] ?? status)}
     </span>
   );
 }

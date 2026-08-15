@@ -48,6 +48,8 @@ import {
 } from "../lib/auth-storage";
 import { Navbar } from "../components/ui/Navbar";
 import { PhotoZoom } from "../components/ui/PhotoZoom";
+import premiereStyles from "../buscar/components/ProfileCard.module.css";
+import { PremiereOfferDialog } from "./PremiereOfferDialog";
 import {
   ProfileApprovalGuard,
   shouldShowPendingApproval,
@@ -130,6 +132,7 @@ type ProfileUser = {
   telegram?: string | null;
   instagram?: string | null;
   approvalStatus?: string;
+  isPremiere?: boolean;
   createdAt?: string | null;
   photos?: ProfilePhoto[];
   appearance?: {
@@ -438,6 +441,9 @@ export default function PerfilPage() {
   const publicPhotos = photos.filter((photo) => !photo.isPrivate);
   const privatePhotos = photos.filter((photo) => photo.isPrivate);
   const profilePhoto = publicPhotos[0];
+  const isPremiereDaddy =
+    user.role?.trim().toUpperCase() === "SUGAR_DADDY" &&
+    Boolean(user.isPremiere);
   const age = getAge(form.birthDate || user.birthDate);
   const location = [form.city, form.state].filter(Boolean).join(", ");
   const statusLabel =
@@ -812,26 +818,75 @@ export default function PerfilPage() {
             <div className="grid min-w-0 xl:grid-cols-[minmax(250px,310px)_minmax(0,1fr)_minmax(240px,290px)]">
               <aside className="min-w-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_8%,white),color-mix(in_srgb,var(--surface)_94%,white)_42%,color-mix(in_srgb,var(--gold-soft)_12%,white))] p-4 sm:p-6 xl:p-7">
                 <div className="relative mx-auto w-full max-w-72">
-                  <div className="aspect-4/5 overflow-hidden rounded-lg border-[3px] border-emerald/70 bg-[color-mix(in_srgb,var(--emerald)_10%,white)] p-1 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.86),0_18px_38px_rgba(0,55,44,0.18)] sm:aspect-[1/0.98]">
-                    <div className="h-full overflow-hidden rounded-md">
-                      {profilePhoto ? (
-                        <PhotoZoom
-                          src={profilePhoto.dataUrl}
-                          alt={`Foto de ${form.username || "perfil"}`}
-                          imageClassName="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white/74 px-4 text-center text-sm font-bold text-black-jewel"
+                  {isPremiereDaddy ? (
+                    <div className={premiereStyles.premiereCard}>
+                      <div className={premiereStyles.premiereInner}>
+                        <div
+                          className={premiereStyles.premiereHeader}
+                          aria-label="Perfil Premiere"
                         >
-                          <Camera className="h-10 w-10 text-emerald" />
-                          Adicionar foto
-                        </button>
-                      )}
+                          <Crown
+                            aria-hidden="true"
+                            className={premiereStyles.premiereCrown}
+                          />
+                          <span>Premiere</span>
+                        </div>
+                        <div
+                          className={`relative ${premiereStyles.premierePhoto}`}
+                        >
+                          {profilePhoto ? (
+                            <PhotoZoom
+                              src={profilePhoto.dataUrl}
+                              alt={`Foto de ${form.username || "perfil"}`}
+                              imageClassName={`h-full w-full object-cover ${premiereStyles.premiereImage}`}
+                            />
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white/80 px-4 text-center text-sm font-bold text-black-jewel"
+                            >
+                              <Camera className="h-10 w-10 text-[#b78945]" />
+                              Adicionar foto
+                            </button>
+                          )}
+                          <span
+                            className={premiereStyles.premiereVignette}
+                            aria-hidden="true"
+                          />
+                        </div>
+                        <div className={premiereStyles.premiereProfileFooter}>
+                          <div
+                            className={`${premiereStyles.premiereCrest} ${premiereStyles.premiereProfileCrest}`}
+                            aria-hidden="true"
+                          >
+                            <span>⚜</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="aspect-4/5 overflow-hidden rounded-lg border-[3px] border-emerald/70 bg-[color-mix(in_srgb,var(--emerald)_10%,white)] p-1 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.86),0_18px_38px_rgba(0,55,44,0.18)] sm:aspect-[1/0.98]">
+                      <div className="h-full overflow-hidden rounded-md">
+                        {profilePhoto ? (
+                          <PhotoZoom
+                            src={profilePhoto.dataUrl}
+                            alt={`Foto de ${form.username || "perfil"}`}
+                            imageClassName="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white/74 px-4 text-center text-sm font-bold text-black-jewel"
+                          >
+                            <Camera className="h-10 w-10 text-emerald" />
+                            Adicionar foto
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-6 space-y-4 text-center sm:mt-8">
@@ -1055,10 +1110,13 @@ export default function PerfilPage() {
               <aside className="min-w-0 bg-[radial-gradient(circle_at_12%_0%,rgba(255,255,255,0.14),transparent_28%),linear-gradient(145deg,#05251f,#083e34_50%,#111512)] p-4 text-white sm:p-6">
                 <div className="flex h-full flex-col justify-between gap-7">
                   <div className="space-y-4">
-                    <Button className="h-auto min-h-12 w-full rounded-full border border-white/20 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_78%,white),var(--emerald))] px-4 py-2 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(0,108,88,0.34)] hover:bg-emerald/85 sm:text-base">
+                    {/* <Button className="h-auto min-h-12 w-full rounded-full border border-white/20 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_78%,white),var(--emerald))] px-4 py-2 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(0,108,88,0.34)] hover:bg-emerald/85 sm:text-base">
                       <Crown className="h-4 w-4" />
                       SEJA PREMIUM
-                    </Button>
+                    </Button> */}
+                    {user.role?.trim().toUpperCase() === "SUGAR_DADDY" ? (
+                      <PremiereOfferDialog />
+                    ) : null}
                     <Button
                       disabled
                       className="h-auto min-h-12 w-full rounded-full border border-white/20 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_78%,white),var(--emerald))] px-4 py-2 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(0,108,88,0.34)] hover:bg-emerald/85 sm:text-base"
