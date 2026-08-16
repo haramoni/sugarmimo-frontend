@@ -4,8 +4,6 @@ export const contact = {
   whatsappNumber2: "554199071059",
   whatsappDisplay: "(11) 99775-2731",
   whatsappMessage: "Olá, gostaria de informações sobre Sugar Mimo",
-  technicalSupportNumber: "+55419907-1059",
-  technicalSupportDisplay: "(41) 99907-1059",
 };
 
 export const whatsappUrl = `https://wa.me/${contact.whatsappNumber}?text=${encodeURIComponent(contact.whatsappMessage)}`;

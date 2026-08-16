@@ -10,6 +10,7 @@ import {
 import { contact, whatsappUrl, whatsappUrl2 } from "@/lib/contact";
 import NavBarMenu from "../components/ui/NavBarMenu";
 import { SiteFooter } from "../components/ui/SiteFooter";
+import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
   title: "Contato | SugarMimo",
@@ -36,15 +37,6 @@ const contactChannels = [
     href: whatsappUrl,
     icon: MessageCircle,
   },
-  {
-    title: "Suporte técnico",
-    description:
-      "Se estiver com problemas para entrar na sua conta ou usar a plataforma.",
-    value: contact.technicalSupportDisplay,
-    action: "Conversar no WhatsApp",
-    href: whatsappUrl2,
-    icon: Headphones,
-  },
 ];
 
 export default function ContactPage() {
@@ -69,7 +61,7 @@ export default function ContactPage() {
 
       <section className="bg-surface px-6 py-16 sm:px-10 lg:px-16">
         <div className="mx-auto max-w-6xl">
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2">
             {contactChannels.map(
               ({ title, description, value, action, href, icon: Icon }) => (
                 <article
@@ -128,6 +120,8 @@ export default function ContactPage() {
               e resolvermos o problema.
             </p>
           </div>
+
+          <ContactForm />
         </div>
       </section>
 

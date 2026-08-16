@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown, Loader2, Search, ShieldCheck } from "lucide-react";
+import { Crown, Loader2, MapPin, Search, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   type FormEvent,
@@ -41,6 +41,13 @@ type SavedSearchState = {
   anchorOffset: number | null;
 };
 
+type SearchCoordinates = {
+  latitude: number;
+  longitude: number;
+};
+
+type LocationStatus = "checking" | "enabled" | "denied" | "unsupported";
+
 export default function BuscarPage() {
   const router = useRouter();
   const { user, isAuthLoading } = useAuth();
@@ -58,6 +65,11 @@ export default function BuscarPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState("");
+  const [coordinates, setCoordinates] = useState<SearchCoordinates | null>(
+    null,
+  );
+  const [locationStatus, setLocationStatus] =
+    useState<LocationStatus>("checking");
   const [hasRestoredState, setHasRestoredState] = useState(false);
   const [isScrollRestored, setIsScrollRestored] = useState(false);
   const [scrollToRestore, setScrollToRestore] = useState<number | null>(null);
@@ -66,6 +78,7 @@ export default function BuscarPage() {
     offset: number;
   } | null>(null);
   const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
+  const hasRequestedLocationRef = useRef(false);
   const restoredPageRef = useRef(1);
   const navigationAnchorRef = useRef<{
     profileId: string;
@@ -162,6 +175,52 @@ export default function BuscarPage() {
     }
   }, [isAuthLoading, router, user]);
 
+  const requestLocation = useCallback(() => {
+    if (!("geolocation" in navigator)) {
+      setLocationStatus("unsupported");
+      return;
+    }
+
+    setLocationStatus("checking");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const nextCoordinates = {
+          // Aproximadamente 100 m: suficiente para ordenar, sem guardar o ponto exato.
+          latitude: Math.round(coords.latitude * 1000) / 1000,
+          longitude: Math.round(coords.longitude * 1000) / 1000,
+        };
+        setCoordinates(nextCoordinates);
+        setLocationStatus("enabled");
+
+        void fetch("/api/auth/search-location", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(nextCoordinates),
+        });
+      },
+      () => {
+        setLocationStatus("denied");
+      },
+      {
+        enableHighAccuracy: false,
+        maximumAge: 15 * 60 * 1000,
+        timeout: 10_000,
+      },
+    );
+  }, []);
+
+  useEffect(() => {
+    if (
+      user &&
+      canSearch &&
+      !isApprovalPending &&
+      !hasRequestedLocationRef.current
+    ) {
+      hasRequestedLocationRef.current = true;
+      requestLocation();
+    }
+  }, [canSearch, isApprovalPending, requestLocation, user]);
+
   useEffect(() => {
     if (!hasRestoredState || !canSearch || isApprovalPending) {
       return;
@@ -215,7 +274,13 @@ export default function BuscarPage() {
       pagesToLoad.map((pageNumber) =>
         fetchMatchPage(
           pageNumber,
-          { search, minAge, maxAge, gender: isDaddy ? gender : "" },
+          {
+            search,
+            minAge,
+            maxAge,
+            gender: isDaddy ? gender : "",
+            coordinates,
+          },
           controller.signal,
         ),
       ),
@@ -264,6 +329,7 @@ export default function BuscarPage() {
     return () => controller.abort();
   }, [
     canSearch,
+    coordinates,
     gender,
     hasRestoredState,
     isDaddy,
@@ -346,6 +412,7 @@ export default function BuscarPage() {
         minAge,
         maxAge,
         gender: isDaddy ? gender : "",
+        coordinates,
       });
 
       if (!result) {
@@ -369,6 +436,7 @@ export default function BuscarPage() {
     }
   }, [
     gender,
+    coordinates,
     hasMore,
     isLoading,
     isLoadingMore,
@@ -489,6 +557,34 @@ export default function BuscarPage() {
                   </div>
                 ) : null}
               </form>
+
+              <div className="mt-4 flex items-start gap-2 rounded-sm border border-emerald/22 bg-white/72 p-3 text-xs font-semibold leading-5 text-black-jewel/66">
+                {locationStatus === "checking" ? (
+                  <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-emerald" />
+                ) : (
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-emerald" />
+                )}
+                <div>
+                  <p>
+                    {locationStatus === "enabled"
+                      ? "Localização ativada: perfis mais próximos aparecem primeiro."
+                      : locationStatus === "checking"
+                        ? "Verificando sua localização para ordenar os perfis."
+                        : locationStatus === "denied"
+                          ? "Localização não autorizada. Usaremos a cidade e o estado do seu perfil."
+                          : "Este navegador não oferece localização. Usaremos os dados do seu perfil."}
+                  </p>
+                  {locationStatus === "denied" ? (
+                    <button
+                      type="button"
+                      onClick={requestLocation}
+                      className="mt-1 font-extrabold text-emerald underline underline-offset-2"
+                    >
+                      Tentar novamente
+                    </button>
+                  ) : null}
+                </div>
+              </div>
             </aside>
 
             <section id="profile-results" className="min-w-0 scroll-mt-24">
@@ -590,6 +686,7 @@ async function fetchMatchPage(
     minAge: string;
     maxAge: string;
     gender: string;
+    coordinates: SearchCoordinates | null;
   },
   signal?: AbortSignal,
 ): Promise<PublicProfilePage | null> {
@@ -612,6 +709,11 @@ async function fetchMatchPage(
 
   if (filters.gender) {
     params.set("gender", filters.gender);
+  }
+
+  if (filters.coordinates) {
+    params.set("latitude", String(filters.coordinates.latitude));
+    params.set("longitude", String(filters.coordinates.longitude));
   }
 
   const response = await fetch(`/api/matches?${params.toString()}`, { signal });

@@ -211,6 +211,15 @@ function ProfileView({
   const mainPhoto = getProfilePhoto(profile);
   const galleryPhotos = getGalleryPhotos(profile);
   const privatePhotos = getPrivatePhotos(profile);
+  const photoGallery = [...galleryPhotos, ...privatePhotos].map(
+    (photo, index) => ({
+      src: photo.dataUrl,
+      alt:
+        index < galleryPhotos.length
+          ? `Foto pública ${index + 1} de ${profile.username ?? "perfil"}`
+          : `Foto privada ${index - galleryPhotos.length + 1} de ${profile.username ?? "perfil"}`,
+    }),
+  );
   const age = getAge(profile.birthDate);
   const location = getLocation(profile);
   const interests = getCustomInterests(profile);
@@ -299,6 +308,8 @@ function ProfileView({
                   src={mainPhoto.dataUrl}
                   alt={`Foto de ${profile.username ?? "perfil"}`}
                   imageClassName="h-full w-full object-cover"
+                  gallery={photoGallery}
+                  initialIndex={0}
                 />
               ) : (
                 <div className="grid h-full place-items-center bg-white/82 text-emerald">
@@ -500,6 +511,8 @@ function ProfileView({
                         src={photo.dataUrl}
                         alt={`Foto pública ${index + 1}`}
                         imageClassName="h-full w-full object-cover"
+                        gallery={photoGallery}
+                        initialIndex={index}
                       />
                     </div>
                   </div>
@@ -534,6 +547,8 @@ function ProfileView({
                       src={photo.dataUrl}
                       alt={`Foto privada ${index + 1}`}
                       imageClassName="h-full w-full rounded-[0.18rem] object-cover"
+                      gallery={photoGallery}
+                      initialIndex={galleryPhotos.length + index}
                     />
                   </div>
                 ))}
