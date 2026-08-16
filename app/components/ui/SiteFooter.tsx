@@ -15,9 +15,8 @@ const footerGroups = [
     title: "Sobre o site",
     links: [
       { label: "Sobre nós", href: "/sobre" },
-      { label: "Segurança", href: "/seguranca" },
       { label: "Termos de uso", href: "/terms" },
-      { label: "Privacidade", href: "/privacy" },
+      { label: "Política de Privacidade", href: "/privacy" },
     ],
   },
 ];
@@ -76,11 +75,11 @@ export function SiteFooter() {
           </h2>
           <div className="grid gap-3 text-sm font-semibold text-white/76">
             <a
-              href="mailto:contato.sugarmimo@gmail.com"
+              href="mailto:contato@sugarmimo.com"
               className="flex items-center gap-3 transition hover:text-gold-soft"
             >
               <Mail className="h-4 w-4 text-gold-soft" />
-              contato.sugarmimo@gmail.com
+              contato@sugarmimo.com
             </a>
             <a
               href="tel:+55 11 99775-2731"

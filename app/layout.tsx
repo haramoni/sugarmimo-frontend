@@ -3,6 +3,7 @@ import { Manrope, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "./components/AuthProvider";
+import { CookieConsentBanner } from "./components/CookieConsentBanner";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -44,6 +45,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-[var(--background)] text-[var(--foreground)]">
         <AuthProvider>{children}</AuthProvider>
+        <CookieConsentBanner />
       </body>
     </html>
   );

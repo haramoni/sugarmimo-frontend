@@ -1,0 +1,268 @@
+.page {
+  min-height: 100vh;
+  color: var(--espresso);
+  background: #f4f0e7;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 9.5rem 1.5rem 6rem;
+  color: #fffaf0;
+  background:
+    radial-gradient(circle at 82% 14%, rgba(218, 170, 84, 0.2), transparent 28rem),
+    linear-gradient(135deg, #17110d 0%, #2b190f 54%, #123b32 120%);
+}
+
+.hero::after {
+  position: absolute;
+  right: -8rem;
+  bottom: -13rem;
+  width: 30rem;
+  height: 30rem;
+  content: "";
+  border: 1px solid rgba(234, 210, 154, 0.15);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 4rem rgba(234, 210, 154, 0.025),
+    0 0 0 8rem rgba(234, 210, 154, 0.018);
+}
+
+.heroTexture {
+  position: absolute;
+  inset: 0;
+  opacity: 0.14;
+  background-image: url("/wallpaper-marble.webp");
+  background-size: cover;
+  mix-blend-mode: soft-light;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 74rem);
+  margin: 0 auto;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 1.7rem;
+  color: var(--gold-soft);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.eyebrow svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.hero h1 {
+  max-width: 55rem;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: clamp(2.6rem, 6vw, 5rem);
+  font-weight: 500;
+  line-height: 1.03;
+  letter-spacing: -0.035em;
+}
+
+.documentMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 3rem;
+  margin-top: 2.5rem;
+}
+
+.documentMeta div {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.documentMeta dt {
+  color: rgba(255, 250, 240, 0.46);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.documentMeta dd {
+  color: rgba(255, 250, 240, 0.82);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.layout {
+  display: grid;
+  width: min(100% - 3rem, 74rem);
+  margin: 0 auto;
+  padding: 5rem 0 7rem;
+  grid-template-columns: 12rem minmax(0, 1fr);
+  gap: 4rem;
+}
+
+.sidebarInner {
+  position: sticky;
+  top: 6.5rem;
+}
+
+.sidebarTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.1rem;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.sidebarTitle svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--gold);
+}
+
+.sidebar nav {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.25rem 0.5rem;
+}
+
+.sidebar nav a {
+  padding: 0.3rem 0;
+  color: rgba(36, 21, 13, 0.57);
+  font-size: 0.72rem;
+  font-weight: 650;
+  transition: 150ms ease;
+}
+
+.sidebar nav a:hover {
+  color: var(--emerald);
+}
+
+.contactLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.3rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid rgba(117, 67, 31, 0.16);
+  color: var(--emerald);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.contactLink svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex: 0 0 auto;
+}
+
+.document {
+  display: grid;
+  min-width: 0;
+  gap: 1.5rem;
+}
+
+.documentPage {
+  position: relative;
+  scroll-margin-top: 6.5rem;
+  overflow: hidden;
+  padding: clamp(1.5rem, 5vw, 3.75rem);
+  border: 1px solid rgba(117, 67, 31, 0.14);
+  border-radius: 0.65rem;
+  background: #fffdf8;
+  box-shadow: 0 1rem 2.6rem rgba(36, 21, 13, 0.055);
+}
+
+.documentPage::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  content: "";
+  background: linear-gradient(90deg, var(--gold), rgba(185, 138, 56, 0.08));
+}
+
+.pageNumber {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.3rem;
+  color: rgba(117, 67, 31, 0.26);
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.documentPage pre {
+  margin: 0;
+  color: rgba(36, 21, 13, 0.76);
+  font-family: var(--font-manrope), Arial, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 520;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .sidebarInner {
+    position: static;
+  }
+
+  .sidebarTitle,
+  .sidebar nav {
+    display: none;
+  }
+
+  .contactLink {
+    width: fit-content;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding: 8.1rem 1.2rem 4.8rem;
+  }
+
+  .hero h1 br {
+    display: none;
+  }
+
+  .documentMeta {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .layout {
+    width: min(100% - 1.5rem, 74rem);
+    padding: 2.5rem 0 4.5rem;
+  }
+
+  .documentPage {
+    padding: 2.5rem 1.25rem 1.5rem;
+  }
+
+  .documentPage pre {
+    font-size: 0.82rem;
+    line-height: 1.75;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar nav a {
+    transition: none;
+  }
+}
