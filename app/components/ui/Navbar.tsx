@@ -55,9 +55,12 @@ export function Navbar() {
         return;
       }
 
-      const response = await fetch("/api/interactions/notifications", {
-        cache: "no-store",
-      }).catch(() => null);
+      const response = await fetch(
+        "/api/interactions/notifications/unread-count",
+        {
+          cache: "no-store",
+        },
+      ).catch(() => null);
 
       if (!response?.ok) {
         return;
@@ -72,7 +75,7 @@ export function Navbar() {
     }
 
     void loadUnreadNotifications();
-    const interval = window.setInterval(loadUnreadNotifications, 30_000);
+    const interval = window.setInterval(loadUnreadNotifications, 60_000);
     window.addEventListener("focus", loadUnreadNotifications);
     window.addEventListener(
       "sugarmimo-notifications-updated",
@@ -101,25 +104,22 @@ export function Navbar() {
         return;
       }
 
-      const response = await fetch("/api/chat/conversations", {
+      const response = await fetch("/api/chat/unread-count", {
         cache: "no-store",
       }).catch(() => null);
       if (!response?.ok || !isActive) {
         return;
       }
-      const conversations = (await response.json().catch(() => [])) as Array<{
+      const result = (await response.json().catch(() => null)) as {
         unreadCount?: number;
-      }>;
+      } | null;
       setUnreadChat(
-        conversations.reduce(
-          (total, conversation) => total + (conversation.unreadCount ?? 0),
-          0,
-        ),
+        typeof result?.unreadCount === "number" ? result.unreadCount : 0,
       );
     }
 
     void loadUnreadChat();
-    const interval = window.setInterval(loadUnreadChat, 30_000);
+    const interval = window.setInterval(loadUnreadChat, 60_000);
     window.addEventListener("focus", loadUnreadChat);
     window.addEventListener("sugarmimo-chat-updated", loadUnreadChat);
     return () => {

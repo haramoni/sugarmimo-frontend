@@ -234,9 +234,9 @@ export function ChatClient() {
     let active = true;
     const socket = io(`${API_URL}/chat`, {
       autoConnect: false,
-      // Polling establishes a reliable connection through reverse proxies and
-      // Socket.IO upgrades it to WebSocket automatically when the proxy allows it.
-      transports: ["polling", "websocket"],
+      // Prefer WebSocket to avoid long-polling overhead, while retaining polling
+      // as a fallback for temporary network/proxy incompatibilities.
+      transports: ["websocket", "polling"],
       auth: async (callback) => {
         const response = await fetch("/api/chat/socket-ticket", {
           method: "POST",

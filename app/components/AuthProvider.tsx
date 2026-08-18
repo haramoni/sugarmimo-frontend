@@ -28,11 +28,7 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const pathname = usePathname();
@@ -98,7 +94,7 @@ export function AuthProvider({
     }
 
     sendPresence();
-    const interval = window.setInterval(sendPresence, 45_000);
+    const interval = window.setInterval(sendPresence, 90_000);
     document.addEventListener("visibilitychange", sendPresence);
 
     return () => {
