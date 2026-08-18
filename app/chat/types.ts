@@ -3,7 +3,7 @@ export type ChatMember = {
   username: string;
   role: string | null;
   lastActiveAt: string | null;
-  photos: Array<{ id: string; dataUrl: string; sortOrder: number }>;
+  photos: Array<{ id: string; sortOrder: number }>;
 };
 
 export type ChatMessage = {

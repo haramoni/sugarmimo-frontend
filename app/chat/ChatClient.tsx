@@ -757,11 +757,14 @@ export function ChatClient() {
 }
 
 function Avatar({ conversation }: { conversation: Conversation }) {
-  const photo = conversation.otherMember.photos[0]?.dataUrl;
+  const photoId = conversation.otherMember.photos[0]?.id;
+  const photo = photoId
+    ? `/api/match-photos/${encodeURIComponent(photoId)}?variant=card`
+    : null;
   return (
     <span className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-[var(--gold-soft)]/35 text-[var(--gold)]">
       {photo ? (
-        // Profile photos are user-provided data URLs.
+        // The authenticated proxy serves a compact card-sized variant.
         // eslint-disable-next-line @next/next/no-img-element
         <img src={photo} alt="" className="h-full w-full object-cover" />
       ) : (

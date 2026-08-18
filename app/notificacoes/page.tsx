@@ -22,7 +22,7 @@ type NotificationItem = {
     role?: string | null;
     city?: string | null;
     state?: string | null;
-    photos?: Array<{ dataUrl: string }>;
+    photos?: Array<{ id: string }>;
   };
 };
 
@@ -146,7 +146,10 @@ export default function NotificationsPage() {
                   ]
                     .filter(Boolean)
                     .join(", ");
-                  const photo = notification.actor.photos?.[0]?.dataUrl;
+                  const photoId = notification.actor.photos?.[0]?.id;
+                  const photo = photoId
+                    ? `/api/match-photos/${encodeURIComponent(photoId)}?variant=card`
+                    : null;
 
                   return (
                     <button
@@ -162,7 +165,7 @@ export default function NotificationsPage() {
                     >
                       <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald/10 text-emerald">
                         {photo ? (
-                          // User uploads are data URLs.
+                          // The authenticated proxy serves a compact card image.
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={photo}
