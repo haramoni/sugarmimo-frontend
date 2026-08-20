@@ -47,6 +47,7 @@ import {
 } from "../../buscar/profile-utils";
 import type { PublicProfile } from "../../buscar/types";
 import { describeForProfile } from "../perfiloptions";
+import { getRelationshipIntentLabel } from "../../lib/relationship-intent";
 import {
   ProfileApprovalGuard,
   shouldShowPendingApproval,
@@ -437,6 +438,11 @@ function ProfileView({
               icon={HeartHandshake}
               label="Idade"
               value={age ? `${age} anos` : "Não informada"}
+            />
+            <ProfileFact
+              icon={Heart}
+              label="Busca"
+              value={getRelationshipIntentLabel(profile.relationshipIntent)}
             />
             <ProfileFact
               icon={MapPin}

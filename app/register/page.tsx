@@ -2,7 +2,14 @@
 
 import { type FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ChevronRight, Crown, Heart, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronRight,
+  Crown,
+  Heart,
+  HeartHandshake,
+  Sparkles,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -12,6 +19,10 @@ import {
   setRegisterStep,
 } from "./register-flow";
 import { RegisterStepDots } from "./RegisterStepDots";
+import {
+  relationshipIntentOptions,
+  type RelationshipIntent,
+} from "../lib/relationship-intent";
 
 type ProfileCategory = "daddy" | "baby";
 
@@ -19,6 +30,8 @@ export default function Register() {
   const router = useRouter();
   const [profileCategory, setProfileCategory] =
     useState<ProfileCategory | null>(null);
+  const [relationshipIntent, setRelationshipIntent] =
+    useState<RelationshipIntent>("SUGAR");
 
   useEffect(() => {
     captureReferralFromUrl();
@@ -44,6 +57,7 @@ export default function Register() {
       JSON.stringify({
         profileType,
         interest,
+        relationshipIntent,
       }),
     );
 
@@ -222,6 +236,66 @@ export default function Register() {
                     <option value="both">Todos</option>
                   </select>
                 </div>
+
+                <fieldset className="space-y-3">
+                  <legend className="text-sm font-bold text-black-jewel">
+                    Que tipo de relacionamento você busca?
+                  </legend>
+                  <p className="text-xs font-medium leading-5 text-black-jewel/62">
+                    Sua escolha ficará visível no perfil e poderá ser alterada
+                    depois.
+                  </p>
+                  <input
+                    type="hidden"
+                    name="relationship-intent"
+                    value={relationshipIntent}
+                  />
+                  <div className="grid gap-2">
+                    {relationshipIntentOptions.map((option) => {
+                      const isSelected = relationshipIntent === option.value;
+
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          aria-pressed={isSelected}
+                          onClick={() => setRelationshipIntent(option.value)}
+                          className={[
+                            "flex items-start gap-3 rounded-md border px-4 py-3 text-left transition",
+                            isSelected
+                              ? "border-emerald bg-[color-mix(in_srgb,var(--emerald)_9%,white)] shadow-[0_8px_20px_rgba(0,108,88,0.1)]"
+                              : "border-silver/80 bg-white/55 hover:border-gold/55",
+                          ].join(" ")}
+                        >
+                          <span
+                            className={[
+                              "mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full",
+                              isSelected
+                                ? "bg-emerald text-white"
+                                : "bg-gold-soft/40 text-cognac",
+                            ].join(" ")}
+                          >
+                            {option.value === "TRADITIONAL" ? (
+                              <Heart className="h-4 w-4" />
+                            ) : option.value === "BOTH" ? (
+                              <HeartHandshake className="h-4 w-4" />
+                            ) : (
+                              <Sparkles className="h-4 w-4" />
+                            )}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-sm font-extrabold text-black-jewel">
+                              {option.label}
+                            </span>
+                            <span className="mt-0.5 block text-xs font-medium leading-5 text-black-jewel/62">
+                              {option.description}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
 
                 <Button
                   type="submit"

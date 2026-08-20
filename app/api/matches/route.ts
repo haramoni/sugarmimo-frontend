@@ -16,6 +16,7 @@ export async function GET(request: Request) {
   const minAge = searchParams.get("minAge")?.trim();
   const maxAge = searchParams.get("maxAge")?.trim();
   const gender = searchParams.get("gender")?.trim();
+  const relationshipMode = searchParams.get("relationshipMode")?.trim();
   const latitude = searchParams.get("latitude")?.trim();
   const longitude = searchParams.get("longitude")?.trim();
   const backendParams = new URLSearchParams();
@@ -37,6 +38,10 @@ export async function GET(request: Request) {
 
   if (gender) {
     backendParams.set("gender", gender);
+  }
+
+  if (relationshipMode) {
+    backendParams.set("relationshipMode", relationshipMode);
   }
 
   if (latitude) {

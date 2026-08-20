@@ -342,8 +342,7 @@ export default function RegisterAccountForm() {
                       if (event.key === "@") {
                         setAvailabilityErrors((currentErrors) => ({
                           ...currentErrors,
-                          username:
-                            "Não use seu e-mail como nome de usuário.",
+                          username: "Não use seu e-mail como nome de usuário.",
                         }));
                       }
                     }
@@ -582,7 +581,7 @@ export default function RegisterAccountForm() {
               </Select>
             </div>
 
-            <div className="flex items-start gap-3 lg:col-start-2 lg:row-start-7">
+            <div className="flex items-start">
               <Checkbox
                 id="terms"
                 checked={termsAccepted}
@@ -600,17 +599,22 @@ export default function RegisterAccountForm() {
                 Li e aceito os{" "}
                 <Link
                   href="/terms"
+                  rel="noopener noreferrer"
+                  target="_blank"
                   className="font-bold underline decoration-[var(--gold)] underline-offset-2"
                 >
                   Termos de uso
-                </Link>{" "}
-                e{" "}
+                </Link>
+                e
                 <Link
                   href="/privacy"
+                  rel="noopener noreferrer"
+                  target="_blank"
                   className="font-bold underline decoration-[var(--gold)] underline-offset-2"
                 >
-                  Política de Privacidade
+                  Políticas de Privacidade
                 </Link>
+                .
               </Label>
             </div>
 

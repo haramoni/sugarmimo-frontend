@@ -15,6 +15,7 @@ import {
   getProfilePhoto,
 } from "../profile-utils";
 import type { PublicProfile } from "../types";
+import { getRelationshipIntentLabel } from "../../lib/relationship-intent";
 import styles from "./ProfileCard.module.css";
 
 export default function ProfileCard({
@@ -156,6 +157,9 @@ export default function ProfileCard({
             <h2 className="truncate text-xl font-extrabold tracking-tight text-black-jewel">
               {profile.username}
             </h2>
+            <span className="mt-2 inline-flex max-w-full truncate rounded-full border border-ruby/22 bg-[color-mix(in_srgb,var(--ruby)_7%,white)] px-2.5 py-1 text-[0.68rem] font-extrabold text-ruby">
+              {getRelationshipIntentLabel(profile.relationshipIntent)}
+            </span>
           </div>
 
           <div className="grid gap-2 text-sm font-bold text-black-jewel/76">

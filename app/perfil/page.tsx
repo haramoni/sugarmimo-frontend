@@ -52,6 +52,10 @@ import { PhotoZoom } from "../components/ui/PhotoZoom";
 import premiereStyles from "../buscar/components/ProfileCard.module.css";
 import { PremiereOfferDialog } from "./PremiereOfferDialog";
 import {
+  getRelationshipIntentLabel,
+  relationshipIntentOptions,
+} from "../lib/relationship-intent";
+import {
   ProfileApprovalGuard,
   shouldShowPendingApproval,
 } from "./ProfileApprovalGuard";
@@ -125,6 +129,7 @@ type ProfileUser = {
   role?: string | null;
   gender?: string | null;
   lookingFor?: string | null;
+  relationshipIntent?: string | null;
   birthDate?: string | null;
   country?: string | null;
   state?: string | null;
@@ -161,6 +166,7 @@ type ProfileForm = {
   telegram: string;
   instagram: string;
   lookingFor: string;
+  relationshipIntent: string;
   introductionPhrase: string;
   aboutMe: string;
   lookingForText: string;
@@ -912,6 +918,9 @@ export default function PerfilPage() {
                     <p className="mt-1 text-sm font-semibold leading-5 text-black-jewel/72 wrap-anywhere">
                       {form.introductionPhrase}
                     </p>
+                    <span className="mt-3 inline-flex rounded-full border border-ruby/25 bg-[color-mix(in_srgb,var(--ruby)_8%,white)] px-3 py-1 text-xs font-extrabold text-ruby">
+                      Busca: {getRelationshipIntentLabel(form.relationshipIntent)}
+                    </span>
                   </div>
                   <div className="mx-auto h-px max-w-56 bg-[linear-gradient(90deg,transparent,var(--emerald),transparent)] opacity-45" />
                   <dl className="mx-auto grid max-w-64 grid-cols-[minmax(70px,0.8fr)_minmax(0,1fr)] gap-x-4 gap-y-2 text-left text-sm sm:text-base">
@@ -1425,6 +1434,17 @@ function DetailsForm({
           { label: "Homens", value: "men" },
           { label: "Homens e mulheres", value: "both" },
         ]}
+      />
+      <ProfileSelect
+        label="Tipo de relacionamento"
+        value={form.relationshipIntent}
+        onValueChange={(value) =>
+          updateField("relationshipIntent", value)
+        }
+        options={relationshipIntentOptions.map((option) => ({
+          label: option.label,
+          value: option.value,
+        }))}
       />
       <ProfileSelect
         label="Tipo de corpo"
@@ -1994,6 +2014,7 @@ function formFromUser(user: ProfileUser): ProfileForm {
     telegram: user.telegram ?? "",
     instagram: user.instagram ?? "",
     lookingFor: user.lookingFor ?? "",
+    relationshipIntent: user.relationshipIntent ?? "SUGAR",
     introductionPhrase: user.preferences?.introductionPhrase ?? "",
     aboutMe: user.preferences?.aboutMe ?? "",
     lookingForText: user.preferences?.lookingFor ?? "",
@@ -2038,6 +2059,7 @@ const emptyForm: ProfileForm = {
   telegram: "",
   instagram: "",
   lookingFor: "",
+  relationshipIntent: "SUGAR",
   introductionPhrase: "",
   aboutMe: "",
   lookingForText: "",

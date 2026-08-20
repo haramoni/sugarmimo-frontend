@@ -48,7 +48,13 @@ export async function GET(
       ...(response.headers.get("content-length")
         ? { "Content-Length": response.headers.get("content-length")! }
         : {}),
-      "Cache-Control": "private, max-age=3600, immutable",
+      "Cache-Control":
+        variant === "card"
+          ? "private, max-age=31536000, immutable"
+          : "private, max-age=3600",
+      ...(response.headers.get("etag")
+        ? { ETag: response.headers.get("etag")! }
+        : {}),
     },
   });
 }

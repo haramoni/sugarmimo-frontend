@@ -22,6 +22,11 @@ import StatePanel from "./components/StatePanel";
 import ProfileCard from "./components/ProfileCard";
 import AgeRangeFilter from "./components/AgeRangeFilter";
 import type { PublicProfile, PublicProfilePage } from "./types";
+import {
+  getRelationshipIntentLabel,
+  normalizeRelationshipIntent,
+  type RelationshipMode,
+} from "../lib/relationship-intent";
 
 const PAGE_SIZE = 6;
 const SEARCH_STATE_KEY = "sugarmimo:buscar-state";
@@ -35,6 +40,7 @@ type SavedSearchState = {
   minAge: string;
   maxAge: string;
   gender: string;
+  relationshipMode: RelationshipMode;
   page: number;
   scrollY: number;
   anchorProfileId: string | null;
@@ -59,6 +65,8 @@ export default function BuscarPage() {
   const [minAge, setMinAge] = useState("18");
   const [maxAge, setMaxAge] = useState("80");
   const [gender, setGender] = useState("");
+  const [relationshipMode, setRelationshipMode] =
+    useState<RelationshipMode>("COMPATIBLE");
   const [profiles, setProfiles] = useState<PublicProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -90,9 +98,14 @@ export default function BuscarPage() {
   const canSearch = ["SUGAR_BABY", "SUGAR_DADDY"].includes(
     normalizedRole ?? "",
   );
-  const targetLabel = isDaddy
-    ? "Sugar Babies aprovadas"
-    : "Sugar Daddies ativos";
+  const targetLabel =
+    relationshipMode === "TRADITIONAL"
+      ? "Conexões tradicionais"
+      : relationshipMode === "SUGAR"
+        ? isDaddy
+          ? "Sugar Babies aprovadas"
+          : "Sugar Daddies ativos"
+        : "Conexões compatíveis";
   const isApprovalPending = shouldShowPendingApproval(user);
 
   useEffect(() => {
@@ -107,6 +120,7 @@ export default function BuscarPage() {
         setMinAge(savedState.minAge);
         setMaxAge(savedState.maxAge);
         setGender(savedState.gender);
+        setRelationshipMode(savedState.relationshipMode);
         setPage(savedState.page);
         restoredPageRef.current = savedState.page;
         setScrollToRestore(savedState.scrollY);
@@ -141,6 +155,7 @@ export default function BuscarPage() {
         minAge,
         maxAge,
         gender,
+        relationshipMode,
         page,
         scrollY: window.scrollY,
         anchorProfileId: navigationAnchorRef.current?.profileId ?? null,
@@ -158,6 +173,7 @@ export default function BuscarPage() {
   }, [
     gender,
     genderDraft,
+    relationshipMode,
     hasRestoredState,
     isScrollRestored,
     maxAge,
@@ -279,6 +295,7 @@ export default function BuscarPage() {
             minAge,
             maxAge,
             gender: isDaddy ? gender : "",
+            relationshipMode,
             coordinates,
           },
           controller.signal,
@@ -338,6 +355,7 @@ export default function BuscarPage() {
     minAge,
     router,
     search,
+    relationshipMode,
     user,
   ]);
 
@@ -412,6 +430,7 @@ export default function BuscarPage() {
         minAge,
         maxAge,
         gender: isDaddy ? gender : "",
+        relationshipMode,
         coordinates,
       });
 
@@ -446,6 +465,7 @@ export default function BuscarPage() {
     page,
     router,
     search,
+    relationshipMode,
   ]);
 
   useEffect(() => {
@@ -502,6 +522,40 @@ export default function BuscarPage() {
               </div>
 
               <form className="mt-5 space-y-3" onSubmit={handleSubmit}>
+                <div className="space-y-2">
+                  <label
+                    htmlFor="relationship-mode"
+                    className="block text-sm font-bold text-black-jewel"
+                  >
+                    Tipo de conexão
+                  </label>
+                  {normalizeRelationshipIntent(user?.relationshipIntent) ===
+                  "BOTH" ? (
+                    <select
+                      id="relationship-mode"
+                      value={relationshipMode}
+                      onChange={(event) => {
+                        setRelationshipMode(
+                          event.target.value as RelationshipMode,
+                        );
+                        setIsLoading(true);
+                        setProfiles([]);
+                        setPage(1);
+                        restoredPageRef.current = 1;
+                      }}
+                      className="h-11 w-full rounded-sm border border-ruby/25 bg-white/88 px-3 text-sm font-semibold text-black-jewel outline-none transition focus:border-ruby focus:ring-2 focus:ring-ruby/15"
+                    >
+                      <option value="COMPATIBLE">Sugar e tradicional</option>
+                      <option value="SUGAR">Somente Sugar</option>
+                      <option value="TRADITIONAL">Somente tradicional</option>
+                    </select>
+                  ) : (
+                    <div className="rounded-sm border border-ruby/20 bg-[color-mix(in_srgb,var(--ruby)_6%,white)] px-3 py-2.5 text-sm font-extrabold text-ruby">
+                      {getRelationshipIntentLabel(user?.relationshipIntent)}
+                    </div>
+                  )}
+                </div>
+
                 <label className="block text-sm font-bold text-black-jewel">
                   Nome, cidade ou estado
                 </label>
@@ -630,6 +684,7 @@ export default function BuscarPage() {
                             minAge,
                             maxAge,
                             gender,
+                            relationshipMode,
                             page,
                             scrollY: window.scrollY,
                             anchorProfileId:
@@ -686,6 +741,7 @@ async function fetchMatchPage(
     minAge: string;
     maxAge: string;
     gender: string;
+    relationshipMode: RelationshipMode;
     coordinates: SearchCoordinates | null;
   },
   signal?: AbortSignal,
@@ -710,6 +766,8 @@ async function fetchMatchPage(
   if (filters.gender) {
     params.set("gender", filters.gender);
   }
+
+  params.set("relationshipMode", filters.relationshipMode);
 
   if (filters.coordinates) {
     params.set("latitude", String(filters.coordinates.latitude));
@@ -757,6 +815,11 @@ function readSavedSearchState(): SavedSearchState | null {
       minAge: normalizeSavedAge(parsed.minAge, 18),
       maxAge: normalizeSavedAge(parsed.maxAge, 80),
       gender: typeof parsed.gender === "string" ? parsed.gender : "",
+      relationshipMode:
+        parsed.relationshipMode === "SUGAR" ||
+        parsed.relationshipMode === "TRADITIONAL"
+          ? parsed.relationshipMode
+          : "COMPATIBLE",
       page: Number(parsed.page),
       scrollY:
         typeof parsed.scrollY === "number" && parsed.scrollY >= 0

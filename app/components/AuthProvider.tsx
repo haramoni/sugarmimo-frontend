@@ -17,6 +17,8 @@ import {
   PENDING_APPROVAL_ROUTE,
   shouldShowPendingApproval,
 } from "@/app/perfil/ProfileApprovalGuard";
+import { PrivacyPolicyAcceptanceDialog } from "@/app/components/PrivacyPolicyAcceptanceDialog";
+import { CURRENT_PRIVACY_POLICY_VERSION } from "@/app/privacy/privacy-policy";
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -56,6 +58,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     removeAuthUser();
     window.dispatchEvent(new Event("sugarmimo-auth"));
+  }, []);
+
+  const acceptPrivacyPolicy = useCallback(async () => {
+    const response = await fetch("/api/auth/privacy-policy/accept", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version: CURRENT_PRIVACY_POLICY_VERSION }),
+    }).catch(() => null);
+
+    if (!response) {
+      throw new Error("Não foi possível conectar ao servidor.");
+    }
+
+    const acceptance = (await response.json().catch(() => null)) as
+      | Pick<AuthUser, "privacyPolicyVersion" | "privacyPolicyAcceptedAt">
+      | { message?: string }
+      | null;
+
+    if (!response.ok) {
+      throw new Error(
+        acceptance && "message" in acceptance && acceptance.message
+          ? acceptance.message
+          : "Não foi possível registrar o aceite.",
+      );
+    }
+
+    setUser((currentUser) => {
+      if (!currentUser) {
+        return currentUser;
+      }
+
+      const nextUser = { ...currentUser, ...acceptance } as AuthUser;
+      saveAuthUser(nextUser);
+      return nextUser;
+    });
   }, []);
 
   useEffect(() => {
@@ -114,7 +151,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [isAuthLoading, logout, refreshUser, user],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  const needsPrivacyPolicyAcceptance = Boolean(
+    user &&
+      !pathname.startsWith("/register") &&
+      user.role?.trim().toUpperCase() !== "ADMIN" &&
+    user.privacyPolicyVersion !== CURRENT_PRIVACY_POLICY_VERSION,
+  );
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <PrivacyPolicyAcceptanceDialog
+        open={needsPrivacyPolicyAcceptance}
+        onAccept={acceptPrivacyPolicy}
+        secondaryLabel="Sair da conta"
+        onSecondary={async () => {
+          await logout();
+          router.replace("/login");
+        }}
+      />
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

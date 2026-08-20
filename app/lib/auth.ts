@@ -9,6 +9,7 @@ export type AuthUser = {
   role?: string | null;
   gender?: string | null;
   lookingFor?: string | null;
+  relationshipIntent?: string | null;
   birthDate?: string | null;
   country?: string | null;
   state?: string | null;
@@ -19,6 +20,8 @@ export type AuthUser = {
   approvalStatus?: string;
   isPremium?: boolean;
   isPremiere?: boolean;
+  privacyPolicyVersion?: string | null;
+  privacyPolicyAcceptedAt?: string | null;
   photos?: Array<{
     id?: string;
     dataUrl: string;

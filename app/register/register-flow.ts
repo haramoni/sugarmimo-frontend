@@ -35,7 +35,7 @@ export function getSavedRegisterStep() {
   const savedStep = window.localStorage.getItem(REGISTER_CURRENT_STEP_KEY);
   const hasStartedFlow = Boolean(
     window.localStorage.getItem(REGISTER_STEP_ONE_KEY) ||
-      window.localStorage.getItem(REGISTER_PAYLOAD_KEY),
+    window.localStorage.getItem(REGISTER_PAYLOAD_KEY),
   );
 
   return hasStartedFlow ? savedStep : null;

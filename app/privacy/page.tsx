@@ -5,6 +5,7 @@ import NavBarMenu from "../components/ui/NavBarMenu";
 import { SiteFooter } from "../components/ui/SiteFooter";
 import policyPages from "./policy-pages.json";
 import styles from "./privacy.module.css";
+import { CURRENT_PRIVACY_POLICY_DATE } from "./privacy-policy";
 
 export const metadata: Metadata = {
   title: "Política de Privacidade e Proteção de Dados | SugarMimo",
@@ -36,7 +37,7 @@ export default function PrivacyPage() {
             </div>
             <div>
               <dt>Última atualização</dt>
-              <dd>15/08/2026</dd>
+              <dd>{CURRENT_PRIVACY_POLICY_DATE}</dd>
             </div>
           </dl>
         </div>

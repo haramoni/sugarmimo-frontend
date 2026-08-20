@@ -16,6 +16,7 @@ export type PublicProfile = {
   boostedUntil?: string | null;
   gender?: string | null;
   lookingFor?: string | null;
+  relationshipIntent?: string | null;
   birthDate?: string | null;
   country?: string | null;
   state?: string | null;
