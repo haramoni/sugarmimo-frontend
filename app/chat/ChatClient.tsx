@@ -759,7 +759,7 @@ export function ChatClient() {
 function Avatar({ conversation }: { conversation: Conversation }) {
   const photoId = conversation.otherMember.photos[0]?.id;
   const photo = photoId
-    ? `/api/match-photos/${encodeURIComponent(photoId)}?variant=card`
+    ? `/api/match-photos/${encodeURIComponent(photoId)}?variant=card&v=2`
     : null;
   return (
     <span className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-[var(--gold-soft)]/35 text-[var(--gold)]">

@@ -49,7 +49,7 @@ export default function ProfileCard({
       className={
         isPremiereDaddy
           ? styles.premiereCard
-          : "min-w-0 overflow-hidden rounded-lg border border-emerald/24 bg-[color-mix(in_srgb,var(--surface)_92%,white)] shadow-[0_18px_44px_rgba(20,17,14,0.12)] ring-1 ring-white/70 transition duration-300 hover:-translate-y-0.5 hover:border-gold/55 hover:shadow-[0_24px_56px_rgba(20,17,14,0.16)]"
+          : "min-w-0 self-start overflow-hidden rounded-lg border border-emerald/24 bg-[color-mix(in_srgb,var(--surface)_92%,white)] shadow-[0_18px_44px_rgba(20,17,14,0.12)] ring-1 ring-white/70 transition duration-300 hover:-translate-y-0.5 hover:border-gold/55 hover:shadow-[0_24px_56px_rgba(20,17,14,0.16)]"
       }
     >
       <Link
@@ -68,8 +68,8 @@ export default function ProfileCard({
         ) : null}
         <div
           className={[
-            "relative bg-[linear-gradient(135deg,color-mix(in_srgb,var(--emerald)_18%,white),color-mix(in_srgb,var(--gold-soft)_35%,white))]",
-            isPremiereDaddy ? styles.premierePhoto : "aspect-4/3",
+            "relative aspect-[5/7] overflow-hidden bg-[linear-gradient(135deg,color-mix(in_srgb,var(--emerald)_18%,white),color-mix(in_srgb,var(--gold-soft)_35%,white))]",
+            isPremiereDaddy ? styles.premierePhoto : "",
           ].join(" ")}
         >
           {photo ? (
@@ -82,7 +82,7 @@ export default function ProfileCard({
               fetchPriority={eager ? "high" : "auto"}
               decoding="async"
               className={[
-                "h-full w-full object-cover",
+                "block h-full w-full object-full",
                 isPremiereDaddy ? styles.premiereImage : "",
               ].join(" ")}
             />
@@ -138,60 +138,40 @@ export default function ProfileCard({
               ) : null}
             </div>
           ) : null}
-        </div>
 
-        {isPremiereDaddy ? (
-          <div className={styles.premiereCrest} aria-hidden="true">
-            <span>⚜</span>
-          </div>
-        ) : null}
+          <div
+            className={[
+              styles.profileOverlay,
+              isPremiereDaddy ? styles.premiereOverlay : "",
+            ].join(" ")}
+          >
+            <h2 className={styles.profileName}>{profile.username}</h2>
 
-        <div
-          className={[
-            "space-y-3 p-4",
-            isPremiereDaddy ? styles.premiereDetails : "",
-          ].join(" ")}
-        >
-          <div className="min-w-0">
-            <h2 className="truncate text-xl font-extrabold tracking-tight text-black-jewel">
-              {profile.username}
-            </h2>
-          </div>
-
-          <div className="grid gap-2 text-sm font-bold text-black-jewel/76">
-            <span className="flex min-w-0 items-center gap-2">
-              <HeartHandshake className="h-4 w-4 shrink-0 text-ruby" />
-              <span className="truncate">
-                {age ? `${age} anos` : "Idade não informada"}
-              </span>
-            </span>
-            <span className="flex min-w-0 items-center gap-2">
-              <MapPin className="h-4 w-4 shrink-0 text-emerald" />
-              <span className="truncate">
-                {location || "Localização não informada"}
-              </span>
-            </span>
-          </div>
-
-          {interests.length > 0 && !isPremiereDaddy ? (
-            <div className="flex flex-wrap gap-2">
-              {interests.map((interest) => (
-                <span
-                  key={interest}
-                  className="min-w-0 rounded-full border border-gold/35 bg-[color-mix(in_srgb,var(--gold-soft)_22%,white)] px-2.5 py-1 text-xs font-extrabold text-black-jewel/78"
-                >
-                  {interest}
+            <div className={styles.profileMeta}>
+              <span className={styles.profileMetaItem}>
+                <HeartHandshake aria-hidden="true" />
+                <span className="truncate">
+                  {age ? `${age} anos` : "Idade não informada"}
                 </span>
-              ))}
+              </span>
+              <span className={styles.profileMetaItem}>
+                <MapPin aria-hidden="true" />
+                <span className="truncate">
+                  {location || "Localização não informada"}
+                </span>
+              </span>
             </div>
-          ) : null}
-          {isPremiereDaddy ? (
-            <div className={styles.premiereFlourish} aria-hidden="true">
-              <span />
-              <b>❖</b>
-              <span />
-            </div>
-          ) : null}
+
+            {interests.length > 0 && !isPremiereDaddy ? (
+              <div className={styles.interestList}>
+                {interests.map((interest) => (
+                  <span key={interest} className={styles.profileInterest}>
+                    {interest}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
       </Link>
     </article>

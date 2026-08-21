@@ -148,7 +148,7 @@ export default function NotificationsPage() {
                     .join(", ");
                   const photoId = notification.actor.photos?.[0]?.id;
                   const photo = photoId
-                    ? `/api/match-photos/${encodeURIComponent(photoId)}?variant=card`
+                    ? `/api/match-photos/${encodeURIComponent(photoId)}?variant=card&v=2`
                     : null;
 
                   return (
