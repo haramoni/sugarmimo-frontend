@@ -1,13 +1,19 @@
+"use client";
+
 import {
   BadgeCheck,
   Crown,
+  Heart,
   HeartHandshake,
+  Loader2,
   MapPin,
+  MessageCircle,
   Sparkles,
   UserRound,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import {
   getAge,
   getCustomInterests,
@@ -21,11 +27,20 @@ export default function ProfileCard({
   profile,
   onNavigate,
   eager = false,
+  viewerRole,
+  viewerIsPremium = false,
+  viewerIsPremiere = false,
 }: {
   profile: PublicProfile;
   onNavigate?: () => void;
   eager?: boolean;
+  viewerRole?: string | null;
+  viewerIsPremium?: boolean;
+  viewerIsPremiere?: boolean;
 }) {
+  const [interaction, setInteraction] = useState(profile.interaction ?? {});
+  const [isFavoriting, setIsFavoriting] = useState(false);
+  const [favoriteError, setFavoriteError] = useState("");
   const photo = getProfilePhoto(profile);
   const age = getAge(profile.birthDate);
   const location = getLocation(profile);
@@ -42,24 +57,76 @@ export default function ProfileCard({
   const isBoosted = profile.boostedUntil
     ? new Date(profile.boostedUntil).getTime() > new Date().getTime()
     : false;
+  const normalizedViewerRole = viewerRole?.trim().toUpperCase();
+  const normalizedProfileRole = profile.role?.trim().toUpperCase();
+  const isDaddyViewingBaby =
+    normalizedViewerRole === "SUGAR_DADDY" &&
+    normalizedProfileRole === "SUGAR_BABY";
+  const isBabyViewingDaddy =
+    normalizedViewerRole === "SUGAR_BABY" &&
+    normalizedProfileRole === "SUGAR_DADDY";
+  const canMessage = isDaddyViewingBaby || isBabyViewingDaddy;
+  const favoriteAction = isDaddyViewingBaby
+    ? "daddy-like"
+    : isBabyViewingDaddy && Boolean(profile.isPremium || profile.isPremiere)
+      ? "baby-like"
+      : null;
+  const isFavorited = isDaddyViewingBaby
+    ? Boolean(interaction.daddyLiked)
+    : Boolean(interaction.babyLiked);
+  const canFavorite =
+    favoriteAction === "baby-like" ||
+    (favoriteAction === "daddy-like" &&
+      (viewerIsPremium || viewerIsPremiere));
+
+  async function favoriteProfile() {
+    if (!favoriteAction || !canFavorite || isFavorited || isFavoriting) {
+      return;
+    }
+
+    setIsFavoriting(true);
+    setFavoriteError("");
+
+    try {
+      const path =
+        favoriteAction === "daddy-like"
+          ? `/api/interactions/likes/${encodeURIComponent(profile.id)}`
+          : `/api/interactions/baby-likes/${encodeURIComponent(profile.id)}`;
+      const response = await fetch(path, { method: "POST" });
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(result?.message ?? "Não foi possível favoritar o perfil.");
+      }
+
+      setInteraction((current) => ({ ...current, ...result }));
+    } catch (error) {
+      setFavoriteError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível favoritar o perfil.",
+      );
+    } finally {
+      setIsFavoriting(false);
+    }
+  }
 
   return (
     <article
       id={`profile-card-${profile.id}`}
       className={
         isPremiereDaddy
-          ? styles.premiereCard
-          : "min-w-0 self-start overflow-hidden rounded-lg border border-emerald/24 bg-[color-mix(in_srgb,var(--surface)_92%,white)] shadow-[0_18px_44px_rgba(20,17,14,0.12)] ring-1 ring-white/70 transition duration-300 hover:-translate-y-0.5 hover:border-gold/55 hover:shadow-[0_24px_56px_rgba(20,17,14,0.16)]"
+          ? `${styles.premiereCard} relative`
+          : "relative min-w-0 self-start overflow-hidden rounded-lg border border-emerald/24 bg-[color-mix(in_srgb,var(--surface)_92%,white)] shadow-[0_18px_44px_rgba(20,17,14,0.12)] ring-1 ring-white/70 transition duration-300 hover:-translate-y-0.5 hover:border-gold/55 hover:shadow-[0_24px_56px_rgba(20,17,14,0.16)]"
       }
     >
       <Link
         href={href}
         onClick={onNavigate}
-        className={[
-          "block focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-emerald",
-          isPremiereDaddy ? styles.premiereInner : "",
-        ].join(" ")}
-      >
+        aria-label={`Ver perfil de ${profile.username ?? "usuário"}`}
+        className="absolute inset-0 z-10 rounded-[inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-emerald"
+      />
+      <div className={isPremiereDaddy ? styles.premiereInner : undefined}>
         {isPremiereDaddy ? (
           <div className={styles.premiereHeader} aria-label="Perfil Premiere">
             <Crown aria-hidden="true" className={styles.premiereCrown} />
@@ -172,8 +239,66 @@ export default function ProfileCard({
               </div>
             ) : null}
           </div>
+
+          {canMessage ? (
+            <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5">
+              {favoriteAction ? (
+                <button
+                  type="button"
+                  onClick={() => void favoriteProfile()}
+                  disabled={!canFavorite || isFavorited || isFavoriting}
+                  aria-label={
+                    isFavorited
+                      ? "Perfil favoritado"
+                      : canFavorite
+                        ? "Favoritar perfil"
+                        : "Favoritar disponível para assinantes"
+                  }
+                  title={
+                    isFavorited
+                      ? "Perfil favoritado"
+                      : canFavorite
+                        ? "Favoritar"
+                        : "Disponível para perfis Premium e Premiere"
+                  }
+                  className={[
+                    "inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border bg-white/88 shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ruby disabled:cursor-not-allowed disabled:opacity-60",
+                    isFavorited
+                      ? "border-ruby/45 text-ruby"
+                      : "border-white/70 text-black-jewel/72",
+                  ].join(" ")}
+                >
+                  {isFavoriting ? (
+                    <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Heart
+                      aria-hidden="true"
+                      className="h-4 w-4"
+                      fill={isFavorited ? "currentColor" : "none"}
+                    />
+                  )}
+                </button>
+              ) : null}
+
+              <Link
+                href={`/chat?with=${encodeURIComponent(profile.id)}`}
+                onClick={onNavigate}
+                aria-label={`Enviar mensagem para ${profile.username ?? "este perfil"}`}
+                title="Enviar mensagem"
+                className="inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border border-white/70 bg-white/88 text-emerald shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald"
+              >
+                <MessageCircle aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            </div>
+          ) : null}
+
+          {favoriteError ? (
+            <span className="sr-only" role="status">
+              {favoriteError}
+            </span>
+          ) : null}
         </div>
-      </Link>
+      </div>
     </article>
   );
 }

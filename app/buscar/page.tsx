@@ -671,6 +671,9 @@ export default function BuscarPage() {
                         key={profile.id}
                         profile={profile}
                         eager={index < 3}
+                        viewerRole={user.role}
+                        viewerIsPremium={Boolean(user.isPremium)}
+                        viewerIsPremiere={Boolean(user.isPremiere)}
                         onNavigate={() => {
                           navigationAnchorRef.current = getProfileAnchor(
                             profile.id,
