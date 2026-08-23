@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "../AuthProvider";
+import { PremiereOfferDialog } from "../../perfil/PremiereOfferDialog";
 import { AccountMenu } from "./AccountMenu";
 
 const menuItems = [
@@ -26,6 +27,8 @@ export function Navbar() {
   const canSearch = ["SUGAR_BABY", "SUGAR_DADDY"].includes(
     user?.role?.trim().toUpperCase() ?? "",
   );
+  const canBecomePremiere =
+    user?.role?.trim().toUpperCase() === "SUGAR_DADDY" && !user.isPremiere;
   const loggedMenuItems = canSearch
     ? [
         menuItems[0],
@@ -207,6 +210,9 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center justify-self-end gap-5">
+          {canBecomePremiere ? (
+            <PremiereOfferDialog triggerVariant="navbar" />
+          ) : null}
           {user ? (
             <Link
               href="/perfil"

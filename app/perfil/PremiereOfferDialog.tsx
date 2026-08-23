@@ -30,7 +30,11 @@ import {
 
 import styles from "./PremiereOfferDialog.module.css";
 
-export function PremiereOfferDialog() {
+export function PremiereOfferDialog({
+  triggerVariant = "default",
+}: {
+  triggerVariant?: "default" | "navbar";
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<"benefits" | "payment">("benefits");
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
@@ -57,15 +61,36 @@ export function PremiereOfferDialog() {
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button className="h-auto min-h-14 w-full rounded-full border border-[#e5cc96] bg-[linear-gradient(180deg,#fff8e8,#e8cc91)] px-4 py-2 font-bold text-[#5b4224] shadow-[0_12px_26px_rgba(205,167,94,0.24)] hover:bg-[linear-gradient(180deg,#fffdf7,#efdba9)] hover:text-[#3f2d19]">
+        <Button
+          aria-label="Seja Premiere"
+          className={
+            triggerVariant === "navbar"
+              ? "h-10 shrink-0 rounded-full border border-[#d5b66f] bg-[linear-gradient(180deg,#fff8e8,#e8cc91)] px-3 text-xs font-extrabold text-[#5b4224] shadow-[0_8px_20px_rgba(205,167,94,0.22)] hover:bg-[linear-gradient(180deg,#fffdf7,#efdba9)] hover:text-[#3f2d19] sm:px-4"
+              : "h-auto min-h-14 w-full rounded-full border border-[#e5cc96] bg-[linear-gradient(180deg,#fff8e8,#e8cc91)] px-4 py-2 font-bold text-[#5b4224] shadow-[0_12px_26px_rgba(205,167,94,0.24)] hover:bg-[linear-gradient(180deg,#fffdf7,#efdba9)] hover:text-[#3f2d19]"
+          }
+        >
           <Sparkles className="h-4 w-4 shrink-0 text-[#a87937]" />
-          <span className="grid text-center leading-tight">
-            <span className="text-sm font-extrabold sm:text-base">
+          <span
+            className={
+              triggerVariant === "navbar"
+                ? "whitespace-nowrap"
+                : "grid text-center leading-tight"
+            }
+          >
+            <span
+              className={
+                triggerVariant === "navbar"
+                  ? "text-xs font-extrabold sm:text-sm"
+                  : "text-sm font-extrabold sm:text-base"
+              }
+            >
               SEJA PREMIERE
             </span>
-            <span className="text-[10px] font-bold tracking-[0.14em] text-[#7a5b32] sm:text-[11px]">
-              (VAGAS LIMITADAS)
-            </span>
+            {triggerVariant === "default" ? (
+              <span className="text-[10px] font-bold tracking-[0.14em] text-[#7a5b32] sm:text-[11px]">
+                (VAGAS LIMITADAS)
+              </span>
+            ) : null}
           </span>
         </Button>
       </DialogTrigger>

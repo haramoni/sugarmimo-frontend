@@ -135,6 +135,17 @@ export default function PublicProfilePage() {
     return () => controller.abort();
   }, [canView, identifier, isApprovalPending, router, user]);
 
+  useEffect(() => {
+    if (!profile?.id || profile.id === user?.id) {
+      return;
+    }
+
+    void fetch(
+      `/api/interactions/profile-visits/${encodeURIComponent(profile.id)}`,
+      { method: "POST" },
+    );
+  }, [profile?.id, user?.id]);
+
   if (isAuthLoading || !user || isApprovalPending) {
     return <ProfileApprovalGuard user={user} />;
   }
