@@ -35,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
+  const isMaintenancePage = pathname === "/manutencao";
 
   const refreshUser = useCallback(async () => {
     const response = await fetch("/api/auth/me").catch(() => null);
@@ -112,12 +113,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (
       !isAuthLoading &&
+      !isMaintenancePage &&
       shouldShowPendingApproval(user) &&
       pathname !== PENDING_APPROVAL_ROUTE
     ) {
       router.replace(PENDING_APPROVAL_ROUTE);
     }
-  }, [isAuthLoading, pathname, router, user]);
+  }, [isAuthLoading, isMaintenancePage, pathname, router, user]);
 
   useEffect(() => {
     if (!user) {
@@ -153,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const needsPrivacyPolicyAcceptance = Boolean(
     user &&
+      !isMaintenancePage &&
       !pathname.startsWith("/register") &&
       user.role?.trim().toUpperCase() !== "ADMIN" &&
     user.privacyPolicyVersion !== CURRENT_PRIVACY_POLICY_VERSION,

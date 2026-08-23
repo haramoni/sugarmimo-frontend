@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Cookie, ShieldCheck } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
 
 const CONSENT_COOKIE = "sugarmimo_cookie_consent";
@@ -43,6 +44,7 @@ function saveChoice(choice: ConsentChoice) {
 }
 
 export function CookieConsentBanner() {
+  const pathname = usePathname();
   const isVisible = useSyncExternalStore(
     subscribeToConsent,
     () => !hasSavedChoice(),
@@ -53,7 +55,7 @@ export function CookieConsentBanner() {
     saveChoice(choice);
   }
 
-  if (!isVisible) return null;
+  if (!isVisible || pathname === "/manutencao") return null;
 
   return (
     <section
