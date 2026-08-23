@@ -36,5 +36,18 @@ export async function GET(
     await clearSessionCookie();
   }
 
-  return NextResponse.json(result, { status: response.status });
+  const profile =
+    response.ok && result && Array.isArray(result.photos)
+      ? {
+          ...result,
+          photos: result.photos.map((photo: { id?: string }) => ({
+            ...photo,
+            dataUrl: photo.id
+              ? `/api/match-photos/${encodeURIComponent(photo.id)}`
+              : "",
+          })),
+        }
+      : result;
+
+  return NextResponse.json(profile, { status: response.status });
 }
