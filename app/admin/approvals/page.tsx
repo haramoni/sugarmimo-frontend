@@ -24,7 +24,6 @@ import { PhotoZoom } from "@/app/components/ui/PhotoZoom";
 
 type PendingPhoto = {
   id: string;
-  dataUrl: string;
   fileName: string | null;
   mimeType: string | null;
   sortOrder: number;
@@ -380,7 +379,8 @@ function AdminReviewQueue({
                       className="group relative aspect-[3/4] overflow-hidden rounded-sm bg-[var(--platinum)]"
                     >
                       <PhotoZoom
-                        src={photo.dataUrl}
+                        src={`/api/admin/review-photos/${encodeURIComponent(photo.id)}`}
+                        thumbnailSrc={`/api/admin/review-photos/${encodeURIComponent(photo.id)}?variant=card`}
                         alt={`Foto ${index + 1} de ${profile.username}`}
                         buttonClassName="absolute inset-0 z-0 block h-full w-full cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--gold)]"
                       />

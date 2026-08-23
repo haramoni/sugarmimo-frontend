@@ -37,3 +37,38 @@ export async function forwardAdminRequest(
 
   return NextResponse.json(result, { status: response.status });
 }
+
+export async function forwardAdminAssetRequest(path: string) {
+  const token = await getAdminSessionToken();
+
+  if (!token) {
+    return NextResponse.json({ message: "Não autenticado." }, { status: 401 });
+  }
+
+  const response = await fetch(`${API_URL}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  }).catch(() => null);
+
+  if (!response) {
+    return NextResponse.json(
+      { message: "Não foi possível carregar a foto." },
+      { status: 503 },
+    );
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    await clearAdminSessionCookie();
+  }
+
+  const headers = new Headers();
+  for (const name of ["content-type", "content-length", "cache-control", "etag"]) {
+    const value = response.headers.get(name);
+    if (value) headers.set(name, value);
+  }
+
+  return new NextResponse(response.body, {
+    status: response.status,
+    headers,
+  });
+}

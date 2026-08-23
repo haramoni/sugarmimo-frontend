@@ -22,6 +22,7 @@ export type PhotoZoomItem = {
 
 export function PhotoZoom({
   src,
+  thumbnailSrc,
   alt,
   imageClassName = "h-full w-full object-cover",
   buttonClassName = "block h-full w-full cursor-zoom-in",
@@ -29,6 +30,7 @@ export function PhotoZoom({
   initialIndex = 0,
 }: {
   src: string;
+  thumbnailSrc?: string;
   alt: string;
   imageClassName?: string;
   buttonClassName?: string;
@@ -107,7 +109,12 @@ export function PhotoZoom({
       >
         {/* User uploads and authorized photo URLs should not use Next image optimization. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={alt} className={imageClassName} />
+        <img
+          src={thumbnailSrc ?? src}
+          alt={alt}
+          loading="lazy"
+          className={imageClassName}
+        />
       </button>
 
       {isOpen && typeof document !== "undefined"
