@@ -1,10 +1,22 @@
 .content {
-  overflow: hidden;
+  max-height: calc(100dvh - 1rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid #c9a668;
   background: #fffaf0;
   box-shadow:
     0 32px 90px rgb(20 17 14 / 34%),
     inset 0 0 0 4px rgb(239 216 170 / 38%);
+}
+
+.content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.content::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgb(154 111 48 / 38%);
 }
 
 .panel {
@@ -16,6 +28,19 @@
   background:
     radial-gradient(circle at 50% 0%, rgb(234 210 160 / 32%), transparent 31%),
     linear-gradient(145deg, #fffdf8, #f8edda 68%, #f2dfbd);
+}
+
+.paymentPanel {
+  padding-top: 1.35rem;
+  padding-bottom: 1rem;
+}
+
+.paymentHeader {
+  margin-top: 0;
+}
+
+.paymentPanel .divider {
+  margin: 0.75rem auto;
 }
 
 .panel::before,
@@ -110,12 +135,135 @@
   stroke-width: 1.7;
 }
 
+.priceOffer {
+  margin-top: 1rem;
+  overflow: hidden;
+  border: 1px solid rgb(184 143 74 / 52%);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(239 209 145 / 38%), transparent 42%),
+    linear-gradient(135deg, #fffaf0, #f4e2bf);
+  padding: 0.85rem 1rem 0.8rem;
+  color: #4d3820;
+  box-shadow: 0 10px 24px rgb(117 82 36 / 8%);
+}
+
+.priceOfferTopline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+  color: #8b6736;
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.priceOfferTopline strong {
+  flex: 0 0 auto;
+  border: 1px solid rgb(164 119 51 / 36%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 55%);
+  padding: 0.3rem 0.55rem;
+  color: #815b28;
+  font-size: 0.6rem;
+}
+
+.priceValues {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.priceValues > span:first-child {
+  flex: 0 0 auto;
+  padding-bottom: 0.25rem;
+  color: #8b7658;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.priceValues del {
+  margin-left: 0.2rem;
+  text-decoration-color: #9f7041;
+  text-decoration-thickness: 1px;
+}
+
+.priceNow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
+.priceNow small {
+  color: #876333;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.priceNow strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.65rem, 7vw, 2.15rem);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.priceOffer > p {
+  margin: 0.55rem 0 0;
+  border-top: 1px solid rgb(164 119 51 / 18%);
+  padding-top: 0.5rem;
+  color: #806b4d;
+  font-size: 0.61rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.priceOfferCompact {
+  margin: 0 0 0.9rem;
+  background: linear-gradient(135deg, #fffaf0, #f4e2bf);
+}
+
 .pixCard {
   border: 1px solid #d3b477;
   border-radius: 16px;
   background: rgb(255 255 255 / 72%);
   padding: 1rem;
   box-shadow: 0 12px 28px rgb(117 82 36 / 8%);
+}
+
+.pixPaymentGrid {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.8fr) minmax(240px, 1.2fr);
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.qrColumn {
+  min-width: 0;
+}
+
+.pixDetails {
+  min-width: 0;
+  border-left: 1px solid rgb(181 139 73 / 22%);
+  padding-left: 1.25rem;
+}
+
+.qrHint {
+  margin: 0.65rem auto 0;
+  color: #6d5738;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: center;
 }
 
 .pixKey {
@@ -128,7 +276,7 @@
 }
 
 .qrCodeWrap {
-  width: min(100%, 250px);
+  width: min(100%, 190px);
   margin-inline: auto;
   border: 1px solid rgb(181 139 73 / 35%);
   border-radius: 14px;
@@ -166,6 +314,13 @@
 }
 
 @media (max-width: 639px) {
+  .content {
+    width: calc(100% - 0.75rem);
+    max-width: none;
+    max-height: calc(100dvh - 0.75rem);
+    border-radius: 22px;
+  }
+
   .panel {
     min-height: 0;
     padding: 1.5rem 2rem 1.25rem;
@@ -178,11 +333,55 @@
     line-height: 5;
   }
 
+  .paymentPanel {
+    padding: 1.1rem 1.25rem 1rem;
+  }
+
+  .paymentHeader h2 {
+    font-size: 1.85rem;
+  }
+
+  .paymentHeader p:last-child {
+    font-size: 0.8rem;
+    line-height: 1.3rem;
+  }
+
   .panel::before {
     left: 0.2rem;
   }
 
   .panel::after {
     right: 0.2rem;
+  }
+
+  .priceOfferTopline {
+    align-items: flex-start;
+  }
+
+  .priceValues {
+    gap: 0.5rem;
+  }
+
+  .priceNow {
+    display: grid;
+    gap: 0.1rem;
+    text-align: right;
+  }
+
+  .pixPaymentGrid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .pixDetails {
+    border-top: 1px solid rgb(181 139 73 / 22%);
+    border-left: 0;
+    padding-top: 0.15rem;
+    padding-left: 0;
+  }
+
+  .qrCodeWrap {
+    width: min(100%, 215px);
+    padding: 0.6rem;
   }
 }

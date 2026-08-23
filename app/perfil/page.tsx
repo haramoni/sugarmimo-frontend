@@ -19,7 +19,6 @@ import {
   Trash2,
   X,
   type LucideIcon,
-  Rocket,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
@@ -51,6 +50,7 @@ import { Navbar } from "../components/ui/Navbar";
 import { PhotoZoom } from "../components/ui/PhotoZoom";
 import premiereStyles from "../buscar/components/ProfileCard.module.css";
 import { PremiereOfferDialog } from "./PremiereOfferDialog";
+import { BoostControl, type BoostStatus } from "./BoostControl";
 import {
   getRelationshipIntentLabel,
   relationshipIntentOptions,
@@ -139,6 +139,8 @@ type ProfileUser = {
   instagram?: string | null;
   approvalStatus?: string;
   isPremiere?: boolean;
+  boostCredits?: number;
+  boostedUntil?: string | null;
   createdAt?: string | null;
   photos?: ProfilePhoto[];
   appearance?: {
@@ -481,6 +483,13 @@ export default function PerfilPage() {
     } catch {
       setError("Não foi possível copiar o link de convite.");
     }
+  }
+
+  function handleBoostActivated(status: BoostStatus) {
+    const updatedProfile = { ...user, ...status };
+    setRemoteProfile(updatedProfile);
+    saveAuthUser(updatedProfile);
+    window.dispatchEvent(new Event("sugarmimo-auth"));
   }
 
   function updateContactVisibility(channel: ContactChannel, checked: boolean) {
@@ -1163,13 +1172,11 @@ export default function PerfilPage() {
                         </Button>
                       </div>
                     ) : null}
-                    <Button
-                      disabled
-                      className="h-auto min-h-12 w-full rounded-full border border-white/20 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_78%,white),var(--emerald))] px-4 py-2 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(0,108,88,0.34)] hover:bg-emerald/85 sm:text-base"
-                    >
-                      <Rocket className="h-4 w-4" />
-                      COMPRE UM BOOST
-                    </Button>
+                    <BoostControl
+                      credits={user.boostCredits ?? 0}
+                      boostedUntil={user.boostedUntil ?? null}
+                      onActivated={handleBoostActivated}
+                    />
                     <Button
                       type="button"
                       onClick={

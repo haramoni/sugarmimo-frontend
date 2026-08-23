@@ -313,7 +313,7 @@ export default function InicioPage() {
             <StatePanel
               icon={Sparkles}
               title="Novos destaques em breve"
-              description="Esse recuso ainda está em desenvolvimento."
+              description="Nenhum perfil compatível está com Boost ativo agora."
             />
           ) : (
             <div className="space-y-6">

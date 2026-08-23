@@ -10,6 +10,7 @@ import {
   Hourglass,
   LogOut,
   RefreshCw,
+  Rocket,
   Star,
   Trash2,
   X,
@@ -254,6 +255,17 @@ function AdminReviewQueue({
             style={{ height: "auto" }}
           />
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Gerenciar Boosts"
+              title="Gerenciar Boosts"
+              onClick={() => router.push("/admin/boosts")}
+              className="rounded-sm"
+            >
+              <Rocket className="h-4 w-4" />
+            </Button>
             <Button
               type="button"
               variant="ghost"

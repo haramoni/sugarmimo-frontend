@@ -34,6 +34,7 @@ import { Navbar } from "@/app/components/ui/Navbar";
 import type { ChatMessage, Conversation } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
+const DEFAULT_FREE_MESSAGE_LIMIT = 50;
 
 const reportCategories = [
   ["HARASSMENT", "Assédio"],
@@ -346,8 +347,11 @@ export function ChatClient() {
         setMessageAccess((current) => ({
           canSend: remaining > 0,
           isTrial: true,
-          freeMessagesLimit: current?.freeMessagesLimit ?? 10,
-          freeMessagesUsed: (current?.freeMessagesLimit ?? 10) - remaining,
+          freeMessagesLimit:
+            current?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT,
+          freeMessagesUsed:
+            (current?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT) -
+            remaining,
           freeMessagesRemaining: remaining,
           requiresUpgrade: remaining === 0,
         }));
@@ -632,7 +636,7 @@ export function ChatClient() {
                       <LockKeyhole className="h-4 w-4 text-[var(--gold)]" />
                       {isStandardDaddy && !messageAccess
                         ? "Carregando suas mensagens gratuitas…"
-                        : "Você já enviou as 10 mensagens gratuitas. Faça upgrade para continuar conversando."}
+                        : `Você já enviou as ${messageAccess?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT} mensagens gratuitas. Faça upgrade para continuar conversando.`}
                     </div>
                   ) : (
                     <div className="flex items-end gap-2 rounded-2xl border border-black/10 bg-[#fcfaf6] p-2 focus-within:border-[var(--gold)]">
@@ -697,9 +701,10 @@ export function ChatClient() {
               Mensagens gratuitas utilizadas
             </h2>
             <p className="mt-2 text-sm leading-6 text-black/55">
-              Você já enviou suas 10 mensagens de teste. Faça um upgrade para
-              Premium ou Premiere para continuar enviando e respondendo
-              mensagens sem esse limite.
+              Você já enviou suas{" "}
+              {messageAccess?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT}
+              {" "}mensagens de teste. Faça um upgrade para Premium ou Premiere
+              para continuar enviando e respondendo mensagens sem esse limite.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <button

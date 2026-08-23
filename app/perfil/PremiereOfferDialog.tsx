@@ -11,7 +11,7 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,8 +23,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  PREMIERE_PIX_KEY,
+  PREMIERE_ORIGINAL_PRICE_DISPLAY,
+  PREMIERE_PIX_COPY_PASTE,
   PREMIERE_PIX_KEY_DISPLAY,
+  PREMIERE_PRICE_DISPLAY,
   premierePaymentWhatsappUrl,
 } from "@/lib/contact";
 
@@ -40,6 +42,7 @@ export function PremiereOfferDialog({
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
     "idle",
   );
+  const contentRef = useRef<HTMLDivElement>(null);
 
   function handleOpenChange(open: boolean) {
     setIsOpen(open);
@@ -49,13 +52,18 @@ export function PremiereOfferDialog({
     }
   }
 
-  async function copyPixKey() {
+  async function copyPixCode() {
     try {
-      await navigator.clipboard.writeText(PREMIERE_PIX_KEY);
+      await navigator.clipboard.writeText(PREMIERE_PIX_COPY_PASTE);
       setCopyStatus("copied");
     } catch {
       setCopyStatus("error");
     }
+  }
+
+  function showPayment() {
+    setStep("payment");
+    requestAnimationFrame(() => contentRef.current?.scrollTo({ top: 0 }));
   }
 
   return (
@@ -96,12 +104,17 @@ export function PremiereOfferDialog({
       </DialogTrigger>
 
       <DialogContent
-        className={`${styles.content} max-h-[92vh] gap-0 overflow-y-auto p-0 sm:max-w-2xl`}
+        ref={contentRef}
+        className={`${styles.content} gap-0 p-0 sm:max-w-3xl`}
       >
-        <div className={styles.panel}>
-          <div className={styles.crown} aria-hidden="true">
-            <Crown />
-          </div>
+        <div
+          className={`${styles.panel} ${step === "payment" ? styles.paymentPanel : ""}`}
+        >
+          {step === "benefits" ? (
+            <div className={styles.crown} aria-hidden="true">
+              <Crown />
+            </div>
+          ) : null}
 
           {step === "benefits" ? (
             <>
@@ -139,9 +152,11 @@ export function PremiereOfferDialog({
                 </Benefit>
               </div>
 
+              <PremierePrice />
+
               <Button
                 type="button"
-                onClick={() => setStep("payment")}
+                onClick={showPayment}
                 className="mt-5 h-12 w-full rounded-full border border-[#c7a263] bg-[linear-gradient(180deg,#3a2b20,#241a13)] font-extrabold text-[#efd79f] shadow-[0_12px_24px_rgba(54,37,22,0.18)] hover:bg-[#463326]"
               >
                 Avançar para o pagamento
@@ -149,7 +164,7 @@ export function PremiereOfferDialog({
             </>
           ) : (
             <>
-              <DialogHeader className="mt-4 text-center">
+              <DialogHeader className={`${styles.paymentHeader} text-center`}>
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.24em] text-[#9b7138]">
                   Etapa final
                 </p>
@@ -157,9 +172,9 @@ export function PremiereOfferDialog({
                   Pagamento via PIX
                 </DialogTitle>
                 <DialogDescription className="mx-auto max-w-lg text-sm font-medium leading-6 text-[#5f503d] sm:text-base">
-                  Escaneie o QR Code ou copie a chave CNPJ, conclua o pagamento
-                  no aplicativo do seu banco e envie o comprovante pelo
-                  WhatsApp.
+                  O QR Code já está configurado com o valor de R$ 149,00.
+                  Escaneie ou copie o código PIX, conclua no aplicativo do seu
+                  banco e envie o comprovante pelo WhatsApp.
                 </DialogDescription>
               </DialogHeader>
 
@@ -170,52 +185,60 @@ export function PremiereOfferDialog({
               </div>
 
               <div className={styles.pixCard}>
-                <div className={styles.qrCodeWrap}>
-                  {/* Static payment asset should be rendered without image optimization. */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/pix-premiere-qrcode.png"
-                    alt="QR Code para pagamento PIX do Premiere"
-                    className={styles.qrCode}
-                  />
+                <PremierePrice compact />
+                <div className={styles.pixPaymentGrid}>
+                  <div className={styles.qrColumn}>
+                    <div className={styles.qrCodeWrap}>
+                      {/* Static payment asset should be rendered without image optimization. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="/pix-premiere-14900-qrcode.png"
+                        alt="QR Code PIX do Premiere no valor fixo de R$ 149,00"
+                        className={styles.qrCode}
+                      />
+                    </div>
+                    <p className={styles.qrHint}>
+                      Aponte a câmera do banco e confira o valor de R$ 149,00
+                      antes de pagar.
+                    </p>
+                  </div>
+                  <div className={styles.pixDetails}>
+                    <div className={styles.pixSeparator} aria-hidden="true">
+                      <span />
+                      <small>ou use o copia e cola</small>
+                      <span />
+                    </div>
+                    <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#8b6b3d]">
+                      Chave PIX — CNPJ
+                    </p>
+                    <p className={`${styles.pixKey} mt-2`}>
+                      {PREMIERE_PIX_KEY_DISPLAY}
+                    </p>
+                    <Button
+                      type="button"
+                      onClick={() => void copyPixCode()}
+                      className="mt-4 h-11 w-full rounded-full border border-[#d1b378] bg-[#f6e7c8] font-extrabold text-[#5b4224] hover:bg-[#eddbb5]"
+                    >
+                      {copyStatus === "copied" ? (
+                        <Check className="h-4 w-4 text-emerald" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                      {copyStatus === "copied"
+                        ? "Código PIX copiado!"
+                        : "Copiar código PIX"}
+                    </Button>
+                    {copyStatus === "error" ? (
+                      <p className="mt-2 text-center text-xs font-bold text-ruby">
+                        Não foi possível copiar automaticamente. Use o QR Code
+                        ou a chave CNPJ acima.
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
-                <p className="mt-3 text-center text-xs font-bold text-[#6d5738]">
-                  Aponte a câmera do aplicativo do seu banco para o QR Code.
-                </p>
-                <div className={styles.pixSeparator} aria-hidden="true">
-                  <span />
-                  <small>ou copie a chave</small>
-                  <span />
-                </div>
-                <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#8b6b3d]">
-                  Chave PIX — CNPJ
-                </p>
-                <p className={`${styles.pixKey} mt-2`}>
-                  {PREMIERE_PIX_KEY_DISPLAY}
-                </p>
-                <Button
-                  type="button"
-                  onClick={() => void copyPixKey()}
-                  className="mt-4 h-11 w-full rounded-full border border-[#d1b378] bg-[#f6e7c8] font-extrabold text-[#5b4224] hover:bg-[#eddbb5]"
-                >
-                  {copyStatus === "copied" ? (
-                    <Check className="h-4 w-4 text-emerald" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                  {copyStatus === "copied"
-                    ? "Chave copiada!"
-                    : "Copiar chave PIX"}
-                </Button>
-                {copyStatus === "error" ? (
-                  <p className="mt-2 text-center text-xs font-bold text-ruby">
-                    Não foi possível copiar automaticamente. Selecione a chave
-                    acima e copie manualmente.
-                  </p>
-                ) : null}
               </div>
 
-              <div className="mt-5 grid gap-2 sm:grid-cols-[auto_1fr]">
+              <div className="mt-4 grid gap-2 sm:grid-cols-[auto_1fr]">
                 <Button
                   type="button"
                   variant="ghost"
@@ -242,21 +265,39 @@ export function PremiereOfferDialog({
             </>
           )}
 
-          <div className="mt-5 flex justify-center gap-2" aria-hidden="true">
-            <span
-              className={`h-1.5 rounded-full transition-all ${
-                step === "benefits" ? "w-7 bg-[#a87937]" : "w-1.5 bg-[#d7bd89]"
-              }`}
-            />
-            <span
-              className={`h-1.5 rounded-full transition-all ${
-                step === "payment" ? "w-7 bg-[#a87937]" : "w-1.5 bg-[#d7bd89]"
-              }`}
-            />
-          </div>
+          {step === "benefits" ? (
+            <div className="mt-5 flex justify-center gap-2" aria-hidden="true">
+              <span className="h-1.5 w-7 rounded-full bg-[#a87937]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#d7bd89]" />
+            </div>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function PremierePrice({ compact = false }: { compact?: boolean }) {
+  return (
+    <div
+      className={`${styles.priceOffer} ${compact ? styles.priceOfferCompact : ""}`}
+      aria-label={`Oferta Premiere: 25% de desconto, de ${PREMIERE_ORIGINAL_PRICE_DISPLAY} por ${PREMIERE_PRICE_DISPLAY}`}
+    >
+      <div className={styles.priceOfferTopline}>
+        <span>Oferta de lançamento</span>
+        <strong>25% de desconto</strong>
+      </div>
+      <div className={styles.priceValues}>
+        <span>
+          De <del>{PREMIERE_ORIGINAL_PRICE_DISPLAY}</del>
+        </span>
+        <span className={styles.priceNow}>
+          <small>Por</small>
+          <strong>{PREMIERE_PRICE_DISPLAY}</strong>
+        </span>
+      </div>
+      <p>Pagamento único · benefício vitalício</p>
+    </div>
   );
 }
 

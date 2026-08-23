@@ -20,6 +20,8 @@ export type AuthUser = {
   approvalStatus?: string;
   isPremium?: boolean;
   isPremiere?: boolean;
+  boostCredits?: number;
+  boostedUntil?: string | null;
   privacyPolicyVersion?: string | null;
   privacyPolicyAcceptedAt?: string | null;
   photos?: Array<{
