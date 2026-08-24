@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useSyncExternalStore } from "react";
 import { useAuth } from "../AuthProvider";
-import { AccountMenu } from "./AccountMenu";
+import { Navbar } from "./Navbar";
 
 const menuItems = [
   { label: "Inicio", href: "/" },
@@ -41,7 +41,10 @@ export default function NavBarMenu() {
   const pathname = usePathname();
   const hash = useSyncExternalStore(subscribeToHash, getHashSnapshot, () => "");
   const { user } = useAuth();
-  const username = user?.username ?? "";
+
+  if (user) {
+    return <Navbar />;
+  }
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-cognac/20 bg-cream/88 shadow-[0_8px_30px_rgba(36,21,13,0.12)] backdrop-blur-xl">
@@ -88,46 +91,26 @@ export default function NavBarMenu() {
           })}
         </div>
 
-        {username ? (
-          <div className="flex shrink-0 items-center gap-3">
-            <Link
-              href="/blog"
-              className="text-sm font-bold text-black-jewel transition hover:text-gold md:hidden"
-            >
-              Blog
-            </Link>
-            <Link
-              href="/buscar"
-              className="hidden max-w-36 truncate rounded-md px-2 py-1 text-sm font-bold text-black-jewel transition duration-200 hover:text-gold sm:block"
-            >
-              <span>Olá, {username}</span>
-              <br />
-              <span className="text-xs text-gold">Minha Conta</span>
-            </Link>
-            <AccountMenu />
-          </div>
-        ) : (
-          <div className="flex shrink-0 items-center gap-3">
-            <Link
-              href="/blog"
-              className="text-sm font-bold text-black-jewel transition hover:text-gold md:hidden"
-            >
-              Blog
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex h-11 shrink-0 items-center justify-center rounded-md border border-cognac/35 bg-gold px-5 text-sm font-extrabold text-espresso shadow-[0_4px_14px_rgba(36,21,13,0.12)] transition duration-200 hover:border-cognac hover:bg-champagne focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cognac"
-            >
-              Entrar
-            </Link>
-            <Link
-              href="/register"
-              className="hidden h-11 shrink-0 items-center justify-center rounded-md border border-espresso bg-espresso px-5 text-sm font-extrabold text-cream shadow-[0_4px_14px_rgba(36,21,13,0.18)] transition duration-200 hover:border-cognac hover:bg-cognac focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cognac sm:inline-flex"
-            >
-              Registre-se
-            </Link>
-          </div>
-        )}
+        <div className="flex shrink-0 items-center gap-3">
+          <Link
+            href="/blog"
+            className="text-sm font-bold text-black-jewel transition hover:text-gold md:hidden"
+          >
+            Blog
+          </Link>
+          <Link
+            href="/login"
+            className="inline-flex h-11 shrink-0 items-center justify-center rounded-md border border-cognac/35 bg-gold px-5 text-sm font-extrabold text-espresso shadow-[0_4px_14px_rgba(36,21,13,0.12)] transition duration-200 hover:border-cognac hover:bg-champagne focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cognac"
+          >
+            Entrar
+          </Link>
+          <Link
+            href="/register"
+            className="hidden h-11 shrink-0 items-center justify-center rounded-md border border-espresso bg-espresso px-5 text-sm font-extrabold text-cream shadow-[0_4px_14px_rgba(36,21,13,0.18)] transition duration-200 hover:border-cognac hover:bg-cognac focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cognac sm:inline-flex"
+          >
+            Registre-se
+          </Link>
+        </div>
       </nav>
     </header>
   );

@@ -8,7 +8,15 @@ export async function PATCH(
 ) {
   const { id, action } = await context.params;
 
-  if (!['approve', 'reject', 'wait'].includes(action)) {
+  if (
+    ![
+      "approve",
+      "reject",
+      "wait",
+      "priority",
+      "standard-priority",
+    ].includes(action)
+  ) {
     return NextResponse.json({ message: "Ação inválida." }, { status: 400 });
   }
 

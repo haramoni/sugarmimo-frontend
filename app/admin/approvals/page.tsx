@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -11,15 +17,18 @@ import {
   LogOut,
   RefreshCw,
   Rocket,
+  Search,
   Star,
   Trash2,
   X,
+  Zap,
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PhotoZoom } from "@/app/components/ui/PhotoZoom";
 
@@ -45,6 +54,8 @@ type PendingProfile = {
   telegram: string | null;
   instagram: string | null;
   approvalStatus: string;
+  isApprovalPriority: boolean;
+  approvalPriorityPaidAt: string | null;
   createdAt: string | null;
   photos: PendingPhoto[];
 };
@@ -80,7 +91,10 @@ function AdminReviewQueue({
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [reviewingId, setReviewingId] = useState("");
+  const [prioritizingId, setPrioritizingId] = useState("");
   const [deletingPhotoId, setDeletingPhotoId] = useState("");
+  const [searchDraft, setSearchDraft] = useState("");
+  const [search, setSearch] = useState("");
   const latestRequestId = useRef(0);
 
   const loadProfiles = useCallback(
@@ -90,8 +104,15 @@ function AdminReviewQueue({
       setIsLoading(true);
 
       try {
+        const params = new URLSearchParams({
+          page: String(requestedPage),
+          pageSize: String(PAGE_SIZE),
+        });
+        if (search) {
+          params.set("search", search);
+        }
         const response = await fetch(
-          `/api/admin/${isWaitingQueue ? "waiting-babies" : "pending-babies"}?page=${requestedPage}&pageSize=${PAGE_SIZE}`,
+          `/api/admin/${isWaitingQueue ? "waiting-babies" : "pending-babies"}?${params.toString()}`,
         );
 
         if (response.status === 401 || response.status === 403) {
@@ -136,7 +157,7 @@ function AdminReviewQueue({
         }
       }
     },
-    [isWaitingQueue, router],
+    [isWaitingQueue, router, search],
   );
 
   useEffect(() => {
@@ -178,6 +199,60 @@ function AdminReviewQueue({
       );
     } finally {
       setReviewingId("");
+    }
+  }
+
+  function submitSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPage(1);
+    setSearch(searchDraft.trim());
+  }
+
+  async function updatePriority(profile: PendingProfile) {
+    if (!profile.isApprovalPriority) {
+      const confirmation = await Swal.fire({
+        title: "Confirmar prioridade paga?",
+        text: `Confirme somente após verificar o PIX de R$ 30,00 enviado por ${profile.username}.`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "PIX confirmado",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "var(--gold)",
+      });
+
+      if (!confirmation.isConfirmed) {
+        return;
+      }
+    }
+
+    setPrioritizingId(profile.id);
+    setError("");
+
+    try {
+      const action = profile.isApprovalPriority
+        ? "standard-priority"
+        : "priority";
+      const response = await fetch(
+        `/api/admin/profiles/${encodeURIComponent(profile.id)}/${action}`,
+        { method: "PATCH" },
+      );
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message ?? "Não foi possível alterar a prioridade.",
+        );
+      }
+
+      await loadProfiles(page);
+    } catch (priorityError) {
+      setError(
+        priorityError instanceof Error
+          ? priorityError.message
+          : "Não foi possível alterar a prioridade.",
+      );
+    } finally {
+      setPrioritizingId("");
     }
   }
 
@@ -361,6 +436,41 @@ function AdminReviewQueue({
           </span>
         </div>
 
+        <form
+          onSubmit={submitSearch}
+          className="flex items-center gap-2 border border-[var(--platinum)] bg-white p-3 shadow-[0_8px_24px_rgba(20,17,14,0.05)]"
+        >
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-black/40" />
+            <Input
+              value={searchDraft}
+              onChange={(event) => setSearchDraft(event.target.value)}
+              placeholder="Buscar por username ou e-mail"
+              className="h-11 rounded-sm border-[var(--platinum)] pl-9 pr-9"
+            />
+            {searchDraft ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchDraft("");
+                  setSearch("");
+                  setPage(1);
+                }}
+                aria-label="Limpar pesquisa"
+                className="absolute right-2 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-black/45 hover:bg-black/5"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            ) : null}
+          </div>
+          <Button
+            type="submit"
+            className="h-11 rounded-sm bg-[var(--gold)] font-bold text-white hover:bg-[color:color-mix(in_srgb,var(--gold)_86%,black)]"
+          >
+            Buscar
+          </Button>
+        </form>
+
         {error && (
           <p className="rounded-sm bg-[color:color-mix(in_srgb,var(--ruby)_12%,white)] px-3 py-2 text-sm font-bold text-[var(--ruby)]">
             {error}
@@ -373,16 +483,22 @@ function AdminReviewQueue({
           </div>
         ) : profiles?.length === 0 ? (
           <div className="border border-[var(--platinum)] bg-white p-6 text-sm font-bold">
-            {isWaitingQueue
-              ? "Nenhum perfil na fila de espera."
-              : "Nenhum perfil pendente no momento."}
+            {search
+              ? `Nenhum perfil encontrado para “${search}”.`
+              : isWaitingQueue
+                ? "Nenhum perfil na fila de espera."
+                : "Nenhum perfil pendente no momento."}
           </div>
         ) : (
           <div className="grid gap-5">
             {profiles?.map((profile) => (
               <article
                 key={profile.id}
-                className="grid gap-5 border border-[var(--platinum)] bg-white p-4 shadow-[0_12px_32px_rgba(20,17,14,0.08)] lg:grid-cols-[1fr_1.2fr]"
+                className={`grid gap-5 border bg-white p-4 shadow-[0_12px_32px_rgba(20,17,14,0.08)] lg:grid-cols-[1fr_1.2fr] ${
+                  profile.isApprovalPriority
+                    ? "border-gold ring-2 ring-gold/15"
+                    : "border-[var(--platinum)]"
+                }`}
               >
                 <div className="grid grid-cols-3 gap-3">
                   {profile.photos.map((photo, index) => (
@@ -403,7 +519,8 @@ function AdminReviewQueue({
                         title="Remover foto"
                         disabled={
                           deletingPhotoId === photo.id ||
-                          reviewingId === profile.id
+                          reviewingId === profile.id ||
+                          prioritizingId === profile.id
                         }
                         onClick={() => void removePhoto(profile, photo)}
                         className="absolute right-2 top-2 z-10 rounded-sm bg-[var(--ruby)] text-white shadow-md hover:bg-[color-mix(in_srgb,var(--ruby)_86%,var(--black))]"
@@ -415,6 +532,34 @@ function AdminReviewQueue({
                 </div>
 
                 <div className="flex flex-col justify-between gap-5">
+                  <div className="flex flex-col gap-3 border-b border-[var(--platinum)] pb-4 sm:flex-row sm:items-center sm:justify-between">
+                    {profile.isApprovalPriority ? (
+                      <span className="inline-flex w-fit items-center gap-2 rounded-full bg-gold/15 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.12em] text-gold">
+                        <Zap className="h-4 w-4" />
+                        Prioridade paga
+                      </span>
+                    ) : (
+                      <span className="text-xs font-bold uppercase tracking-[0.12em] text-black/45">
+                        Fila normal
+                      </span>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={
+                        reviewingId === profile.id ||
+                        prioritizingId === profile.id
+                      }
+                      onClick={() => void updatePriority(profile)}
+                      className="h-10 rounded-sm border-gold/45 font-bold text-black-jewel hover:bg-gold/10"
+                    >
+                      <Zap className="h-4 w-4 text-gold" />
+                      {profile.isApprovalPriority
+                        ? "Remover prioridade"
+                        : "Confirmar PIX de R$ 30"}
+                    </Button>
+                  </div>
+
                   <div className="grid gap-3 text-sm sm:grid-cols-2">
                     <ProfileField label="Usuário" value={profile.username} />
                     <ProfileField label="E-mail" value={profile.email} />
@@ -437,6 +582,12 @@ function AdminReviewQueue({
                       label="Enviado em"
                       value={formatDate(profile.createdAt)}
                     />
+                    {profile.isApprovalPriority ? (
+                      <ProfileField
+                        label="Prioridade confirmada em"
+                        value={formatDate(profile.approvalPriorityPaidAt)}
+                      />
+                    ) : null}
                     <ProfileField
                       label="Status"
                       value={profile.approvalStatus}
@@ -450,7 +601,10 @@ function AdminReviewQueue({
                   >
                     <Button
                       type="button"
-                      disabled={reviewingId === profile.id}
+                      disabled={
+                        reviewingId === profile.id ||
+                        prioritizingId === profile.id
+                      }
                       onClick={() => void reviewProfile(profile.id, "reject")}
                       className="h-11 rounded-sm bg-[var(--ruby)] font-bold text-white hover:bg-[color-mix(in_srgb,var(--ruby)_86%,var(--black))]"
                     >
@@ -460,7 +614,10 @@ function AdminReviewQueue({
                     {!isWaitingQueue ? (
                       <Button
                         type="button"
-                        disabled={reviewingId === profile.id}
+                        disabled={
+                          reviewingId === profile.id ||
+                          prioritizingId === profile.id
+                        }
                         onClick={() => void reviewProfile(profile.id, "wait")}
                         className="h-11 rounded-sm bg-[var(--gold)] font-bold text-white hover:bg-[color-mix(in_srgb,var(--gold)_86%,var(--black))]"
                       >
@@ -470,7 +627,10 @@ function AdminReviewQueue({
                     ) : null}
                     <Button
                       type="button"
-                      disabled={reviewingId === profile.id}
+                      disabled={
+                        reviewingId === profile.id ||
+                        prioritizingId === profile.id
+                      }
                       onClick={() => void reviewProfile(profile.id, "approve")}
                       className="h-11 rounded-sm bg-[var(--emerald)] font-bold text-white hover:bg-[color-mix(in_srgb,var(--emerald)_86%,var(--black))]"
                     >

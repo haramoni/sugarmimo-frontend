@@ -14,6 +14,8 @@ export const PREMIERE_PIX_KEY_DISPLAY = "68.573.395/0001-55";
 export const PREMIERE_ORIGINAL_PRICE_DISPLAY = "R$ 200,00";
 export const PREMIERE_PRICE_DISPLAY = "R$ 149,00";
 export const PREMIERE_PIX_AMOUNT = "149.00";
+export const APPROVAL_PRIORITY_PRICE_DISPLAY = "R$ 30,00";
+export const APPROVAL_PRIORITY_PIX_AMOUNT = "30.00";
 
 function pixField(id: string, value: string) {
   return `${id}${String(value.length).padStart(2, "0")}${value}`;
@@ -34,7 +36,7 @@ function pixCrc16(value: string) {
   return crc.toString(16).toUpperCase().padStart(4, "0");
 }
 
-function createPremierePixPayload() {
+function createPixPayload(amount: string) {
   const merchantAccount =
     pixField("00", "br.gov.bcb.pix") + pixField("01", PREMIERE_PIX_KEY);
   const additionalData = pixField("05", "***");
@@ -44,7 +46,7 @@ function createPremierePixPayload() {
     pixField("26", merchantAccount) +
     pixField("52", "0000") +
     pixField("53", "986") +
-    pixField("54", PREMIERE_PIX_AMOUNT) +
+    pixField("54", amount) +
     pixField("58", "BR") +
     pixField("59", "SPARKBRIDGE VENTURES") +
     pixField("60", "JUNDIAI") +
@@ -54,6 +56,16 @@ function createPremierePixPayload() {
   return `${payload}${pixCrc16(payload)}`;
 }
 
-export const PREMIERE_PIX_COPY_PASTE = createPremierePixPayload();
+export const PREMIERE_PIX_COPY_PASTE = createPixPayload(PREMIERE_PIX_AMOUNT);
+export const APPROVAL_PRIORITY_PIX_COPY_PASTE = createPixPayload(
+  APPROVAL_PRIORITY_PIX_AMOUNT,
+);
 
 export const premierePaymentWhatsappUrl = `https://wa.me/${contact.whatsappNumber}?text=${encodeURIComponent(`Olá! Realizei o pagamento de ${PREMIERE_PRICE_DISPLAY} do Premiere da SugarMimo e gostaria de enviar o comprovante para confirmar minha vaga.`)}`;
+
+export function approvalPriorityPaymentWhatsappUrl(username?: string) {
+  const profile = username?.trim() ? ` @${username.trim()}` : "";
+  const message = `Olá! Realizei o pagamento de ${APPROVAL_PRIORITY_PRICE_DISPLAY} pela análise prioritária do perfil${profile} na SugarMimo e gostaria de enviar o comprovante. Estou ciente de que o pagamento prioriza a análise, mas não garante a aprovação.`;
+
+  return `https://wa.me/${contact.whatsappNumber}?text=${encodeURIComponent(message)}`;
+}
