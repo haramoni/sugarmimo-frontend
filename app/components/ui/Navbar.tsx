@@ -115,9 +115,14 @@ export function Navbar() {
       }
       const result = (await response.json().catch(() => null)) as {
         unreadCount?: number;
+        unreadPeopleCount?: number;
       } | null;
       setUnreadChat(
-        typeof result?.unreadCount === "number" ? result.unreadCount : 0,
+        typeof result?.unreadPeopleCount === "number"
+          ? result.unreadPeopleCount
+          : typeof result?.unreadCount === "number"
+            ? result.unreadCount
+            : 0,
       );
     }
 
@@ -193,11 +198,14 @@ export function Navbar() {
                 ) : null}
                 {item.href === "/chat" && unreadChat > 0 ? (
                   <span
-                    title={`${unreadChat} mensagem${unreadChat === 1 ? "" : "s"} não lida${unreadChat === 1 ? "" : "s"}`}
-                    className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-ruby shadow-[0_0_0_2px_rgba(190,35,62,0.14)]"
+                    title={`${unreadChat} pessoa${unreadChat === 1 ? "" : "s"} com ${unreadChat === 1 ? "mensagem não lida" : "mensagens não lidas"}`}
+                    className="absolute right-0.5 top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-white bg-ruby px-1 text-[0.6rem] font-extrabold leading-none text-white shadow-[0_1px_4px_rgba(190,35,62,0.22)]"
                   >
+                    <span aria-hidden="true">
+                      {unreadChat > 99 ? "99+" : unreadChat}
+                    </span>
                     <span className="sr-only">
-                      {unreadChat} mensagens não lidas
+                      {`${unreadChat} pessoa${unreadChat === 1 ? "" : "s"} com ${unreadChat === 1 ? "mensagem não lida" : "mensagens não lidas"}`}
                     </span>
                   </span>
                 ) : null}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Rocket, ShieldCheck, Sparkles } from "lucide-react";
+import { Activity, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -15,8 +15,8 @@ import {
   shouldShowPendingApproval,
 } from "../perfil/ProfileApprovalGuard";
 
-const PAGE_SIZE = 6;
-const HOME_STATE_KEY = "sugarmimo:inicio-state";
+const PAGE_SIZE = 20;
+const HOME_STATE_KEY = "sugarmimo:inicio-active-state";
 
 type SavedHomeState = {
   page: number;
@@ -53,8 +53,8 @@ export default function InicioPage() {
   );
   const targetLabel =
     user?.role?.trim().toUpperCase() === "SUGAR_DADDY"
-      ? "Sugar Babies em destaque"
-      : "Sugar Daddies em destaque";
+      ? "Sugar Babies mais ativas"
+      : "Sugar Daddies mais ativos";
 
   useEffect(() => {
     const savedState = readSavedHomeState();
@@ -125,7 +125,7 @@ export default function InicioPage() {
 
     Promise.all(
       pagesToLoad.map((pageNumber) =>
-        fetchBoostPage(pageNumber, controller.signal),
+        fetchActiveProfilePage(pageNumber, controller.signal),
       ),
     )
       .then((results) => {
@@ -155,7 +155,7 @@ export default function InicioPage() {
           setError(
             loadError instanceof Error
               ? loadError.message
-              : "Não foi possível carregar os destaques.",
+              : "Não foi possível carregar os perfis ativos.",
           );
         }
       })
@@ -210,7 +210,7 @@ export default function InicioPage() {
 
     try {
       const nextPage = page + 1;
-      const result = await fetchBoostPage(nextPage);
+      const result = await fetchActiveProfilePage(nextPage);
 
       if (!result) {
         router.replace("/login");
@@ -226,7 +226,7 @@ export default function InicioPage() {
       setError(
         loadError instanceof Error
           ? loadError.message
-          : "Não foi possível carregar mais destaques.",
+          : "Não foi possível carregar mais perfis ativos.",
       );
     } finally {
       setIsLoadingMore(false);
@@ -273,18 +273,19 @@ export default function InicioPage() {
           <header className="mb-6 overflow-hidden rounded-lg border border-gold/35 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--gold-soft)_30%,white),color-mix(in_srgb,var(--surface)_92%,white),color-mix(in_srgb,var(--emerald)_10%,white))] p-5 shadow-[0_22px_58px_rgba(20,17,14,0.12)] sm:p-7">
             <div className="flex items-start gap-4">
               <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gold text-white shadow-[0_12px_28px_rgba(185,138,56,0.25)]">
-                <Rocket className="h-6 w-6" />
+                <Activity className="h-6 w-6" />
               </span>
               <div>
                 <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-gold">
-                  Boosts ativos
+                  Comunidade ativa
                 </p>
                 <h1 className="mt-1 font-serif text-3xl font-semibold text-black-jewel sm:text-4xl">
                   {targetLabel}
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-black-jewel/68">
-                  Perfis impulsionados aparecem aqui durante o período ativo do
-                  boost.
+                  Até 20 perfis compatíveis que estiveram ativos nos últimos 7
+                  dias. A ordem muda regularmente para todos ganharem
+                  visibilidade.
                 </p>
               </div>
             </div>
@@ -293,27 +294,27 @@ export default function InicioPage() {
           {!canView ? (
             <StatePanel
               icon={ShieldCheck}
-              title="Destaques indisponiveis"
+              title="Perfis ativos indisponíveis"
               description="Esta área está disponível para perfis Sugar Baby e Sugar Daddy."
             />
           ) : isLoading ? (
             <StatePanel
               icon={Loader2}
-              title="Carregando destaques"
-              description="Buscando os perfis com boost ativo para você."
+              title="Carregando perfis ativos"
+              description="Buscando as pessoas mais ativas para você."
               spin
             />
           ) : error && profiles?.length === 0 ? (
             <StatePanel
               icon={ShieldCheck}
-              title="Destaques indisponiveis"
+              title="Perfis ativos indisponíveis"
               description={error}
             />
           ) : profiles?.length === 0 ? (
             <StatePanel
               icon={Sparkles}
-              title="Novos destaques em breve"
-              description="Nenhum perfil compatível está com Boost ativo agora."
+              title="Novas pessoas em breve"
+              description="Nenhum perfil compatível esteve ativo nos últimos 7 dias."
             />
           ) : (
             <div className="space-y-6">
@@ -353,7 +354,7 @@ export default function InicioPage() {
                 {isLoadingMore ? (
                   <div className="flex items-center gap-2 text-sm font-bold text-black-jewel/62">
                     <Loader2 className="h-4 w-4 animate-spin text-emerald" />
-                    Carregando mais destaques
+                    Carregando mais perfis
                   </div>
                 ) : error && hasMore ? (
                   <Button
@@ -366,7 +367,7 @@ export default function InicioPage() {
                   </Button>
                 ) : !hasMore ? (
                   <p className="text-center text-sm font-bold text-black-jewel/48">
-                    Todos os destaques foram carregados.
+                    Todos os perfis ativos foram carregados.
                   </p>
                 ) : null}
               </div>
@@ -378,13 +379,14 @@ export default function InicioPage() {
   );
 }
 
-async function fetchBoostPage(
+async function fetchActiveProfilePage(
   page: number,
   signal?: AbortSignal,
 ): Promise<PublicProfilePage | null> {
-  const response = await fetch(`/api/boosts?page=${page}&limit=${PAGE_SIZE}`, {
-    signal,
-  });
+  const response = await fetch(
+    `/api/active-profiles?page=${page}&limit=${PAGE_SIZE}`,
+    { signal },
+  );
   const result = await response.json().catch(() => null);
 
   if (response.status === 401) {
@@ -393,7 +395,7 @@ async function fetchBoostPage(
 
   if (!response.ok) {
     throw new Error(
-      result?.message ?? "Não foi possível carregar os destaques.",
+      result?.message ?? "Não foi possível carregar os perfis ativos.",
     );
   }
 

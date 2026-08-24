@@ -80,7 +80,7 @@ export function LoginForm() {
         window.sessionStorage.setItem("sugarmimo-chat-online-toast", "1");
       }
 
-      router.push("/perfil");
+      router.replace("/inicio");
     } catch (loginError) {
       setError(
         loginError instanceof Error
