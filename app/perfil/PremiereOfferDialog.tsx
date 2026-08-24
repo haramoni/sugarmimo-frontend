@@ -96,7 +96,7 @@ export function PremiereOfferDialog({
             </span>
             {triggerVariant === "default" ? (
               <span className="text-[10px] font-bold tracking-[0.14em] text-[#7a5b32] sm:text-[11px]">
-                (VAGAS LIMITADAS)
+                (OFERTA LIMITADA)
               </span>
             ) : null}
           </span>
@@ -120,14 +120,14 @@ export function PremiereOfferDialog({
             <>
               <DialogHeader className="mt-4 text-center">
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.24em] text-[#9b7138]">
-                  Vagas limitadas
+                  Oferta exclusiva · por pouco tempo
                 </p>
                 <DialogTitle className="font-serif text-3xl font-semibold leading-tight text-[#2d241a] sm:text-4xl">
                   Seja Premiere
                 </DialogTitle>
                 <DialogDescription className="mx-auto max-w-lg text-sm font-medium leading-6 text-[#5f503d] sm:text-base">
-                  Ao se tornar Premiere, você está impulsionando o início da
-                  SugarMimo e fazendo parte da nossa história desde o começo.
+                  Garanta a moldura exclusiva Premiere para sempre e aproveite
+                  todos os benefícios Premium por 1 mês.
                 </DialogDescription>
               </DialogHeader>
 
@@ -139,17 +139,22 @@ export function PremiereOfferDialog({
 
               <div className="grid gap-3">
                 <Benefit icon={Users}>
-                  <strong>Acesso exclusivo inicial</strong> aos contatos das
-                  meninas.
+                  <strong>1 mês de benefícios Premium</strong>, incluindo
+                  acesso exclusivo aos contatos das meninas.
                 </Benefit>
                 <Benefit icon={Rocket}>
                   <strong>3 Boosts</strong> para usar futuramente e impulsionar
                   o seu perfil.
                 </Benefit>
                 <Benefit icon={Frame}>
-                  <strong>Moldura exclusiva Premiere</strong> de forma
-                  vitalícia.
+                  <strong>Moldura exclusiva Premiere vitalícia</strong>, o
+                  benefício adquirido com este pagamento único.
                 </Benefit>
+              </div>
+
+              <div className="mt-3 rounded-xl border border-[#d8bf8c] bg-[#fff8e8]/80 px-4 py-3 text-center text-xs font-semibold leading-5 text-[#684e2c] sm:text-sm">
+                Depois do mês incluído, para continuar Premium, será necessário
+                se cadastrar e assinar o plano normalmente.
               </div>
 
               <PremierePrice />
@@ -174,7 +179,8 @@ export function PremiereOfferDialog({
                 <DialogDescription className="mx-auto max-w-lg text-sm font-medium leading-6 text-[#5f503d] sm:text-base">
                   O QR Code já está configurado com o valor de R$ 149,00.
                   Escaneie ou copie o código PIX, conclua no aplicativo do seu
-                  banco e envie o comprovante pelo WhatsApp.
+                  banco e envie o comprovante pelo WhatsApp. Este é um
+                  pagamento único e não uma assinatura recorrente.
                 </DialogDescription>
               </DialogHeader>
 
@@ -281,11 +287,11 @@ function PremierePrice({ compact = false }: { compact?: boolean }) {
   return (
     <div
       className={`${styles.priceOffer} ${compact ? styles.priceOfferCompact : ""}`}
-      aria-label={`Oferta Premiere: 25% de desconto, de ${PREMIERE_ORIGINAL_PRICE_DISPLAY} por ${PREMIERE_PRICE_DISPLAY}`}
+      aria-label={`Oferta exclusiva Premiere por pouco tempo: de ${PREMIERE_ORIGINAL_PRICE_DISPLAY} por ${PREMIERE_PRICE_DISPLAY}, em pagamento único pela moldura vitalícia e 1 mês de benefícios Premium`}
     >
       <div className={styles.priceOfferTopline}>
-        <span>Oferta de lançamento</span>
-        <strong>25% de desconto</strong>
+        <span>Oferta exclusiva · 25% de desconto</span>
+        <strong>Sai do ar em breve</strong>
       </div>
       <div className={styles.priceValues}>
         <span>
@@ -296,7 +302,7 @@ function PremierePrice({ compact = false }: { compact?: boolean }) {
           <strong>{PREMIERE_PRICE_DISPLAY}</strong>
         </span>
       </div>
-      <p>Pagamento único · benefício vitalício</p>
+      <p>Pagamento único · moldura vitalícia + 1 mês Premium</p>
     </div>
   );
 }
