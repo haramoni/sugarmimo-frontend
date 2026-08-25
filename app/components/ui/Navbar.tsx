@@ -33,8 +33,8 @@ export function Navbar() {
     ? [
         menuItems[0],
         { label: "Buscar", href: "/buscar" },
+        { label: "Pins", href: "/pins" },
         { label: "Chat", href: "/chat" },
-        { label: "Clube VIP", href: "/clube-vip" },
         menuItems[1],
         menuItems[2],
       ]

@@ -206,7 +206,7 @@ export default function Register() {
                         <option value="sugar-baby-man">
                           Sugar Baby (Homem)
                         </option>
-                        <option value="sugar-baby-man">
+                        <option value="sugar-baby-trans-man">
                           Sugar Baby (Homem Trans)
                         </option>
                       </>

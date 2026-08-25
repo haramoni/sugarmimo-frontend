@@ -27,6 +27,7 @@ export type PublicProfile = {
   createdAt?: string | null;
   lastActiveAt?: string | null;
   isOnline?: boolean;
+  isPinned?: boolean;
   photos?: ProfilePhoto[];
   appearance?: {
     bodyType?: string | null;

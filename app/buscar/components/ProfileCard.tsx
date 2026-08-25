@@ -8,6 +8,7 @@ import {
   Loader2,
   MapPin,
   MessageCircle,
+  Pin,
   Sparkles,
   UserRound,
   Zap,
@@ -30,6 +31,7 @@ export default function ProfileCard({
   viewerRole,
   viewerIsPremium = false,
   viewerIsPremiere = false,
+  onPinChange,
 }: {
   profile: PublicProfile;
   onNavigate?: () => void;
@@ -37,10 +39,14 @@ export default function ProfileCard({
   viewerRole?: string | null;
   viewerIsPremium?: boolean;
   viewerIsPremiere?: boolean;
+  onPinChange?: (isPinned: boolean) => void;
 }) {
   const [interaction, setInteraction] = useState(profile.interaction ?? {});
   const [isFavoriting, setIsFavoriting] = useState(false);
   const [favoriteError, setFavoriteError] = useState("");
+  const [isPinned, setIsPinned] = useState(Boolean(profile.isPinned));
+  const [isUpdatingPin, setIsUpdatingPin] = useState(false);
+  const [pinError, setPinError] = useState("");
   const photo = getProfilePhoto(profile);
   const age = getAge(profile.birthDate);
   const location = getLocation(profile);
@@ -108,6 +114,39 @@ export default function ProfileCard({
       );
     } finally {
       setIsFavoriting(false);
+    }
+  }
+
+  async function togglePin() {
+    if (isUpdatingPin) {
+      return;
+    }
+
+    setIsUpdatingPin(true);
+    setPinError("");
+    const nextPinned = !isPinned;
+
+    try {
+      const response = await fetch(
+        `/api/pins/${encodeURIComponent(profile.id)}`,
+        { method: nextPinned ? "POST" : "DELETE" },
+      );
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(result?.message ?? "Não foi possível atualizar o Pin.");
+      }
+
+      setIsPinned(nextPinned);
+      onPinChange?.(nextPinned);
+    } catch (error) {
+      setPinError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar o Pin.",
+      );
+    } finally {
+      setIsUpdatingPin(false);
     }
   }
 
@@ -240,8 +279,34 @@ export default function ProfileCard({
             ) : null}
           </div>
 
-          {canMessage ? (
-            <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5">
+          <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => void togglePin()}
+                disabled={isUpdatingPin}
+                aria-pressed={isPinned}
+                aria-label={isPinned ? "Remover dos Pins" : "Pinar perfil"}
+                title={isPinned ? "Remover dos Pins" : "Pinar perfil"}
+                className={[
+                  "inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border bg-white/88 shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-wait disabled:opacity-60",
+                  isPinned
+                    ? "border-gold/60 text-gold"
+                    : "border-white/70 text-black-jewel/72",
+                ].join(" ")}
+              >
+                {isUpdatingPin ? (
+                  <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Pin
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                    fill={isPinned ? "currentColor" : "none"}
+                  />
+                )}
+              </button>
+
+              {canMessage ? (
+                <>
               {favoriteAction ? (
                 <button
                   type="button"
@@ -289,12 +354,13 @@ export default function ProfileCard({
               >
                 <MessageCircle aria-hidden="true" className="h-4 w-4" />
               </Link>
+                </>
+              ) : null}
             </div>
-          ) : null}
 
-          {favoriteError ? (
+          {favoriteError || pinError ? (
             <span className="sr-only" role="status">
-              {favoriteError}
+              {favoriteError || pinError}
             </span>
           ) : null}
         </div>

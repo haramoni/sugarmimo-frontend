@@ -16,6 +16,7 @@ import {
   MapPin,
   MessageCircle,
   Phone,
+  Pin,
   Crown,
   Ruler,
   Send,
@@ -220,6 +221,8 @@ function ProfileView({
   );
   const [isActing, setIsActing] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [isPinned, setIsPinned] = useState(Boolean(profile.isPinned));
+  const [isUpdatingPin, setIsUpdatingPin] = useState(false);
   const mainPhoto = getProfilePhoto(profile);
   const galleryPhotos = getGalleryPhotos(profile);
   const privatePhotos = getPrivatePhotos(profile);
@@ -290,6 +293,38 @@ function ProfileView({
       );
     } finally {
       setIsActing(false);
+    }
+  }
+
+  async function togglePin() {
+    if (isUpdatingPin) {
+      return;
+    }
+
+    setIsUpdatingPin(true);
+    setActionError("");
+    const nextPinned = !isPinned;
+
+    try {
+      const response = await fetch(
+        `/api/pins/${encodeURIComponent(profile.id)}`,
+        { method: nextPinned ? "POST" : "DELETE" },
+      );
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(result?.message ?? "Não foi possível atualizar o Pin.");
+      }
+
+      setIsPinned(nextPinned);
+    } catch (pinError) {
+      setActionError(
+        pinError instanceof Error
+          ? pinError.message
+          : "Não foi possível atualizar o Pin.",
+      );
+    } finally {
+      setIsUpdatingPin(false);
     }
   }
 
@@ -369,6 +404,30 @@ function ProfileView({
               {profile.username}
             </h1>
             <div className="grid gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isUpdatingPin}
+                aria-pressed={isPinned}
+                onClick={() => void togglePin()}
+                className={[
+                  "h-11 rounded-sm border-2 px-4 font-extrabold",
+                  isPinned
+                    ? "border-gold bg-[color-mix(in_srgb,var(--gold-soft)_24%,white)] text-black-jewel hover:bg-[color-mix(in_srgb,var(--gold-soft)_34%,white)]"
+                    : "border-gold/45 bg-white/84 text-black-jewel hover:border-gold hover:bg-white",
+                ].join(" ")}
+              >
+                {isUpdatingPin ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Pin
+                    className="h-4 w-4 text-gold"
+                    fill={isPinned ? "currentColor" : "none"}
+                  />
+                )}
+                {isPinned ? "Salvo nos Pins" : "Pinar perfil"}
+              </Button>
+
               {canLike ? (
                 <Button
                   type="button"

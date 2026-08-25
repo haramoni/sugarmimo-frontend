@@ -109,8 +109,9 @@ export function ChatClient() {
       return;
     }
     const result = (await response.json()) as Conversation[];
-    setConversations(result);
-    setSelectedId((current) => current ?? result[0]?.id ?? null);
+    const sorted = sortConversationsByLatestMessage(result);
+    setConversations(sorted);
+    setSelectedId((current) => current ?? sorted[0]?.id ?? null);
     setLoadingConversations(false);
   }, []);
 
@@ -759,6 +760,28 @@ export function ChatClient() {
       ) : null}
     </main>
   );
+}
+
+function sortConversationsByLatestMessage(conversations: Conversation[]) {
+  return [...conversations].sort((first, second) => {
+    const firstMessageAt = toTimestamp(first.lastMessage?.createdAt);
+    const secondMessageAt = toTimestamp(second.lastMessage?.createdAt);
+
+    if (firstMessageAt !== secondMessageAt) {
+      return secondMessageAt - firstMessageAt;
+    }
+
+    return toTimestamp(second.updatedAt) - toTimestamp(first.updatedAt);
+  });
+}
+
+function toTimestamp(value?: string | null) {
+  if (!value) {
+    return 0;
+  }
+
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
 }
 
 function Avatar({ conversation }: { conversation: Conversation }) {

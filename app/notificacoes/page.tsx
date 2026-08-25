@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Heart, Loader2, MapPin, Unlock } from "lucide-react";
+import { Bell, ChevronDown, Heart, Loader2, MapPin, Unlock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -32,7 +32,9 @@ export default function NotificationsPage() {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showAll, setShowAll] = useState(false);
   const isApprovalPending = shouldShowPendingApproval(user);
+  const visibleItems = showAll ? items : items.slice(0, 6);
 
   useEffect(() => {
     if (isAuthLoading) {
@@ -136,7 +138,7 @@ export default function NotificationsPage() {
                   Você ainda não recebeu notificações.
                 </p>
               ) : (
-                items.map((notification) => {
+                visibleItems.map((notification) => {
                   const isLike = notification.type !== "CONTACTS_RELEASED";
                   const isBabyLikeAndRelease =
                     notification.type === "BABY_LIKE_AND_RELEASE";
@@ -201,6 +203,19 @@ export default function NotificationsPage() {
                 })
               )}
             </div>
+
+            {!isLoading && !error && items.length > 6 && !showAll ? (
+              <div className="mt-5 flex justify-center border-t border-emerald/14 pt-5">
+                <button
+                  type="button"
+                  onClick={() => setShowAll(true)}
+                  className="inline-flex h-11 items-center gap-2 rounded-full border border-emerald/32 bg-white/82 px-6 text-sm font-extrabold text-emerald shadow-[0_10px_24px_rgba(0,55,44,0.08)] transition hover:-translate-y-0.5 hover:border-emerald hover:bg-emerald hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald"
+                >
+                  Ver todas as notificações
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+              </div>
+            ) : null}
           </div>
         </section>
       </main>
