@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Crown,
+  Download,
   ImageOff,
   LoaderCircle,
   MapPin,
@@ -85,6 +86,7 @@ export default function AdminProfilesPage() {
   const [approvalStatus, setApprovalStatus] = useState("");
   const [accountStatus, setAccountStatus] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   const [busyId, setBusyId] = useState("");
   const [deletingPhotoId, setDeletingPhotoId] = useState("");
   const [error, setError] = useState("");
@@ -144,6 +146,45 @@ export default function AdminProfilesPage() {
     setApprovalStatus("");
     setAccountStatus("");
     setPage(1);
+  }
+
+  async function exportCsv() {
+    setIsExporting(true);
+    setError("");
+
+    try {
+      const params = new URLSearchParams();
+      if (search) params.set("search", search);
+      if (role) params.set("role", role);
+      if (approvalStatus) params.set("approvalStatus", approvalStatus);
+      if (accountStatus) params.set("accountStatus", accountStatus);
+      const suffix = params.size ? `?${params.toString()}` : "";
+      const response = await fetch(`/api/admin/profiles/export${suffix}`);
+
+      if (response.status === 401 || response.status === 403) {
+        router.push("/admin/login");
+        return;
+      }
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        throw new Error(result?.message ?? "Não foi possível exportar os perfis.");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filenameFromResponse(response) ?? "usuarios-sugarmimo.csv";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch (exportError) {
+      setError(exportError instanceof Error ? exportError.message : "Não foi possível exportar os perfis.");
+    } finally {
+      setIsExporting(false);
+    }
   }
 
   async function updateAccount(profile: AdminProfile) {
@@ -282,16 +323,27 @@ export default function AdminProfilesPage() {
               Consulte toda a base, modere fotos e controle o acesso de cada usuário.
             </p>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => void loadProfiles()}
-            disabled={isLoading}
-            className="h-11 self-start rounded-lg border-black/10 bg-white font-bold xl:self-auto"
-          >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-            Atualizar dados
-          </Button>
+          <div className="flex flex-wrap gap-2 self-start xl:self-auto">
+            <Button
+              type="button"
+              onClick={() => void exportCsv()}
+              disabled={isExporting}
+              className="h-11 rounded-lg bg-[var(--emerald)] font-bold text-white hover:bg-[var(--emerald)]/90"
+            >
+              {isExporting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              {isExporting ? "Exportando..." : "Exportar CSV"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void loadProfiles()}
+              disabled={isLoading}
+              className="h-11 rounded-lg border-black/10 bg-white font-bold"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+              Atualizar dados
+            </Button>
+          </div>
         </div>
 
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Resumo dos perfis">
@@ -550,4 +602,9 @@ function formatRelativeDate(value: string | null) {
   if (days === 1) return "ontem";
   if (days < 30) return `há ${days} dias`;
   return formatDate(value);
+}
+
+function filenameFromResponse(response: Response) {
+  const disposition = response.headers.get("content-disposition");
+  return disposition?.match(/filename="([^"]+)"/)?.[1];
 }
