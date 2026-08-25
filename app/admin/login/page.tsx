@@ -41,7 +41,7 @@ export default function AdminLoginPage() {
         throw new Error(result?.message ?? "Login administrativo inválido.");
       }
 
-      router.push("/admin/approvals");
+      router.push("/admin/profiles");
     } catch (loginError) {
       setError(
         loginError instanceof Error

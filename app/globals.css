@@ -127,6 +127,16 @@ html {
   scroll-behavior: smooth;
 }
 
+.admin-shell-content > main > header {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .admin-shell-content > main {
+    min-height: 100vh;
+  }
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
