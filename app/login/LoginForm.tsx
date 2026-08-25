@@ -53,7 +53,8 @@ export function LoginForm() {
         const message = String(result?.message ?? "");
 
         if (message.toLowerCase().includes("pending")) {
-          throw new Error("Seu perfil ainda está em análise.");
+          router.replace(PENDING_APPROVAL_ROUTE);
+          return;
         }
 
         if (response.status >= 500) {
