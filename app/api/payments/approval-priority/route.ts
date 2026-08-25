@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 
 import {
   API_URL,
-  clearSessionCookie,
-  getSessionToken,
+  clearApprovalSessionCookie,
+  getApprovalSessionToken,
 } from "../../auth/_cookies";
 
 export async function GET(request: Request) {
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 }
 
 async function forwardPaymentRequest(url: string, init: RequestInit) {
-  const token = await getSessionToken();
+  const token = await getApprovalSessionToken();
 
   if (!token) {
     return NextResponse.json({ message: "Não autenticado." }, { status: 401 });
@@ -52,7 +52,7 @@ async function forwardPaymentRequest(url: string, init: RequestInit) {
   const result = await response.json().catch(() => null);
 
   if (response.status === 401) {
-    await clearSessionCookie();
+    await clearApprovalSessionCookie();
   }
 
   return NextResponse.json(result, { status: response.status });

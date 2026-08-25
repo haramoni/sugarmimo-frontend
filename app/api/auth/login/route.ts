@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 
-import { API_URL, setSessionCookie } from "../_cookies";
+import {
+  API_URL,
+  clearApprovalSessionCookie,
+  clearSessionCookie,
+  setApprovalSessionCookie,
+  setSessionCookie,
+} from "../_cookies";
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -26,14 +32,27 @@ export async function POST(request: Request) {
     return NextResponse.json(result, { status: response.status });
   }
 
-  if (!result?.accessToken || !result?.user) {
+  if (!result?.user) {
     return NextResponse.json(
       { message: "Resposta de login inválida." },
       { status: 502 },
     );
   }
 
-  await setSessionCookie(result.accessToken);
+  if (result.accessToken) {
+    await setSessionCookie(result.accessToken);
+    await clearApprovalSessionCookie();
+    return NextResponse.json({ user: result.user });
+  }
 
-  return NextResponse.json({ user: result.user });
+  if (result.requiresApproval && result.approvalAccessToken) {
+    await clearSessionCookie();
+    await setApprovalSessionCookie(result.approvalAccessToken);
+    return NextResponse.json({ user: result.user });
+  }
+
+  return NextResponse.json(
+    { message: "Resposta de login inválida." },
+    { status: 502 },
+  );
 }
