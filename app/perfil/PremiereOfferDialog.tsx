@@ -93,7 +93,9 @@ export function PremiereOfferDialog({
       }
 
       const result = (await response.json().catch(() => null)) as
-        PremierePaymentState | { message?: string | string[] } | null;
+        | PremierePaymentState
+        | { message?: string | string[] }
+        | null;
       if (!response.ok) {
         setPaymentError(paymentErrorMessage(result));
         return;
@@ -176,7 +178,9 @@ export function PremiereOfferDialog({
         }),
       });
       const result = (await response.json().catch(() => null)) as
-        PremierePaymentState | { message?: string | string[] } | null;
+        | PremierePaymentState
+        | { message?: string | string[] }
+        | null;
       if (!response.ok) throw new Error(paymentErrorMessage(result));
       setPayment(result as PremierePaymentState);
     } catch (error) {
@@ -272,12 +276,11 @@ export function PremiereOfferDialog({
 
               <div className="grid gap-3">
                 <Benefit icon={Users}>
-                  <strong>1 mês de benefícios Premium</strong>, incluindo acesso
-                  exclusivo aos contatos das meninas.
+                  <strong>1 mês de benefícios Premium!</strong>
                 </Benefit>
                 <Benefit icon={Rocket}>
-                  <strong>3 Boosts</strong> para usar futuramente e impulsionar
-                  o seu perfil.
+                  <strong>3 Boosts</strong> para usar e impulsionar o seu
+                  perfil.
                 </Benefit>
                 <Benefit icon={Frame}>
                   <strong>Moldura exclusiva Premiere vitalícia</strong>, o

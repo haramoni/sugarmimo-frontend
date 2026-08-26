@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -13,6 +13,7 @@ import {
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   captureReferralFromUrl,
   getSavedRegisterStep,
@@ -32,6 +33,12 @@ export default function Register() {
     useState<ProfileCategory | null>(null);
   const [relationshipIntent, setRelationshipIntent] =
     useState<RelationshipIntent>("SUGAR");
+  const [adultDeclarationAccepted, setAdultDeclarationAccepted] =
+    useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyNoticeAcknowledged, setPrivacyNoticeAcknowledged] =
+    useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
 
   useEffect(() => {
     captureReferralFromUrl();
@@ -58,6 +65,10 @@ export default function Register() {
         profileType,
         interest,
         relationshipIntent,
+        adultDeclarationAccepted,
+        termsAccepted,
+        privacyNoticeAcknowledged,
+        marketingConsent,
       }),
     );
 
@@ -134,6 +145,10 @@ export default function Register() {
                     Acessar login
                   </Link>
                 </p>
+                <span className="mt-1 text-sm text-black-jewel/65 flex items-center justify-center gap-1 flex-row transition hover:text-gold">
+                  <ArrowLeft size={13} />
+                  <Link href="/">Voltar</Link>
+                </span>
               </div>
             </div>
           </div>
@@ -297,8 +312,76 @@ export default function Register() {
                   </div>
                 </fieldset>
 
+                <fieldset className="space-y-4 rounded-md border border-silver/80 bg-white/55 p-4">
+                  <legend className="px-1 text-sm font-bold text-black-jewel">
+                    Declarações e preferências
+                  </legend>
+
+                  <ConsentCheckbox
+                    id="adult-declaration"
+                    checked={adultDeclarationAccepted}
+                    onCheckedChange={setAdultDeclarationAccepted}
+                    required
+                  >
+                    Declaro que tenho 18 anos ou mais e que as informações
+                    fornecidas são verdadeiras.
+                  </ConsentCheckbox>
+
+                  <ConsentCheckbox
+                    id="terms-acceptance"
+                    checked={termsAccepted}
+                    onCheckedChange={setTermsAccepted}
+                    required
+                  >
+                    Li e aceito os{" "}
+                    <Link
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-bold underline decoration-gold underline-offset-2"
+                    >
+                      Termos de Uso
+                    </Link>
+                    .
+                  </ConsentCheckbox>
+
+                  <ConsentCheckbox
+                    id="privacy-awareness"
+                    checked={privacyNoticeAcknowledged}
+                    onCheckedChange={setPrivacyNoticeAcknowledged}
+                    required
+                  >
+                    Li e estou ciente da{" "}
+                    <Link
+                      href="/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-bold underline decoration-gold underline-offset-2"
+                    >
+                      Política de Privacidade e Proteção de Dados
+                    </Link>
+                    .
+                  </ConsentCheckbox>
+
+                  <ConsentCheckbox
+                    id="marketing-consent"
+                    checked={marketingConsent}
+                    onCheckedChange={setMarketingConsent}
+                  >
+                    Desejo receber comunicações promocionais do SugarMimo.
+                    <span className="mt-1 block text-xs text-black-jewel/55">
+                      Opcional. Você poderá alterar essa preferência depois.
+                    </span>
+                  </ConsentCheckbox>
+                </fieldset>
+
                 <Button
                   type="submit"
+                  disabled={
+                    !adultDeclarationAccepted ||
+                    !termsAccepted ||
+                    !privacyNoticeAcknowledged
+                  }
                   className="h-12 w-full rounded-md bg-emerald text-base font-bold text-white shadow-[0_16px_34px_rgba(185,138,56,0.28)] hover:bg-emerald/80 hover:text-white"
                 >
                   Continuar Cadastro
@@ -309,14 +392,22 @@ export default function Register() {
 
           <div className="space-y-5 rounded-sm bg-[color-mix(in_srgb,var(--surface)_90%,transparent)] p-5 text-xs leading-relaxed text-black-jewel shadow-[0_18px_48px_rgba(20,17,14,0.18)] backdrop-blur-sm sm:text-sm">
             <p>
-              Ao prosseguir, você confirma que leu e aceita os nossos{" "}
+              Consulte os nossos{" "}
               <Link
                 href="/terms"
                 className="font-bold underline decoration-gold underline-offset-2"
               >
                 Termos de uso
               </Link>
-              .
+              {" "}e a{" "}
+              <Link
+                href="/privacy"
+                className="font-bold underline decoration-gold underline-offset-2"
+              >
+                Política de Privacidade
+              </Link>
+              . As declarações obrigatórias são solicitadas separadamente no
+              cadastro.
             </p>
 
             <p>
@@ -344,5 +435,38 @@ export default function Register() {
         </div>
       </section>
     </main>
+  );
+}
+
+function ConsentCheckbox({
+  id,
+  checked,
+  onCheckedChange,
+  required = false,
+  children,
+}: {
+  id: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  required?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <Checkbox
+        id={id}
+        checked={checked}
+        onCheckedChange={(value) => onCheckedChange(value === true)}
+        required={required}
+        className="mt-0.5 shrink-0"
+      />
+      <label
+        htmlFor={id}
+        className="cursor-pointer text-sm font-medium leading-relaxed text-black-jewel"
+      >
+        {children}
+        {required ? <span className="sr-only"> Campo obrigatório.</span> : null}
+      </label>
+    </div>
   );
 }

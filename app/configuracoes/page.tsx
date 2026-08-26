@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import {
   AlertTriangle,
   CheckCircle2,
+  History,
   KeyRound,
   Loader2,
   Mail,
@@ -19,6 +20,25 @@ import { useAuth } from "../components/AuthProvider";
 import { Navbar } from "../components/ui/Navbar";
 
 const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
+type ConsentRecord = {
+  id: string;
+  type: string;
+  version: string;
+  granted: boolean;
+  context: string;
+  createdAt: string;
+};
+
+const consentLabels: Record<string, string> = {
+  AGE_DECLARATION: "Declaração de maioridade",
+  TERMS_OF_USE: "Termos de Uso",
+  PRIVACY_NOTICE: "Política de Privacidade",
+  COOKIE_POLICY_NOTICE: "Política de Cookies",
+  MARKETING_COMMUNICATIONS: "Comunicações promocionais",
+  PROFILE_PHOTO_RIGHTS_AND_MODERATION: "Direitos e moderação das fotos",
+  REGISTRATION_RECEIPT_CONFIRMED: "Confirmação final do cadastro",
+};
 
 export default function ConfiguracoesPage() {
   const router = useRouter();
@@ -38,12 +58,62 @@ export default function ConfiguracoesPage() {
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [consentHistory, setConsentHistory] = useState<ConsentRecord[]>([]);
+  const [isConsentHistoryLoading, setIsConsentHistoryLoading] = useState(true);
+  const [consentHistoryError, setConsentHistoryError] = useState("");
 
   useEffect(() => {
     if (!isAuthLoading && !user) {
       router.replace("/login");
     }
   }, [isAuthLoading, router, user]);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const controller = new AbortController();
+    setIsConsentHistoryLoading(true);
+    setConsentHistoryError("");
+
+    fetch("/api/auth/consents", {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const result = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          throw new Error(
+            result?.message ?? "Não foi possível consultar seus aceites.",
+          );
+        }
+
+        return Array.isArray(result) ? (result as ConsentRecord[]) : [];
+      })
+      .then((history) => {
+        if (!controller.signal.aborted) {
+          setConsentHistory(history);
+        }
+      })
+      .catch((historyError) => {
+        if (!controller.signal.aborted) {
+          setConsentHistoryError(
+            historyError instanceof Error
+              ? historyError.message
+              : "Não foi possível consultar seus aceites.",
+          );
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsConsentHistoryLoading(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [user]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -338,6 +408,69 @@ export default function ConfiguracoesPage() {
           </article>
         </div>
 
+        <article className="mt-6 rounded-[2rem] border border-[color:color-mix(in_srgb,var(--emerald)_28%,transparent)] bg-white/72 p-6 shadow-[0_22px_55px_rgba(20,17,14,0.07)] backdrop-blur-xl sm:p-8">
+          <div className="flex items-start gap-4">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[color:color-mix(in_srgb,var(--emerald)_12%,white)] text-[var(--emerald)]">
+              <History className="h-5 w-5" />
+            </span>
+            <div>
+              <h2 className="font-serif text-2xl font-semibold text-[var(--black)]">
+                Histórico de aceites
+              </h2>
+              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[color:color-mix(in_srgb,var(--black)_58%,var(--silver))]">
+                Consulte as políticas, versões, decisões e horários registrados
+                na sua conta.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            {isConsentHistoryLoading ? (
+              <p className="flex items-center gap-2 text-sm font-semibold text-[var(--black)]/60">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Carregando histórico...
+              </p>
+            ) : consentHistoryError ? (
+              <p className="rounded-xl bg-[color:color-mix(in_srgb,var(--ruby)_10%,white)] px-4 py-3 text-sm font-bold text-[var(--ruby)]">
+                {consentHistoryError}
+              </p>
+            ) : consentHistory.length === 0 ? (
+              <p className="rounded-xl border border-[color:color-mix(in_srgb,var(--silver)_38%,transparent)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--black)]/60">
+                Nenhum aceite foi registrado para esta conta.
+              </p>
+            ) : (
+              <div className="divide-y divide-[color:color-mix(in_srgb,var(--silver)_35%,transparent)] overflow-hidden rounded-2xl border border-[color:color-mix(in_srgb,var(--silver)_42%,transparent)] bg-white/75">
+                {consentHistory.map((consent) => (
+                  <div
+                    key={consent.id}
+                    className="grid gap-2 px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-5"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-bold text-[var(--black)]">
+                        {consentLabels[consent.type] ?? consent.type}
+                      </p>
+                      <p className="mt-1 text-xs text-[color:color-mix(in_srgb,var(--black)_52%,var(--silver))]">
+                        Versão {consent.version} •{" "}
+                        {formatConsentDate(consent.createdAt)}
+                      </p>
+                    </div>
+                    <span
+                      className={[
+                        "w-fit rounded-full px-3 py-1 text-xs font-extrabold",
+                        consent.granted
+                          ? "bg-[color:color-mix(in_srgb,var(--emerald)_12%,white)] text-[var(--emerald)]"
+                          : "bg-[color:color-mix(in_srgb,var(--silver)_28%,white)] text-[var(--black)]/65",
+                      ].join(" ")}
+                    >
+                      {getConsentStatus(consent)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </article>
+
         <article className="mt-6 rounded-[2rem] border border-[color:color-mix(in_srgb,var(--ruby)_34%,transparent)] bg-[color:color-mix(in_srgb,var(--ruby)_4%,white)] p-6 shadow-[0_22px_55px_rgba(20,17,14,0.06)] sm:p-8">
           <div className="flex items-start gap-4">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[color:color-mix(in_srgb,var(--ruby)_12%,white)] text-[var(--ruby)]">
@@ -416,4 +549,30 @@ export default function ConfiguracoesPage() {
       </section>
     </main>
   );
+}
+
+function formatConsentDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "data não disponível";
+  }
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "medium",
+    timeZone: "America/Sao_Paulo",
+  }).format(date);
+}
+
+function getConsentStatus(consent: ConsentRecord) {
+  if (consent.type === "MARKETING_COMMUNICATIONS") {
+    return consent.granted ? "Autorizado" : "Não autorizado";
+  }
+
+  if (consent.type === "COOKIE_POLICY_NOTICE") {
+    return "Ciência registrada";
+  }
+
+  return consent.granted ? "Confirmado" : "Não confirmado";
 }

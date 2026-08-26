@@ -1,12 +1,10 @@
 "use client";
 
 import { type FormEvent, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -71,9 +69,6 @@ export default function RegisterAccountForm() {
   const [birthYear, setBirthYear] = useState(savedPayload.birthYear);
   const [country, setCountry] = useState(savedPayload.country || "brasil");
   const [source, setSource] = useState(savedPayload.source);
-  const [termsAccepted, setTermsAccepted] = useState(
-    savedPayload.termsAccepted,
-  );
   const normalizedUsername = username.trim();
   const normalizedEmail = email.trim().toLowerCase();
   const clientErrors = useMemo(
@@ -154,7 +149,6 @@ export default function RegisterAccountForm() {
         state,
         city,
         source,
-        termsAccepted,
       };
 
       localStorage.setItem(REGISTER_PAYLOAD_KEY, JSON.stringify(payload));
@@ -287,8 +281,7 @@ export default function RegisterAccountForm() {
     country &&
     state &&
     city &&
-    source &&
-    termsAccepted,
+    source,
   );
   const canContinue =
     allRequiredFieldsFilled &&
@@ -581,43 +574,6 @@ export default function RegisterAccountForm() {
               </Select>
             </div>
 
-            <div className="flex items-start">
-              <Checkbox
-                id="terms"
-                checked={termsAccepted}
-                onCheckedChange={(checked) =>
-                  setTermsAccepted(checked === true)
-                }
-                required
-                className="mt-0.5"
-              />
-
-              <Label
-                htmlFor="terms"
-                className="text-sm font-normal leading-relaxed text-[var(--black)]"
-              >
-                Li e aceito os{" "}
-                <Link
-                  href="/terms"
-                  rel="noopener noreferrer"
-                  target="_blank"
-                  className="font-bold underline decoration-[var(--gold)] underline-offset-2"
-                >
-                  Termos de uso
-                </Link>
-                e
-                <Link
-                  href="/privacy"
-                  rel="noopener noreferrer"
-                  target="_blank"
-                  className="font-bold underline decoration-[var(--gold)] underline-offset-2"
-                >
-                  Políticas de Privacidade
-                </Link>
-                .
-              </Label>
-            </div>
-
             <StatusMessage
               error={error}
               isCheckingAvailability={isCheckingAvailability}
@@ -793,7 +749,6 @@ function getSavedPayload() {
       state: "",
       city: "",
       source: "",
-      termsAccepted: false,
     };
   }
 
@@ -815,6 +770,5 @@ function getSavedPayload() {
     state: String(payload.state ?? ""),
     city: String(payload.city ?? ""),
     source: String(payload.source ?? ""),
-    termsAccepted: payload.termsAccepted === true,
   };
 }

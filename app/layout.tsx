@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "./components/AuthProvider";
 import { CookieConsentBanner } from "./components/CookieConsentBanner";
+import { AgeConfirmationDialog } from "./components/AgeConfirmationDialog";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -45,6 +46,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-[var(--background)] text-[var(--foreground)]">
         <AuthProvider>{children}</AuthProvider>
+        <AgeConfirmationDialog />
         <CookieConsentBanner />
       </body>
     </html>

@@ -35,6 +35,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  ALLOWED_PHOTO_TYPES,
+  MAX_PHOTO_BYTES,
+  MAX_PHOTO_SIZE_LABEL,
+  normalizeMobilePhoto,
+  PHOTO_INPUT_ACCEPT,
+} from "@/app/lib/photo-upload";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -229,6 +236,7 @@ export default function PerfilPage() {
   const [remoteProfile, setRemoteProfile] = useState<ProfileUser | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [invitationCopied, setInvitationCopied] = useState(false);
   const [error, setError] = useState("");
@@ -496,7 +504,9 @@ export default function PerfilPage() {
     setForm((current) => {
       return {
         ...current,
-        visibleContactChannels: checked ? [channel] : [],
+        visibleContactChannels: checked
+          ? Array.from(new Set([...current.visibleContactChannels, channel]))
+          : current.visibleContactChannels.filter((item) => item !== channel),
       };
     });
     setIsEditing(true);
@@ -674,6 +684,7 @@ export default function PerfilPage() {
     isPrivate = false,
   ) {
     const selectedFiles = Array.from(event.target.files ?? []);
+    event.target.value = "";
 
     if (!selectedFiles.length) {
       return;
@@ -682,39 +693,76 @@ export default function PerfilPage() {
     const categoryPhotos = isPrivate ? privatePhotos : publicPhotos;
     const categoryLimit = isPrivate ? MAX_PRIVATE_PHOTOS : MAX_PUBLIC_PHOTOS;
     const remainingSlots = categoryLimit - categoryPhotos.length;
-    const imageFiles = selectedFiles.filter((file) =>
-      file.type.startsWith("image/"),
-    );
-
-    if (imageFiles.length !== selectedFiles.length) {
-      setError("Envie apenas arquivos de imagem.");
-      event.target.value = "";
-      return;
-    }
-
     if (remainingSlots <= 0) {
       setError(
         `Você pode enviar no máximo ${categoryLimit} fotos ${
           isPrivate ? "privadas" : "públicas"
         }.`,
       );
-      event.target.value = "";
       return;
     }
 
-    const newPhotos = await Promise.all(
-      imageFiles.slice(0, remainingSlots).map(async (file, index) => ({
-        dataUrl: await fileToDataUrl(file),
-        fileName: file.name,
-        mimeType: file.type,
-        sortOrder: categoryPhotos.length + index + 1,
-        isPrivate,
-      })),
+    const filesToAdd = selectedFiles.slice(0, remainingSlots);
+    const oversizedSources = filesToAdd.find(
+      (file) => file.size > MAX_PHOTO_BYTES,
     );
 
-    setPhotos((currentPhotos) => [...currentPhotos, ...newPhotos]);
-    setIsEditing(true);
-    event.target.value = "";
+    if (oversizedSources) {
+      setError(
+        `A foto “${oversizedSources.name}” ultrapassa o limite de ${MAX_PHOTO_SIZE_LABEL}.`,
+      );
+      return;
+    }
+
+    setIsProcessingPhotos(true);
+    setError("");
+
+    try {
+      const normalizedFiles = await Promise.all(
+        filesToAdd.map(normalizeMobilePhoto),
+      );
+
+      if (normalizedFiles.some((file) => !ALLOWED_PHOTO_TYPES.has(file.type))) {
+        setError("Envie apenas fotos JPEG, PNG, WebP, AVIF, HEIC ou HEIF.");
+        return;
+      }
+
+      const oversizedPhoto = normalizedFiles.find(
+        (file) => file.size > MAX_PHOTO_BYTES,
+      );
+
+      if (oversizedPhoto) {
+        setError(
+          `A foto “${oversizedPhoto.name}” ultrapassa o limite de ${MAX_PHOTO_SIZE_LABEL}.`,
+        );
+        return;
+      }
+
+      const newPhotos = await Promise.all(
+        normalizedFiles.map(async (file, index) => ({
+          dataUrl: await fileToDataUrl(file),
+          fileName: file.name,
+          mimeType: file.type,
+          sortOrder: categoryPhotos.length + index + 1,
+          isPrivate,
+        })),
+      );
+
+      setPhotos((currentPhotos) => [...currentPhotos, ...newPhotos]);
+      setIsEditing(true);
+
+      if (selectedFiles.length > remainingSlots) {
+        setError(
+          `Apenas ${remainingSlots} ${remainingSlots === 1 ? "foto foi adicionada" : "fotos foram adicionadas"}. O limite é de ${categoryLimit} fotos ${isPrivate ? "privadas" : "públicas"}.`,
+        );
+      }
+    } catch {
+      setError(
+        "Não foi possível converter uma foto HEIC/HEIF. Tente escolher outra imagem ou exportá-la como JPEG.",
+      );
+    } finally {
+      setIsProcessingPhotos(false);
+    }
   }
 
   function removePhoto(photoToRemove: ProfilePhoto) {
@@ -817,16 +865,18 @@ export default function PerfilPage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept={PHOTO_INPUT_ACCEPT}
             multiple
+            disabled={isProcessingPhotos}
             className="sr-only"
             onChange={handlePhotoChange}
           />
           <input
             ref={privateFileInputRef}
             type="file"
-            accept="image/*"
+            accept={PHOTO_INPUT_ACCEPT}
             multiple
+            disabled={isProcessingPhotos}
             className="sr-only"
             onChange={(event) => void handlePhotoChange(event, true)}
           />
@@ -928,7 +978,8 @@ export default function PerfilPage() {
                       {form.introductionPhrase}
                     </p>
                     <span className="mt-3 inline-flex rounded-full border border-ruby/25 bg-[color-mix(in_srgb,var(--ruby)_8%,white)] px-3 py-1 text-xs font-extrabold text-ruby">
-                      Busca: {getRelationshipIntentLabel(form.relationshipIntent)}
+                      Busca:{" "}
+                      {getRelationshipIntentLabel(form.relationshipIntent)}
                     </span>
                   </div>
                   <div className="mx-auto h-px max-w-56 bg-[linear-gradient(90deg,transparent,var(--emerald),transparent)] opacity-45" />
@@ -1156,7 +1207,8 @@ export default function PerfilPage() {
                           Seu link de convite
                         </p>
                         <p className="mt-1 text-xs leading-5 text-white/75">
-                          Compartilhe com quem você quer convidar para o SugarMimo.
+                          Compartilhe com quem você quer convidar para o
+                          SugarMimo.
                         </p>
                         <Button
                           type="button"
@@ -1195,15 +1247,19 @@ export default function PerfilPage() {
                       <Button
                         type="button"
                         onClick={saveProfile}
-                        disabled={!isEditing || isSaving}
+                        disabled={!isEditing || isProcessingPhotos || isSaving}
                         className="h-auto min-h-12 w-full rounded-full border border-emerald/60 bg-[color-mix(in_srgb,var(--emerald)_28%,transparent)] px-4 py-2 text-sm font-extrabold text-white hover:bg-white hover:text-emerald disabled:cursor-not-allowed disabled:opacity-45 sm:text-base"
                       >
-                        {isSaving ? (
+                        {isProcessingPhotos || isSaving ? (
                           <Loader2 className="h-4 w-4" />
                         ) : (
                           <Save className="h-4 w-4" />
                         )}
-                        {isSaving ? "Salvando..." : "Salvar"}
+                        {isProcessingPhotos
+                          ? "Preparando fotos..."
+                          : isSaving
+                            ? "Salvando..."
+                            : "Salvar"}
                       </Button>
                     )}
                   </div>
@@ -1445,9 +1501,7 @@ function DetailsForm({
       <ProfileSelect
         label="Tipo de relacionamento"
         value={form.relationshipIntent}
-        onValueChange={(value) =>
-          updateField("relationshipIntent", value)
-        }
+        onValueChange={(value) => updateField("relationshipIntent", value)}
         options={relationshipIntentOptions.map((option) => ({
           label: option.label,
           value: option.value,
@@ -1594,8 +1648,8 @@ function ContactSection({
               O que deseja liberar
             </Label>
             <p className="mt-1 text-xs font-medium text-black-jewel/62">
-              Escolha no máximo um contato para aparecer aos Sugar Daddies
-              autorizados. Se preferir, deixe todos ocultos.
+              Escolha separadamente quais contatos podem aparecer aos Sugar
+              Daddies autorizados. Se preferir, deixe todos ocultos.
             </p>
             <details className="group relative mt-2">
               <summary className="flex h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-sm border border-emerald/30 bg-white px-3 text-sm font-semibold text-black-jewel shadow-[0_8px_18px_rgba(0,55,44,0.06)] [&::-webkit-details-marker]:hidden">

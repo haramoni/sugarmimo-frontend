@@ -45,8 +45,8 @@ export default function SocialContactsPage() {
   const [whatsapp, setWhatsapp] = useState(() => getSavedValue("whatsapp"));
   const [telegram, setTelegram] = useState(() => getSavedValue("telegram"));
   const [instagram, setInstagram] = useState(() => getSavedValue("instagram"));
-  const [visibleContact, setVisibleContact] = useState<ContactChannel | null>(
-    getSavedVisibleContact,
+  const [visibleContacts, setVisibleContacts] = useState<ContactChannel[]>(
+    getSavedVisibleContacts,
   );
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(true);
 
@@ -83,9 +83,19 @@ export default function SocialContactsPage() {
       setInstagram(value);
     }
 
-    if (!value.trim() && visibleContact === channel) {
-      setVisibleContact(null);
+    if (!value.trim()) {
+      setVisibleContacts((current) =>
+        current.filter((item) => item !== channel),
+      );
     }
+  }
+
+  function toggleContactVisibility(channel: ContactChannel) {
+    setVisibleContacts((current) =>
+      current.includes(channel)
+        ? current.filter((item) => item !== channel)
+        : [...current, channel],
+    );
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -102,7 +112,9 @@ export default function SocialContactsPage() {
         whatsapp: normalizeContact(whatsapp),
         telegram: normalizeUsername(telegram),
         instagram: normalizeUsername(instagram),
-        visibleContactChannels: visibleContact ? [visibleContact] : [],
+        visibleContactChannels: visibleContacts.filter((channel) =>
+          Boolean(contactValues[channel].trim()),
+        ),
       }),
     );
 
@@ -127,7 +139,7 @@ export default function SocialContactsPage() {
             <DialogDescription className="max-w-md text-sm leading-6 text-black-jewel/68">
               WhatsApp, Instagram e Telegram não ficam públicos no seu perfil.
               Eles só serão mostrados a um Sugar Daddy autorizado se você
-              decidir liberar um deles.
+               decidir liberar cada canal.
             </DialogDescription>
           </DialogHeader>
 
@@ -190,18 +202,19 @@ export default function SocialContactsPage() {
           <div className="space-y-3 rounded-sm border border-emerald/22 bg-white/72 p-4">
             <div>
               <Label className="font-bold text-black-jewel">
-                Qual contato deseja liberar?
+                 Quais contatos deseja liberar?
               </Label>
               <p className="mt-1 text-xs font-medium leading-5 text-black-jewel/62">
-                A escolha é opcional e apenas um contato pode ficar ativo por
-                vez. Toque novamente no selecionado para ocultar todos.
+                 Cada escolha é independente e opcional. Todos começam
+                 privados; selecione somente os canais que deseja tornar
+                 visíveis para usuários autorizados.
               </p>
             </div>
 
             <div className="grid gap-2 sm:grid-cols-3">
               {contactOptions.map(({ channel, label, icon: Icon }) => {
                 const hasValue = Boolean(contactValues[channel].trim());
-                const selected = visibleContact === channel;
+                 const selected = visibleContacts.includes(channel);
 
                 return (
                   <button
@@ -209,7 +222,7 @@ export default function SocialContactsPage() {
                     type="button"
                     disabled={!hasValue}
                     aria-pressed={selected}
-                    onClick={() => setVisibleContact(selected ? null : channel)}
+                     onClick={() => toggleContactVisibility(channel)}
                     className={[
                       "flex min-h-20 items-center gap-2 rounded-sm border px-3 py-3 text-left text-sm font-bold transition",
                       selected
@@ -302,19 +315,19 @@ function getSavedValue(field: string) {
   return payload[field] ?? "";
 }
 
-function getSavedVisibleContact(): ContactChannel | null {
+function getSavedVisibleContacts(): ContactChannel[] {
   if (typeof window === "undefined") {
-    return null;
+    return [];
   }
 
   const payload = JSON.parse(
     window.localStorage.getItem(REGISTER_PAYLOAD_KEY) ?? "{}",
   ) as Record<string, unknown>;
-  const value = Array.isArray(payload.visibleContactChannels)
-    ? payload.visibleContactChannels[0]
-    : null;
-
-  return isContactChannel(value) ? value : null;
+  return Array.isArray(payload.visibleContactChannels)
+    ? Array.from(
+        new Set(payload.visibleContactChannels.filter(isContactChannel)),
+      )
+    : [];
 }
 
 function normalizeContact(value: string) {
