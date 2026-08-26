@@ -22,7 +22,12 @@ const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
 export default function ConfiguracoesPage() {
   const router = useRouter();
-  const { user, isAuthLoading, logout } = useAuth();
+  const { user, isAuthLoading, logout, refreshUser } = useAuth();
+  const [newEmail, setNewEmail] = useState("");
+  const [emailPassword, setEmailPassword] = useState("");
+  const [isEmailSubmitting, setIsEmailSubmitting] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [emailSuccess, setEmailSuccess] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -83,6 +88,41 @@ export default function ConfiguracoesPage() {
       );
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleEmailSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setEmailError("");
+    setEmailSuccess("");
+    setIsEmailSubmitting(true);
+
+    try {
+      const response = await fetch("/api/auth/email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: emailPassword, newEmail }),
+      });
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message ?? "Não foi possível alterar o e-mail.",
+        );
+      }
+
+      await refreshUser();
+      setNewEmail("");
+      setEmailPassword("");
+      setEmailSuccess("E-mail alterado com sucesso.");
+    } catch (submissionError) {
+      setEmailError(
+        submissionError instanceof Error
+          ? submissionError.message
+          : "Não foi possível alterar o e-mail.",
+      );
+    } finally {
+      setIsEmailSubmitting(false);
     }
   }
 
@@ -157,6 +197,59 @@ export default function ConfiguracoesPage() {
             <div className="mt-5 break-all rounded-2xl border border-[color:color-mix(in_srgb,var(--silver)_38%,transparent)] bg-[var(--surface)] px-4 py-3 font-semibold text-[var(--black)]">
               {user.email || "E-mail não disponível"}
             </div>
+
+            <form onSubmit={handleEmailSubmit} className="mt-6 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-email">Novo e-mail</Label>
+                <Input
+                  id="new-email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={newEmail}
+                  onChange={(event) => setNewEmail(event.target.value)}
+                  className="h-12 rounded-xl border-[color:color-mix(in_srgb,var(--silver)_45%,transparent)] bg-white"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email-current-password">Senha atual</Label>
+                <Input
+                  id="email-current-password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={emailPassword}
+                  onChange={(event) => setEmailPassword(event.target.value)}
+                  className="h-12 rounded-xl border-[color:color-mix(in_srgb,var(--silver)_45%,transparent)] bg-white"
+                />
+              </div>
+
+              <div aria-live="polite" className="min-h-6 text-sm font-semibold">
+                {emailError ? (
+                  <p className="text-[var(--ruby)]">{emailError}</p>
+                ) : null}
+                {emailSuccess ? (
+                  <p className="flex items-center gap-2 text-[var(--emerald)]">
+                    <CheckCircle2 className="h-4 w-4" />
+                    {emailSuccess}
+                  </p>
+                ) : null}
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isEmailSubmitting}
+                className="h-12 w-full rounded-full bg-[var(--emerald)] px-6 font-extrabold text-white hover:bg-[color:color-mix(in_srgb,var(--emerald)_84%,black)]"
+              >
+                {isEmailSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Mail className="h-4 w-4" />
+                )}
+                {isEmailSubmitting ? "Alterando..." : "Alterar e-mail"}
+              </Button>
+            </form>
           </article>
 
           <article className="rounded-[2rem] border border-[color:color-mix(in_srgb,var(--gold)_26%,transparent)] bg-white/72 p-6 shadow-[0_22px_55px_rgba(20,17,14,0.08)] backdrop-blur-xl sm:p-8">
