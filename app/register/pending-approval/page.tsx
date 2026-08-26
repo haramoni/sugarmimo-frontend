@@ -184,44 +184,44 @@ export default function PendingApprovalPage() {
     );
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[url('/register-wallpaper-marble.jpg')] bg-cover bg-center px-5 py-10 text-black-jewel">
-      <section className="w-full max-w-[620px] bg-surface px-5 py-7 text-center shadow-[0_22px_60px_rgba(20,17,14,0.18)] sm:px-7">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gold bg-[color-mix(in_srgb,var(--gold-soft)_38%,white)] text-gold">
-          <MailCheck className="h-8 w-8" />
+    <main className="flex h-screen h-[100dvh] items-start justify-center overflow-x-hidden overflow-y-auto bg-[url('/register-wallpaper-marble.jpg')] bg-cover bg-center px-3 py-3 text-black-jewel sm:px-5 sm:py-4">
+      <section className="my-auto w-full max-w-[620px] bg-surface px-4 py-4 text-center shadow-[0_22px_60px_rgba(20,17,14,0.18)] sm:px-6 sm:py-5">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-gold bg-[color-mix(in_srgb,var(--gold-soft)_38%,white)] text-gold sm:h-14 sm:w-14">
+          <MailCheck className="h-6 w-6 sm:h-7 sm:w-7" />
         </div>
 
-        <div className="mt-5 space-y-3">
+        <div className="mt-3 space-y-1.5 sm:mt-4 sm:space-y-2">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
             Cadastro enviado
           </p>
-          <h1 className="text-2xl font-bold text-black-jewel">
+          <h1 className="text-xl font-bold text-black-jewel sm:text-2xl">
             Seu perfil está em análise
           </h1>
-          <p className="text-sm leading-6 text-[color:color-mix(in_srgb,var(--black)_68%,transparent)]">
+          <p className="text-xs leading-5 text-[color:color-mix(in_srgb,var(--black)_68%,transparent)] sm:text-sm">
             Nossa equipe vai revisar suas informações e fotos antes de liberar
             seu acesso ao SugarMimo. Assim que o perfil for aprovado, você
             poderá entrar normalmente.
           </p>
         </div>
 
-        <div className="mt-6 flex items-center justify-center gap-2 border-y border-silver py-4 text-sm font-bold text-black-jewel">
+        <div className="mt-3 flex items-center justify-center gap-2 border-y border-silver py-2.5 text-sm font-bold text-black-jewel sm:mt-4">
           <Clock className="h-4 w-4 text-gold" />
           Aprovação manual pendente
         </div>
 
-        <div className="mt-6 rounded-xl border border-gold/45 bg-[linear-gradient(145deg,color-mix(in_srgb,var(--gold-soft)_36%,white),white)] p-5 text-left shadow-[0_14px_35px_rgba(20,17,14,0.08)]">
+        <div className="mt-3 rounded-xl border border-gold/45 bg-[linear-gradient(145deg,color-mix(in_srgb,var(--gold-soft)_36%,white),white)] p-3 text-left shadow-[0_14px_35px_rgba(20,17,14,0.08)] sm:mt-4 sm:p-4">
           <div className="flex items-start gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gold text-white">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold text-white">
               <Zap className="h-5 w-5" />
             </span>
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-gold">
                 Análise prioritária
               </p>
-              <h2 className="mt-1 text-xl font-extrabold text-black-jewel">
+              <h2 className="mt-1 text-base font-extrabold text-black-jewel sm:text-lg">
                 Entre primeiro na fila por {APPROVAL_PRIORITY_PRICE_DISPLAY}
               </h2>
-              <p className="mt-2 text-sm font-medium leading-6 text-black-jewel/70">
+              <p className="mt-1.5 text-xs font-medium leading-5 text-black-jewel/70 sm:text-sm">
                 Gere um PIX exclusivo para o seu perfil. Assim que o pagamento
                 for recebido, sua prioridade será ativada automaticamente.
               </p>
@@ -229,16 +229,16 @@ export default function PendingApprovalPage() {
           </div>
 
           {isLoadingPayment ? (
-            <div className="mt-5 flex items-center justify-center gap-2 rounded-lg border border-gold/25 bg-white/75 p-5 text-sm font-bold text-black-jewel/65">
+            <div className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-gold/25 bg-white/75 p-3 text-sm font-bold text-black-jewel/65">
               <LoaderCircle className="h-5 w-5 animate-spin text-gold" />
               Consultando pagamento...
             </div>
           ) : null}
 
           {!isLoadingPayment && paymentReceived ? (
-            <div className="mt-5 rounded-lg border border-emerald/30 bg-emerald/10 p-5 text-center">
-              <CheckCircle2 className="mx-auto h-10 w-10 text-emerald" />
-              <p className="mt-3 text-lg font-extrabold text-emerald">
+            <div className="mt-3 rounded-lg border border-emerald/30 bg-emerald/10 p-3 text-center">
+              <CheckCircle2 className="mx-auto h-8 w-8 text-emerald" />
+              <p className="mt-2 text-base font-extrabold text-emerald sm:text-lg">
                 Pagamento confirmado!
               </p>
               <p className="mt-1 text-sm font-semibold leading-6 text-black-jewel/70">
@@ -249,21 +249,21 @@ export default function PendingApprovalPage() {
           ) : null}
 
           {!isLoadingPayment && payment?.status === "CREATING" ? (
-            <div className="mt-5 flex items-center justify-center gap-2 rounded-lg border border-gold/25 bg-white/75 p-5 text-sm font-bold text-black-jewel/65">
+            <div className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-gold/25 bg-white/75 p-3 text-sm font-bold text-black-jewel/65">
               <LoaderCircle className="h-5 w-5 animate-spin text-gold" />
               Finalizando a geração da cobrança...
             </div>
           ) : null}
 
           {!isLoadingPayment && paymentPending ? (
-            <div className="mt-5 space-y-4">
-              <div className="rounded-lg border border-gold/30 bg-white p-4 text-center">
+            <div className="mt-3 space-y-3">
+              <div className="rounded-lg border border-gold/30 bg-white p-3 text-center">
                 {payment.qrCodeImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={qrCodeSource(payment.qrCodeImage)}
                     alt="QR Code PIX de R$ 30 para análise prioritária"
-                    className="mx-auto h-52 w-52"
+                    className="mx-auto h-36 w-36 sm:h-44 sm:w-44"
                   />
                 ) : (
                   <QrCode className="mx-auto h-24 w-24 text-gold/45" />
@@ -281,7 +281,7 @@ export default function PendingApprovalPage() {
                 type="button"
                 disabled={!payment.pixCopyPaste}
                 onClick={() => void copyPixCode()}
-                className="h-12 w-full rounded-sm bg-emerald font-extrabold text-white hover:bg-emerald/85"
+                className="h-10 w-full rounded-sm bg-emerald font-extrabold text-white hover:bg-emerald/85"
               >
                 {copyStatus === "copied" ? (
                   <Check className="h-4 w-4" />
@@ -301,7 +301,7 @@ export default function PendingApprovalPage() {
           ) : null}
 
           {!isLoadingPayment && canGenerate && !paymentReceived ? (
-            <form onSubmit={generatePix} className="mt-5 space-y-4">
+            <form onSubmit={generatePix} className="mt-3 space-y-3">
               <div className="space-y-2">
                 <Label htmlFor="payment-full-name">Nome completo</Label>
                 <Input
@@ -336,7 +336,7 @@ export default function PendingApprovalPage() {
               <Button
                 type="submit"
                 disabled={isGenerating}
-                className="h-12 w-full rounded-sm bg-emerald font-extrabold text-white hover:bg-emerald/85"
+                className="h-10 w-full rounded-sm bg-emerald font-extrabold text-white hover:bg-emerald/85"
               >
                 {isGenerating ? (
                   <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -361,7 +361,7 @@ export default function PendingApprovalPage() {
             </p>
           ) : null}
 
-          <p className="mt-4 border-t border-gold/25 pt-3 text-xs font-semibold leading-5 text-black-jewel/65">
+          <p className="mt-3 border-t border-gold/25 pt-2 text-xs font-semibold leading-5 text-black-jewel/65">
             O pagamento antecipa a análise, mas não garante a aprovação do
             perfil. Todos continuam sujeitos aos mesmos critérios de segurança
             e verificação.
@@ -372,7 +372,7 @@ export default function PendingApprovalPage() {
           type="button"
           disabled={isClearingSession}
           onClick={() => void goToLogin()}
-          className="mt-6 h-12 w-full rounded-sm bg-emerald text-base font-bold text-white hover:bg-emerald/80 hover:text-surface"
+          className="mt-3 h-10 w-full rounded-sm bg-emerald text-sm font-bold text-white hover:bg-emerald/80 hover:text-surface sm:mt-4 sm:text-base"
         >
           {isClearingSession ? "Limpando acesso..." : "Ir para o login"}
         </Button>

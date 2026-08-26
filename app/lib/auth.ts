@@ -19,6 +19,7 @@ export type AuthUser = {
   instagram?: string | null;
   approvalStatus?: string;
   isPremium?: boolean;
+  premiumUntil?: string | null;
   isPremiere?: boolean;
   boostCredits?: number;
   boostedUntil?: string | null;

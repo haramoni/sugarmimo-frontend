@@ -6,14 +6,24 @@ import {
   Copy,
   Crown,
   Frame,
-  MessageCircle,
+  LoaderCircle,
+  QrCode,
   Rocket,
   Sparkles,
   Users,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
+import { useAuth } from "@/app/components/AuthProvider";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -24,24 +34,41 @@ import {
 } from "@/components/ui/dialog";
 import {
   PREMIERE_ORIGINAL_PRICE_DISPLAY,
-  PREMIERE_PIX_COPY_PASTE,
-  PREMIERE_PIX_KEY_DISPLAY,
   PREMIERE_PRICE_DISPLAY,
-  premierePaymentWhatsappUrl,
 } from "@/lib/contact";
 
 import styles from "./PremiereOfferDialog.module.css";
+
+type PremierePaymentState = {
+  status: string;
+  premiereActive?: boolean;
+  premiumActive?: boolean;
+  premiumUntil?: string | null;
+  amount?: number;
+  dueDate?: string;
+  paymentId?: string | null;
+  qrCodeImage?: string;
+  pixCopyPaste?: string;
+  expirationDate?: string;
+};
 
 export function PremiereOfferDialog({
   triggerVariant = "default",
 }: {
   triggerVariant?: "default" | "navbar";
 }) {
+  const { refreshUser } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<"benefits" | "payment">("benefits");
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
     "idle",
   );
+  const [payment, setPayment] = useState<PremierePaymentState | null>(null);
+  const [fullName, setFullName] = useState("");
+  const [cpfCnpj, setCpfCnpj] = useState("");
+  const [isLoadingPayment, setIsLoadingPayment] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
   const contentRef = useRef<HTMLDivElement>(null);
 
   function handleOpenChange(open: boolean) {
@@ -49,12 +76,69 @@ export function PremiereOfferDialog({
     if (!open) {
       setStep("benefits");
       setCopyStatus("idle");
+      setPaymentError("");
     }
   }
 
+  const loadPayment = useCallback(
+    async (includeQr: boolean) => {
+      const response = await fetch(
+        `/api/payments/premiere?includeQr=${includeQr}`,
+        { cache: "no-store" },
+      ).catch(() => null);
+
+      if (!response) {
+        setPaymentError("Não foi possível consultar o pagamento agora.");
+        return;
+      }
+
+      const result = (await response.json().catch(() => null)) as
+        PremierePaymentState | { message?: string | string[] } | null;
+      if (!response.ok) {
+        setPaymentError(paymentErrorMessage(result));
+        return;
+      }
+
+      const nextPayment = result as PremierePaymentState;
+      setPayment((current) => ({
+        ...current,
+        ...nextPayment,
+        qrCodeImage: nextPayment.qrCodeImage ?? current?.qrCodeImage,
+        pixCopyPaste: nextPayment.pixCopyPaste ?? current?.pixCopyPaste,
+      }));
+      setPaymentError("");
+      if (nextPayment.premiereActive) await refreshUser();
+    },
+    [refreshUser],
+  );
+
+  useEffect(() => {
+    if (!isOpen || step !== "payment") return;
+    const timeoutId = window.setTimeout(() => {
+      void loadPayment(true).finally(() => setIsLoadingPayment(false));
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [isOpen, loadPayment, step]);
+
+  useEffect(() => {
+    if (
+      !isOpen ||
+      step !== "payment" ||
+      !["PENDING", "CREATING"].includes(payment?.status ?? "")
+    ) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === "visible") void loadPayment(false);
+    }, 5_000);
+    return () => window.clearInterval(intervalId);
+  }, [isOpen, loadPayment, payment?.status, step]);
+
   async function copyPixCode() {
+    if (!payment?.pixCopyPaste) return;
     try {
-      await navigator.clipboard.writeText(PREMIERE_PIX_COPY_PASTE);
+      await navigator.clipboard.writeText(payment.pixCopyPaste);
       setCopyStatus("copied");
     } catch {
       setCopyStatus("error");
@@ -62,9 +146,58 @@ export function PremiereOfferDialog({
   }
 
   function showPayment() {
+    setIsLoadingPayment(true);
     setStep("payment");
     requestAnimationFrame(() => contentRef.current?.scrollTo({ top: 0 }));
   }
+
+  async function generatePix(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPaymentError("");
+    const documentDigits = cpfCnpj.replace(/\D/g, "");
+
+    if (fullName.trim().length < 3) {
+      setPaymentError("Informe seu nome completo.");
+      return;
+    }
+    if (![11, 14].includes(documentDigits.length)) {
+      setPaymentError("Informe um CPF ou CNPJ válido.");
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const response = await fetch("/api/payments/premiere", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          cpfCnpj: documentDigits,
+        }),
+      });
+      const result = (await response.json().catch(() => null)) as
+        PremierePaymentState | { message?: string | string[] } | null;
+      if (!response.ok) throw new Error(paymentErrorMessage(result));
+      setPayment(result as PremierePaymentState);
+    } catch (error) {
+      setPaymentError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível gerar o PIX.",
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  const paymentReceived =
+    payment?.status === "RECEIVED" || payment?.premiereActive;
+  const paymentPending = payment?.status === "PENDING";
+  const canGenerate =
+    !payment ||
+    ["NOT_CREATED", "FAILED", "OVERDUE", "CANCELLED", "REFUNDED"].includes(
+      payment.status,
+    );
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -139,8 +272,8 @@ export function PremiereOfferDialog({
 
               <div className="grid gap-3">
                 <Benefit icon={Users}>
-                  <strong>1 mês de benefícios Premium</strong>, incluindo
-                  acesso exclusivo aos contatos das meninas.
+                  <strong>1 mês de benefícios Premium</strong>, incluindo acesso
+                  exclusivo aos contatos das meninas.
                 </Benefit>
                 <Benefit icon={Rocket}>
                   <strong>3 Boosts</strong> para usar futuramente e impulsionar
@@ -177,10 +310,9 @@ export function PremiereOfferDialog({
                   Pagamento via PIX
                 </DialogTitle>
                 <DialogDescription className="mx-auto max-w-lg text-sm font-medium leading-6 text-[#5f503d] sm:text-base">
-                  O QR Code já está configurado com o valor de R$ 149,00.
-                  Escaneie ou copie o código PIX, conclua no aplicativo do seu
-                  banco e envie o comprovante pelo WhatsApp. Este é um
-                  pagamento único e não uma assinatura recorrente.
+                  Gere sua cobrança de R$ 149,00 e conclua o PIX. A confirmação
+                  é automática: Premiere vitalício e Premium por um mês serão
+                  ativados assim que o Asaas confirmar o recebimento.
                 </DialogDescription>
               </DialogHeader>
 
@@ -190,61 +322,109 @@ export function PremiereOfferDialog({
                 <span />
               </div>
 
-              <div className={styles.pixCard}>
-                <PremierePrice compact />
-                <div className={styles.pixPaymentGrid}>
-                  <div className={styles.qrColumn}>
-                    <div className={styles.qrCodeWrap}>
-                      {/* Static payment asset should be rendered without image optimization. */}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src="/pix-premiere-14900-qrcode.png"
-                        alt="QR Code PIX do Premiere no valor fixo de R$ 149,00"
-                        className={styles.qrCode}
-                      />
-                    </div>
-                    <p className={styles.qrHint}>
-                      Aponte a câmera do banco e confira o valor de R$ 149,00
-                      antes de pagar.
-                    </p>
-                  </div>
-                  <div className={styles.pixDetails}>
-                    <div className={styles.pixSeparator} aria-hidden="true">
-                      <span />
-                      <small>ou use o copia e cola</small>
-                      <span />
-                    </div>
-                    <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#8b6b3d]">
-                      Chave PIX — CNPJ
-                    </p>
-                    <p className={`${styles.pixKey} mt-2`}>
-                      {PREMIERE_PIX_KEY_DISPLAY}
-                    </p>
-                    <Button
-                      type="button"
-                      onClick={() => void copyPixCode()}
-                      className="mt-4 h-11 w-full rounded-full border border-[#d1b378] bg-[#f6e7c8] font-extrabold text-[#5b4224] hover:bg-[#eddbb5]"
-                    >
-                      {copyStatus === "copied" ? (
-                        <Check className="h-4 w-4 text-emerald" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                      {copyStatus === "copied"
-                        ? "Código PIX copiado!"
-                        : "Copiar código PIX"}
-                    </Button>
-                    {copyStatus === "error" ? (
-                      <p className="mt-2 text-center text-xs font-bold text-ruby">
-                        Não foi possível copiar automaticamente. Use o QR Code
-                        ou a chave CNPJ acima.
+              {paymentError ? (
+                <p className="rounded-xl border border-ruby/20 bg-ruby/10 px-4 py-3 text-center text-sm font-bold text-ruby">
+                  {paymentError}
+                </p>
+              ) : null}
+
+              {isLoadingPayment ? (
+                <div className="grid min-h-48 place-items-center">
+                  <LoaderCircle className="h-8 w-8 animate-spin text-[#a87937]" />
+                </div>
+              ) : paymentReceived ? (
+                <div className="rounded-2xl border border-emerald/25 bg-emerald/10 px-5 py-8 text-center">
+                  <Check className="mx-auto h-10 w-10 text-emerald" />
+                  <h3 className="mt-3 text-xl font-extrabold text-emerald">
+                    Premiere ativado!
+                  </h3>
+                  <p className="mt-2 text-sm font-semibold text-[#5f503d]">
+                    Sua moldura é vitalícia e o mês Premium já está valendo.
+                  </p>
+                </div>
+              ) : paymentPending && payment.qrCodeImage ? (
+                <div className={styles.pixCard}>
+                  <PremierePrice compact />
+                  <div className={styles.pixPaymentGrid}>
+                    <div className={styles.qrColumn}>
+                      <div className={styles.qrCodeWrap}>
+                        {/* Asaas returns a trusted base64 PNG for this authenticated charge. */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={`data:image/png;base64,${payment.qrCodeImage}`}
+                          alt="QR Code PIX do Premiere no valor de R$ 149,00"
+                          className={styles.qrCode}
+                        />
+                      </div>
+                      <p className={styles.qrHint}>
+                        Aguardando a confirmação automática do pagamento.
                       </p>
-                    ) : null}
+                    </div>
+                    <div className={styles.pixDetails}>
+                      <QrCode className="mx-auto h-8 w-8 text-[#a87937]" />
+                      <p className="mt-3 text-center text-xs font-extrabold uppercase tracking-[0.16em] text-[#8b6b3d]">
+                        PIX copia e cola
+                      </p>
+                      <Button
+                        type="button"
+                        onClick={() => void copyPixCode()}
+                        className="mt-4 h-11 w-full rounded-full border border-[#d1b378] bg-[#f6e7c8] font-extrabold text-[#5b4224] hover:bg-[#eddbb5]"
+                      >
+                        {copyStatus === "copied" ? (
+                          <Check className="h-4 w-4 text-emerald" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                        {copyStatus === "copied"
+                          ? "Código PIX copiado!"
+                          : "Copiar código PIX"}
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : canGenerate ? (
+                <form
+                  onSubmit={generatePix}
+                  className="mx-auto grid max-w-lg gap-4 rounded-2xl border border-[#d8bf8c] bg-white/70 p-5"
+                >
+                  <PremierePrice compact />
+                  <div className="grid gap-2 text-left">
+                    <Label htmlFor="premiere-full-name">Nome completo</Label>
+                    <Input
+                      id="premiere-full-name"
+                      value={fullName}
+                      onChange={(event) => setFullName(event.target.value)}
+                      autoComplete="name"
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-2 text-left">
+                    <Label htmlFor="premiere-document">CPF ou CNPJ</Label>
+                    <Input
+                      id="premiere-document"
+                      value={cpfCnpj}
+                      onChange={(event) => setCpfCnpj(event.target.value)}
+                      inputMode="numeric"
+                      placeholder="Somente números"
+                      required
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isGenerating}
+                    className="h-12 rounded-full bg-emerald font-extrabold text-white hover:bg-emerald/85"
+                  >
+                    {isGenerating ? (
+                      <LoaderCircle className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <QrCode className="h-4 w-4" />
+                    )}
+                    {isGenerating ? "Gerando PIX..." : "Gerar PIX de R$ 149,00"}
+                  </Button>
+                </form>
+              ) : null}
 
-              <div className="mt-4 grid gap-2 sm:grid-cols-[auto_1fr]">
+              <div className="mt-4 grid gap-2">
                 <Button
                   type="button"
                   variant="ghost"
@@ -253,19 +433,6 @@ export function PremiereOfferDialog({
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Voltar
-                </Button>
-                <Button
-                  asChild
-                  className="h-12 rounded-full bg-emerald px-5 font-extrabold text-white shadow-[0_12px_24px_rgba(0,108,88,0.2)] hover:bg-emerald/85"
-                >
-                  <a
-                    href={premierePaymentWhatsappUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    Enviar confirmação no WhatsApp
-                  </a>
                 </Button>
               </div>
             </>
@@ -324,4 +491,15 @@ function Benefit({
       </p>
     </div>
   );
+}
+
+function paymentErrorMessage(
+  result: PremierePaymentState | { message?: string | string[] } | null,
+) {
+  if (!result || !("message" in result)) {
+    return "Não foi possível gerar o PIX.";
+  }
+  return Array.isArray(result.message)
+    ? (result.message[0] ?? "Não foi possível gerar o PIX.")
+    : (result.message ?? "Não foi possível gerar o PIX.");
 }

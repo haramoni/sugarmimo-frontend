@@ -71,9 +71,8 @@ export function LoginForm() {
       }
 
       saveAuthUser(result.user);
-      window.dispatchEvent(new Event("sugarmimo-auth"));
       if (shouldShowPendingApproval(result.user)) {
-        router.replace(PENDING_APPROVAL_ROUTE);
+        window.location.replace(PENDING_APPROVAL_ROUTE);
         return;
       }
 
@@ -81,7 +80,7 @@ export function LoginForm() {
         window.sessionStorage.setItem("sugarmimo-chat-online-toast", "1");
       }
 
-      router.replace("/inicio");
+      window.location.replace("/inicio");
     } catch (loginError) {
       setError(
         loginError instanceof Error
