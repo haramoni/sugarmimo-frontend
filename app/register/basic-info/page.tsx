@@ -21,6 +21,7 @@ import {
   setRegisterStep,
 } from "../register-flow";
 import { RegisterStepDots } from "../RegisterStepDots";
+import { useRegistrationSecret } from "../RegistrationSecretProvider";
 
 type IbgeState = {
   id: number;
@@ -46,11 +47,13 @@ type AvailabilityCheck = AvailabilityResponse & {
 type FieldErrors = {
   username?: string;
   email?: string;
+  accountPhone?: string;
   password?: string;
 };
 
 export default function RegisterAccountForm() {
   const router = useRouter();
+  const { password, setPassword } = useRegistrationSecret();
   const savedPayload = getSavedPayload();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -63,7 +66,7 @@ export default function RegisterAccountForm() {
     sanitizeUsername(savedPayload.username),
   );
   const [email, setEmail] = useState(savedPayload.email);
-  const [password, setPassword] = useState(savedPayload.password);
+  const [accountPhone, setAccountPhone] = useState(savedPayload.accountPhone);
   const [birthDay, setBirthDay] = useState(savedPayload.birthDay);
   const [birthMonth, setBirthMonth] = useState(savedPayload.birthMonth);
   const [birthYear, setBirthYear] = useState(savedPayload.birthYear);
@@ -71,18 +74,21 @@ export default function RegisterAccountForm() {
   const [source, setSource] = useState(savedPayload.source);
   const normalizedUsername = username.trim();
   const normalizedEmail = email.trim().toLowerCase();
+  const normalizedAccountPhone = normalizePhone(accountPhone);
   const clientErrors = useMemo(
     () =>
       getValidationErrors({
         username: normalizedUsername,
         email: normalizedEmail,
+        accountPhone: normalizedAccountPhone,
         password,
       }),
-    [normalizedEmail, normalizedUsername, password],
+    [normalizedAccountPhone, normalizedEmail, normalizedUsername, password],
   );
   const fieldErrors = {
     username: clientErrors.username ?? availabilityErrors.username,
     email: clientErrors.email ?? availabilityErrors.email,
+    accountPhone: clientErrors.accountPhone,
     password: clientErrors.password,
   };
   const hasFieldErrors = Object.values(fieldErrors).some(Boolean);
@@ -93,9 +99,14 @@ export default function RegisterAccountForm() {
     const stepOne = JSON.parse(
       localStorage.getItem(REGISTER_STEP_ONE_KEY) ?? "{}",
     );
+    const currentPayload = JSON.parse(
+      localStorage.getItem(REGISTER_PAYLOAD_KEY) ?? "{}",
+    );
+    delete currentPayload.password;
     const validationErrors = getValidationErrors({
       username: normalizedUsername,
       email: normalizedEmail,
+      accountPhone: normalizedAccountPhone,
       password,
       showRequired: true,
     });
@@ -139,11 +150,12 @@ export default function RegisterAccountForm() {
       }
 
       const payload = {
+        ...currentPayload,
         ...stepOne,
         referralUsername: getStoredReferralUsername(),
         username: normalizedUsername,
         email: normalizedEmail,
-        password,
+        accountPhone: normalizedAccountPhone,
         birthDate: `${birthYear}-${birthMonth}-${birthDay.padStart(2, "0")}`,
         country,
         state,
@@ -264,32 +276,6 @@ export default function RegisterAccountForm() {
     setCities([]);
   }
 
-  const isCurrentAvailabilityCheck =
-    availabilityCheck?.username === normalizedUsername &&
-    availabilityCheck?.email === normalizedEmail;
-  const accountIsAvailable =
-    isCurrentAvailabilityCheck &&
-    availabilityCheck.usernameAvailable === true &&
-    availabilityCheck.emailAvailable === true;
-  const allRequiredFieldsFilled = Boolean(
-    normalizedUsername &&
-    normalizedEmail &&
-    password &&
-    birthDay &&
-    birthMonth &&
-    birthYear &&
-    country &&
-    state &&
-    city &&
-    source,
-  );
-  const canContinue =
-    allRequiredFieldsFilled &&
-    accountIsAvailable &&
-    !hasFieldErrors &&
-    !isCheckingAvailability &&
-    !isSubmitting;
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-[url('/register-wallpaper-marble.jpg')] bg-cover bg-center px-4 py-3 lg:py-2">
       <div className="w-full max-w-230 bg-surface px-4 py-3 shadow-[0_22px_60px_rgba(20,17,14,0.18)] sm:px-6 lg:px-8">
@@ -371,8 +357,9 @@ export default function RegisterAccountForm() {
               </Label>
 
               <p className="flex items-center gap-1 text-xs text-[color:color-mix(in_srgb,var(--black)_58%,transparent)]">
-                <Lock className="h-3 w-3" />
-                Não ficará visível para outros usuários
+                Seu e-mail será utilizado para criação e segurança da conta,
+                autenticação e comunicações relacionadas ao serviço, conforme a
+                Política de Privacidade.
               </p>
               <div className="relative border-b border-[var(--silver)] bg-[color:color-mix(in_srgb,var(--gold-soft)_30%,white)]">
                 <Input
@@ -399,6 +386,40 @@ export default function RegisterAccountForm() {
             </div>
 
             <div className="space-y-2 lg:col-start-1 lg:row-start-4">
+              <Label
+                htmlFor="account-phone"
+                className="font-bold text-[var(--black)]"
+              >
+                Celular da conta
+              </Label>
+
+              <p className="flex items-center gap-1 text-xs text-[color:color-mix(in_srgb,var(--black)_58%,transparent)]">
+                Usado somente para controle e segurança. Não será exibido no
+                site.
+              </p>
+              <div className="relative border-b border-[var(--silver)] bg-[color:color-mix(in_srgb,var(--gold-soft)_30%,white)]">
+                <Input
+                  id="account-phone"
+                  name="accountPhone"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  required
+                  maxLength={24}
+                  value={accountPhone}
+                  onChange={(event) => {
+                    setAccountPhone(event.target.value);
+                    setError("");
+                  }}
+                  placeholder="Ex.: +55 11 99999-9999"
+                  className="h-11 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+                />
+              </div>
+
+              <FieldMessage message={fieldErrors.accountPhone} />
+            </div>
+
+            <div className="space-y-2 lg:col-start-1 lg:row-start-5">
               <Label
                 htmlFor="password"
                 className="font-bold text-[var(--black)]"
@@ -439,7 +460,7 @@ export default function RegisterAccountForm() {
 
               <p className="text-xs text-[color-mix(in_srgb,var(--black)_58%,transparent)]">
                 Mínimo 8 caracteres, com letra maiúscula, minúscula, número e
-                caractere especial.
+                caractere especial. A senha não será salva no navegador.
               </p>
 
               <FieldMessage message={fieldErrors.password} />
@@ -581,7 +602,6 @@ export default function RegisterAccountForm() {
 
             <Button
               type="submit"
-              disabled={!canContinue}
               className="h-10 w-full rounded-md bg-emerald text-base font-bold text-white hover:bg-emerald/80 hover:text-white lg:col-start-2"
             >
               {isSubmitting ? "Validando..." : "Continuar Cadastro"}
@@ -660,11 +680,13 @@ async function checkAccountAvailability(
 function getValidationErrors({
   username,
   email,
+  accountPhone,
   password,
   showRequired = false,
 }: {
   username: string;
   email: string;
+  accountPhone: string;
   password: string;
   showRequired?: boolean;
 }) {
@@ -687,6 +709,12 @@ function getValidationErrors({
     errors.email = "Informe um e-mail válido.";
   }
 
+  if (showRequired && !accountPhone) {
+    errors.accountPhone = "Informe o celular usado para controle da conta.";
+  } else if (accountPhone && !/^\+?\d{10,15}$/.test(accountPhone)) {
+    errors.accountPhone = "Informe um celular válido, incluindo o DDD.";
+  }
+
   const passwordError = getPasswordError(password, showRequired);
 
   if (passwordError) {
@@ -706,6 +734,11 @@ function sanitizeUsername(value: string) {
   }
 
   return value.replace(/[^A-Za-z0-9._-]/g, "").slice(0, 30);
+}
+
+function normalizePhone(value: string) {
+  const digits = value.replace(/\D/g, "");
+  return value.trim().startsWith("+") ? `+${digits}` : digits;
 }
 
 function getPasswordError(password: string, showRequired = false) {
@@ -741,7 +774,7 @@ function getSavedPayload() {
     return {
       username: "",
       email: "",
-      password: "",
+      accountPhone: "",
       birthDay: "",
       birthMonth: "",
       birthYear: "",
@@ -762,7 +795,7 @@ function getSavedPayload() {
   return {
     username: String(payload.username ?? ""),
     email: String(payload.email ?? ""),
-    password: String(payload.password ?? ""),
+    accountPhone: String(payload.accountPhone ?? ""),
     birthDay,
     birthMonth,
     birthYear,

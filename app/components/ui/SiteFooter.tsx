@@ -8,7 +8,6 @@ const footerGroups = [
     links: [
       { label: "Como funciona", href: "/#como-funciona" },
       { label: "Blog", href: "/blog" },
-      { label: "Contato", href: "/contato" },
     ],
   },
   {
@@ -17,6 +16,7 @@ const footerGroups = [
       { label: "Sobre nós", href: "/sobre" },
       { label: "Termos de uso", href: "/terms" },
       { label: "Política de Privacidade", href: "/privacy" },
+      { label: "Política de Cookies", href: "/privacy#pagina-8" },
     ],
   },
 ];
@@ -70,8 +70,13 @@ export function SiteFooter() {
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-sm font-extrabold uppercase tracking-normal text-gold-soft">
-            Atendimento
+          <h2>
+            <Link
+              href="/atendimento"
+              className="inline-flex text-sm font-extrabold uppercase tracking-normal text-gold-soft transition hover:text-white"
+            >
+              Atendimento
+            </Link>
           </h2>
           <div className="grid gap-3 text-sm font-semibold text-white/76">
             <a
@@ -91,6 +96,42 @@ export function SiteFooter() {
           </div>
         </div>
       </div>
+
+      <section
+        aria-labelledby="institutional-identification"
+        className="mx-auto mt-10 max-w-7xl border-t border-white/12 pt-5 text-xs font-semibold leading-6 text-white/64"
+      >
+        <h2
+          id="institutional-identification"
+          className="mb-1 text-xs font-extrabold uppercase tracking-normal text-gold-soft"
+        >
+          Identificação institucional
+        </h2>
+        <p>
+          SPARKBRIDGE VENTURES – CNPJ nº 68.573.395/0001-55. Atendimento:{" "}
+          <a
+            href="mailto:contato@sugarmimo.com"
+            className="transition hover:text-gold-soft"
+          >
+            contato@sugarmimo.com
+          </a>
+          . Privacidade:{" "}
+          <a
+            href="mailto:privacidade@sugarmimo.com"
+            className="transition hover:text-gold-soft"
+          >
+            privacidade@sugarmimo.com
+          </a>
+          . Denúncias:{" "}
+          <a
+            href="mailto:denuncia@sugarmimo.com"
+            className="transition hover:text-gold-soft"
+          >
+            denuncia@sugarmimo.com
+          </a>
+          .
+        </p>
+      </section>
 
       <div className="mx-auto mt-10 flex max-w-7xl flex-col gap-3 border-t border-white/12 pt-5 text-xs font-semibold text-white/48 sm:flex-row sm:items-center sm:justify-between">
         <p>© 2026 SugarMimo. Todos os direitos reservados.</p>

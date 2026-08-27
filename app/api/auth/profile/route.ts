@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 
 import { API_URL, clearSessionCookie, getSessionToken } from "../_cookies";
+import { rejectBodyLargerThan } from "../../_request-security";
 
 export async function PATCH(request: Request) {
+  const oversized = rejectBodyLargerThan(request, 64 * 1024 * 1024);
+  if (oversized) return oversized;
+
   const token = await getSessionToken();
 
   if (!token) {

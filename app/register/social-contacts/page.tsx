@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { REGISTER_PAYLOAD_KEY, setRegisterStep } from "../register-flow";
 import { RegisterStepDots } from "../RegisterStepDots";
+import { useRegistrationSecret } from "../RegistrationSecretProvider";
 
 type ContactChannel = "whatsapp" | "telegram" | "instagram";
 
@@ -42,6 +43,7 @@ const contactOptions: Array<{
 
 export default function SocialContactsPage() {
   const router = useRouter();
+  const { password } = useRegistrationSecret();
   const [whatsapp, setWhatsapp] = useState(() => getSavedValue("whatsapp"));
   const [telegram, setTelegram] = useState(() => getSavedValue("telegram"));
   const [instagram, setInstagram] = useState(() => getSavedValue("instagram"));
@@ -53,7 +55,8 @@ export default function SocialContactsPage() {
   useEffect(() => {
     const savedPayload = localStorage.getItem(REGISTER_PAYLOAD_KEY);
 
-    if (!savedPayload) {
+    if (!savedPayload || !password) {
+      setRegisterStep("/register/basic-info");
       router.replace("/register/basic-info");
       return;
     }
@@ -66,7 +69,7 @@ export default function SocialContactsPage() {
     }
 
     setRegisterStep("/register/social-contacts");
-  }, [router]);
+  }, [password, router]);
 
   const contactValues: Record<ContactChannel, string> = {
     whatsapp,
@@ -134,12 +137,12 @@ export default function SocialContactsPage() {
               <ShieldCheck className="h-7 w-7" />
             </span>
             <DialogTitle className="font-serif text-2xl font-bold text-black-jewel">
-              Seus contatos são privados
+              Contatos para exibição
             </DialogTitle>
             <DialogDescription className="max-w-md text-sm leading-6 text-black-jewel/68">
-              WhatsApp, Instagram e Telegram não ficam públicos no seu perfil.
-              Eles só serão mostrados a um Sugar Daddy autorizado se você
-               decidir liberar cada canal.
+              Estes contatos são separados do celular privado informado na
+              criação da conta. Eles só serão mostrados a um Sugar Daddy
+              autorizado se você decidir liberar cada canal.
             </DialogDescription>
           </DialogHeader>
 
@@ -165,16 +168,19 @@ export default function SocialContactsPage() {
 
           <div>
             <h1 className="text-2xl font-bold text-black-jewel">
-              Seus contatos
+              Contatos para exibição
             </h1>
             <p className="text-sm text-[color-mix(in_srgb,var(--black)_64%,transparent)]">
-              Informe os canais que a equipe pode usar para validar sua conta.
+              Informe os canais que você poderá disponibilizar para pessoas no
+              site. Eles não alteram o celular privado usado para controle da
+              sua conta.
             </p>
           </div>
 
           <ContactField
             icon={MessageCircle}
-            label="WhatsApp"
+            label="Celular/WhatsApp para contato"
+            description="Este número só poderá ser exibido se você liberar o canal WhatsApp abaixo."
             value={whatsapp}
             onChange={(value) => updateContact("whatsapp", value)}
             placeholder="Ex.: 11999999999"
@@ -268,6 +274,7 @@ export default function SocialContactsPage() {
 type ContactFieldProps = {
   icon: LucideIcon;
   label: string;
+  description?: string;
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
@@ -278,6 +285,7 @@ type ContactFieldProps = {
 function ContactField({
   icon: Icon,
   label,
+  description,
   value,
   onChange,
   placeholder,
@@ -287,6 +295,11 @@ function ContactField({
   return (
     <div className="space-y-2">
       <Label className="font-bold text-black-jewel">{label}</Label>
+      {description ? (
+        <p className="text-xs font-medium leading-5 text-black-jewel/62">
+          {description}
+        </p>
+      ) : null}
       <div className="relative border-b border-silver bg-[color-mix(in_srgb,var(--gold-soft)_30%,white)]">
         <Icon className="absolute left-0 top-1/2 h-4 w-4 -translate-y-1/2 text-gold" />
         <Input

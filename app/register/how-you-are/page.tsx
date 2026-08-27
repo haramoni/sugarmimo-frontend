@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { REGISTER_PAYLOAD_KEY, setRegisterStep } from "../register-flow";
 import { RegisterStepDots } from "../RegisterStepDots";
+import { useRegistrationSecret } from "../RegistrationSecretProvider";
 import {
   bodyTypes,
   describeForProfile,
@@ -48,6 +49,7 @@ const heights = Array.from({ length: 61 }, (_, index) => 150 + index);
 
 export default function HowYouArePage() {
   const router = useRouter();
+  const { password } = useRegistrationSecret();
   const profileType = getSavedValue("profileType");
   const [bodyType, setBodyType] = useState(() =>
     describeForProfile(getSavedValue("bodyType"), profileType),
@@ -60,13 +62,14 @@ export default function HowYouArePage() {
   const [heightCm, setHeightCm] = useState(() => getSavedValue("heightCm"));
 
   useEffect(() => {
-    if (!localStorage.getItem(REGISTER_PAYLOAD_KEY)) {
+    if (!localStorage.getItem(REGISTER_PAYLOAD_KEY) || !password) {
+      setRegisterStep("/register/basic-info");
       router.replace("/register/basic-info");
       return;
     }
 
     setRegisterStep("/register/how-you-are");
-  }, [router]);
+  }, [password, router]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

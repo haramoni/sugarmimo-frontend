@@ -74,45 +74,50 @@ export default function ConfiguracoesPage() {
     }
 
     const controller = new AbortController();
-    setIsConsentHistoryLoading(true);
-    setConsentHistoryError("");
+    const timeoutId = window.setTimeout(() => {
+      setIsConsentHistoryLoading(true);
+      setConsentHistoryError("");
 
-    fetch("/api/auth/consents", {
-      cache: "no-store",
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        const result = await response.json().catch(() => null);
-
-        if (!response.ok) {
-          throw new Error(
-            result?.message ?? "Não foi possível consultar seus aceites.",
-          );
-        }
-
-        return Array.isArray(result) ? (result as ConsentRecord[]) : [];
+      fetch("/api/auth/consents", {
+        cache: "no-store",
+        signal: controller.signal,
       })
-      .then((history) => {
-        if (!controller.signal.aborted) {
-          setConsentHistory(history);
-        }
-      })
-      .catch((historyError) => {
-        if (!controller.signal.aborted) {
-          setConsentHistoryError(
-            historyError instanceof Error
-              ? historyError.message
-              : "Não foi possível consultar seus aceites.",
-          );
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsConsentHistoryLoading(false);
-        }
-      });
+        .then(async (response) => {
+          const result = await response.json().catch(() => null);
 
-    return () => controller.abort();
+          if (!response.ok) {
+            throw new Error(
+              result?.message ?? "Não foi possível consultar seus aceites.",
+            );
+          }
+
+          return Array.isArray(result) ? (result as ConsentRecord[]) : [];
+        })
+        .then((history) => {
+          if (!controller.signal.aborted) {
+            setConsentHistory(history);
+          }
+        })
+        .catch((historyError) => {
+          if (!controller.signal.aborted) {
+            setConsentHistoryError(
+              historyError instanceof Error
+                ? historyError.message
+                : "Não foi possível consultar seus aceites.",
+            );
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) {
+            setIsConsentHistoryLoading(false);
+          }
+        });
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [user]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -471,7 +476,7 @@ export default function ConfiguracoesPage() {
           </div>
         </article>
 
-        <article className="mt-6 rounded-[2rem] border border-[color:color-mix(in_srgb,var(--ruby)_34%,transparent)] bg-[color:color-mix(in_srgb,var(--ruby)_4%,white)] p-6 shadow-[0_22px_55px_rgba(20,17,14,0.06)] sm:p-8">
+        <article id="excluir-conta" className="mt-6 scroll-mt-24 rounded-[2rem] border border-[color:color-mix(in_srgb,var(--ruby)_34%,transparent)] bg-[color:color-mix(in_srgb,var(--ruby)_4%,white)] p-6 shadow-[0_22px_55px_rgba(20,17,14,0.06)] sm:p-8">
           <div className="flex items-start gap-4">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[color:color-mix(in_srgb,var(--ruby)_12%,white)] text-[var(--ruby)]">
               <AlertTriangle className="h-5 w-5" />

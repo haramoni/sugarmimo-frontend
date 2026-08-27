@@ -113,7 +113,28 @@ type ProfilePhoto = {
   mimeType?: string | null;
   sortOrder: number;
   isPrivate?: boolean;
+  moderationStatus?: "PENDING" | "APPROVED" | "REJECTED";
+  moderationReason?: string | null;
+  moderatedAt?: string | null;
+  replacesPhotoId?: string | null;
 };
+
+function editablePhotosForOwner(profilePhotos: ProfilePhoto[]) {
+  const replacedPhotoIds = new Set(
+    profilePhotos
+      .filter(
+        (photo) =>
+          photo.moderationStatus === "PENDING" && photo.replacesPhotoId,
+      )
+      .map((photo) => photo.replacesPhotoId as string),
+  );
+
+  return profilePhotos.filter(
+    (photo) =>
+      photo.moderationStatus !== "REJECTED" &&
+      !(photo.id && replacedPhotoIds.has(photo.id)),
+  );
+}
 
 type PreferenceValues = {
   smoke?: string;
@@ -456,8 +477,9 @@ export default function PerfilPage() {
     return <ProfileApprovalGuard user={user} />;
   }
 
-  const publicPhotos = photos.filter((photo) => !photo.isPrivate);
-  const privatePhotos = photos.filter((photo) => photo.isPrivate);
+  const editablePhotos = editablePhotosForOwner(photos);
+  const publicPhotos = editablePhotos.filter((photo) => !photo.isPrivate);
+  const privatePhotos = editablePhotos.filter((photo) => photo.isPrivate);
   const profilePhoto = publicPhotos[0];
   const isPremiereDaddy =
     user.role?.trim().toUpperCase() === "SUGAR_DADDY" &&
@@ -801,7 +823,7 @@ export default function PerfilPage() {
         visibleContactChannels: form.visibleContactChannels,
         contactViewerUsernames: form.contactViewerUsernames,
         privatePhotoViewerUsernames: form.privatePhotoViewerUsernames,
-        profilePhotos: photos.map((photo, index) => ({
+        profilePhotos: editablePhotos.map((photo, index) => ({
           id: photo.id,
           dataUrl: photo.dataUrl,
           fileName: photo.fileName,
@@ -833,8 +855,16 @@ export default function PerfilPage() {
       saveAuthUser(result);
       window.dispatchEvent(new Event("sugarmimo-auth"));
       setRemoteProfile(result);
+      hydrateProfile(result);
       setIsEditing(false);
-      setFeedback("Perfil atualizado com sucesso.");
+      setFeedback(
+        Array.isArray(result?.photos) &&
+          result.photos.some(
+            (photo: ProfilePhoto) => photo.moderationStatus === "PENDING",
+          )
+          ? "Perfil salvo. As fotos novas ficarão em análise antes de aparecerem para outras pessoas."
+          : "Perfil atualizado com sucesso.",
+      );
     } catch (saveError) {
       setError(
         saveError instanceof Error
@@ -915,11 +945,14 @@ export default function PerfilPage() {
                           className={`relative ${premiereStyles.premierePhoto}`}
                         >
                           {profilePhoto ? (
-                            <PhotoZoom
-                              src={profilePhoto.dataUrl}
-                              alt={`Foto de ${form.username || "perfil"}`}
-                              imageClassName={`h-full w-full object-cover ${premiereStyles.premiereImage}`}
-                            />
+                            <>
+                              <PhotoZoom
+                                src={profilePhoto.dataUrl}
+                                alt={`Foto de ${form.username || "perfil"}`}
+                                imageClassName={`h-full w-full object-cover ${premiereStyles.premiereImage}`}
+                              />
+                              <PhotoModerationBadge photo={profilePhoto} />
+                            </>
                           ) : (
                             <button
                               type="button"
@@ -947,13 +980,16 @@ export default function PerfilPage() {
                     </div>
                   ) : (
                     <div className="aspect-4/5 overflow-hidden rounded-lg border-[3px] border-emerald/70 bg-[color-mix(in_srgb,var(--emerald)_10%,white)] p-1 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.86),0_18px_38px_rgba(0,55,44,0.18)] sm:aspect-[1/0.98]">
-                      <div className="h-full overflow-hidden rounded-md">
+                      <div className="relative h-full overflow-hidden rounded-md">
                         {profilePhoto ? (
-                          <PhotoZoom
-                            src={profilePhoto.dataUrl}
-                            alt={`Foto de ${form.username || "perfil"}`}
-                            imageClassName="h-full w-full object-cover"
-                          />
+                          <>
+                            <PhotoZoom
+                              src={profilePhoto.dataUrl}
+                              alt={`Foto de ${form.username || "perfil"}`}
+                              imageClassName="h-full w-full object-cover"
+                            />
+                            <PhotoModerationBadge photo={profilePhoto} />
+                          </>
                         ) : (
                           <button
                             type="button"
@@ -1152,6 +1188,9 @@ export default function PerfilPage() {
                     <h2 className="font-serif text-xl font-semibold text-black-jewel sm:text-2xl">
                       Gallery
                     </h2>
+                    <p className="rounded-sm border border-gold/25 bg-gold/8 px-3 py-2 text-xs font-semibold leading-5 text-black-jewel/68">
+                      Fotos novas, públicas ou privadas, ficam visíveis somente para você e para a equipe de moderação até serem aprovadas.
+                    </p>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                       {publicPhotos.slice(1, 6).map((photo, index) => (
                         <GalleryTile
@@ -1649,7 +1688,8 @@ function ContactSection({
             </Label>
             <p className="mt-1 text-xs font-medium text-black-jewel/62">
               Escolha separadamente quais contatos podem aparecer aos Sugar
-              Daddies autorizados. Se preferir, deixe todos ocultos.
+              Daddies autorizados. Estes dados não alteram o celular privado
+              da conta; se preferir, deixe todos ocultos.
             </p>
             <details className="group relative mt-2">
               <summary className="flex h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-sm border border-emerald/30 bg-white px-3 text-sm font-semibold text-black-jewel shadow-[0_8px_18px_rgba(0,55,44,0.06)] [&::-webkit-details-marker]:hidden">
@@ -1937,6 +1977,7 @@ function GalleryTile({
           imageClassName="h-full w-full object-cover"
         />
       </div>
+      <PhotoModerationBadge photo={photo} />
       {isEditing ? (
         <Button
           type="button"
@@ -1950,6 +1991,16 @@ function GalleryTile({
         </Button>
       ) : null}
     </div>
+  );
+}
+
+function PhotoModerationBadge({ photo }: { photo: ProfilePhoto }) {
+  if (photo.moderationStatus !== "PENDING") return null;
+
+  return (
+    <span className="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-amber-900 shadow-md">
+      <Loader2 className="h-3 w-3" /> Em análise
+    </span>
   );
 }
 

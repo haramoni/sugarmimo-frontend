@@ -3,7 +3,7 @@ import { FileText, Mail, ShieldCheck } from "lucide-react";
 
 import NavBarMenu from "../components/ui/NavBarMenu";
 import { SiteFooter } from "../components/ui/SiteFooter";
-import policyPages from "./policy-pages.json";
+import policyPages from "./policy-pages";
 import styles from "./privacy.module.css";
 import { CURRENT_PRIVACY_POLICY_DATE } from "./privacy-policy";
 

@@ -8,7 +8,11 @@ type FormStatus =
   | { type: "success"; message: string }
   | { type: "error"; message: string };
 
-export function ContactForm() {
+export function ContactForm({
+  initialCategory = "ATENDIMENTO",
+}: {
+  initialCategory?: string;
+}) {
   const [isSending, setIsSending] = useState(false);
   const [status, setStatus] = useState<FormStatus>({ type: "idle" });
 
@@ -28,7 +32,7 @@ export function ContactForm() {
         body: JSON.stringify(payload),
       });
       const result = (await response.json().catch(() => null)) as
-        | { message?: string | string[] }
+        | { message?: string | string[]; protocol?: string }
         | null;
 
       if (!response.ok) {
@@ -41,7 +45,9 @@ export function ContactForm() {
       form.reset();
       setStatus({
         type: "success",
-        message: "Mensagem enviada! Nossa equipe responderá pelo seu e-mail.",
+        message: result?.protocol
+          ? `Solicitação recebida. Guarde o protocolo ${result.protocol}.`
+          : "Solicitação recebida! Nossa equipe responderá pelo seu e-mail.",
       });
     } catch (error) {
       setStatus({
@@ -104,6 +110,22 @@ export function ContactForm() {
           />
         </label>
       </div>
+
+      <label className="mt-6 block text-sm font-bold text-black-jewel">
+        Tipo de solicitação
+        <select
+          className={fieldClassName}
+          name="category"
+          defaultValue={initialCategory}
+          required
+        >
+          <option value="ATENDIMENTO">Atendimento geral</option>
+          <option value="RECLAMACAO">Reclamação</option>
+          <option value="CANCELAMENTO">Cancelamento</option>
+          <option value="PRIVACIDADE">Privacidade e LGPD</option>
+          <option value="DENUNCIA">Denúncia e segurança</option>
+        </select>
+      </label>
 
       <label className="mt-6 block text-sm font-bold text-black-jewel">
         Assunto

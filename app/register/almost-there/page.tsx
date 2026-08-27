@@ -18,6 +18,7 @@ import {
   setRegisterStep,
 } from "../register-flow";
 import { RegisterStepDots } from "../RegisterStepDots";
+import { useRegistrationSecret } from "../RegistrationSecretProvider";
 import {
   describeForProfile,
   occupationOptions,
@@ -67,6 +68,7 @@ const educationOptions = [
 
 export default function AlmostTherePage() {
   const router = useRouter();
+  const { password } = useRegistrationSecret();
   const profileType = getSavedValue("profileType");
   const [smoke, setSmoke] = useState(() => getSavedValue("smoke"));
   const [drink, setDrink] = useState(() => getSavedValue("drink"));
@@ -80,13 +82,14 @@ export default function AlmostTherePage() {
   );
 
   useEffect(() => {
-    if (!localStorage.getItem(REGISTER_PAYLOAD_KEY)) {
+    if (!localStorage.getItem(REGISTER_PAYLOAD_KEY) || !password) {
+      setRegisterStep("/register/basic-info");
       router.replace("/register/basic-info");
       return;
     }
 
     setRegisterStep("/register/almost-there");
-  }, [router]);
+  }, [password, router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

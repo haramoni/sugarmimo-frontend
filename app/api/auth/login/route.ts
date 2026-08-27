@@ -29,6 +29,10 @@ export async function POST(request: Request) {
   const result = await response.json().catch(() => null);
 
   if (!response.ok) {
+    if (result?.code === "ACCOUNT_RESTRICTED") {
+      await clearSessionCookie();
+      await clearApprovalSessionCookie();
+    }
     return NextResponse.json(result, { status: response.status });
   }
 

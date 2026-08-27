@@ -48,7 +48,7 @@ export default function ProfileCard({
   const [isUpdatingPin, setIsUpdatingPin] = useState(false);
   const [pinError, setPinError] = useState("");
   const photo = getProfilePhoto(profile);
-  const age = getAge(profile.birthDate);
+  const age = getAge(profile.birthDate, profile.age);
   const location = getLocation(profile);
   const interests = getCustomInterests(profile).slice(0, 3);
   const href = `/perfil/${encodeURIComponent(profile.username || profile.id)}`;

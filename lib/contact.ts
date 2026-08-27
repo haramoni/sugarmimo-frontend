@@ -1,5 +1,7 @@
 export const contact = {
   email: "contato@sugarmimo.com",
+  privacyEmail: "privacidade@sugarmimo.com",
+  securityEmail: "denuncia@sugarmimo.com",
   whatsappNumber: "5511997752731",
   whatsappNumber2: "554199071059",
   whatsappDisplay: "(11) 99775-2731",

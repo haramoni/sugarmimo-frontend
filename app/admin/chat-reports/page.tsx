@@ -4,7 +4,10 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock3,
+  Eye,
+  EyeOff,
   Flag,
+  LoaderCircle,
   LogOut,
   RefreshCw,
   ShieldAlert,
@@ -32,7 +35,9 @@ type ChatReport = {
   resolution: string | null;
   createdAt: string | null;
   reviewedAt: string | null;
-  evidenceExpiresAt: string;
+  evidenceExpiresAt: string | null;
+  evidenceCount: number;
+  evidenceRetentionDays: number;
   reporter: { id: string; username: string; role: string | null };
   reported: {
     id: string;
@@ -43,7 +48,6 @@ type ChatReport = {
     suspendedUntil: string | null;
   };
   reviewedBy: { id: string; username: string } | null;
-  messages: ReportMessage[];
 };
 
 const categoryLabels: Record<string, string> = {
@@ -146,7 +150,8 @@ export default function AdminChatReportsPage() {
             </div>
             <h1 className="mt-1 text-2xl font-bold">Denúncias do chat</h1>
             <p className="mt-1 text-sm text-black/55">
-              As evidências são removidas ao completar 60 dias.
+              Evidências são preservadas durante a apuração e acessadas somente
+              quando necessário.
             </p>
           </div>
           <label className="text-sm font-bold">
@@ -179,7 +184,9 @@ export default function AdminChatReportsPage() {
             <EmptyState>Nenhuma denúncia nesta situação.</EmptyState>
           ) : (
             reports.map((report) => {
-              const days = remainingDays(report.evidenceExpiresAt);
+              const days = report.evidenceExpiresAt
+                ? remainingDays(report.evidenceExpiresAt)
+                : null;
               return (
                 <article
                   key={report.id}
@@ -195,13 +202,17 @@ export default function AdminChatReportsPage() {
                         <span
                           className={[
                             "flex items-center gap-1 text-xs font-bold",
-                            days <= 7 ? "text-[var(--ruby)]" : "text-black/45",
+                            days !== null && days <= 7
+                              ? "text-[var(--ruby)]"
+                              : "text-black/45",
                           ].join(" ")}
                         >
                           <Clock3 className="h-3.5 w-3.5" />
-                          {days > 0
-                            ? `Evidências expiram em ${days} dia${days === 1 ? "" : "s"}`
-                            : "Evidências expiradas"}
+                          {days === null
+                            ? "Preservadas durante a apuração"
+                            : days > 0
+                              ? `Evidências expiram em ${days} dia${days === 1 ? "" : "s"}`
+                              : "Evidências expiradas"}
                         </span>
                       </div>
                       <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -221,36 +232,7 @@ export default function AdminChatReportsPage() {
                           {report.details}
                         </p>
                       ) : null}
-                      <div className="mt-4 space-y-2">
-                        <p className="text-xs font-bold uppercase tracking-wider text-black/45">
-                          Evidências ({report.messages.length})
-                        </p>
-                        {report.messages.length ? (
-                          report.messages.map((message) => (
-                            <div
-                              key={message.id}
-                              className="rounded-xl border border-black/8 bg-[#fcfaf6] px-3 py-2 text-sm"
-                            >
-                              <div className="mb-1 flex justify-between text-[0.68rem] font-bold text-black/40">
-                                <span>
-                                  {message.senderId === report.reported.id
-                                    ? report.reported.username
-                                    : report.reporter.username}
-                                </span>
-                                <span>{formatDateTime(message.createdAt)}</span>
-                              </div>
-                              <p className="whitespace-pre-wrap break-words">
-                                {message.body}
-                              </p>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-sm text-black/45">
-                            Nenhuma mensagem foi selecionada ou as evidências já
-                            expiraram.
-                          </p>
-                        )}
-                      </div>
+                      <EvidencePanel report={report} />
                     </div>
                     <div className="w-full shrink-0 lg:w-48">
                       <p className="text-xs text-black/42">
@@ -295,6 +277,99 @@ export default function AdminChatReportsPage() {
   );
 }
 
+function EvidencePanel({ report }: { report: ChatReport }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState<ReportMessage[] | null>(null);
+  const [error, setError] = useState("");
+
+  async function toggleEvidence() {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+    if (messages !== null) {
+      setOpen(true);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    const response = await fetch(
+      `/api/admin/chat-reports/${encodeURIComponent(report.id)}/evidence`,
+      { cache: "no-store" },
+    ).catch(() => null);
+    if (!response?.ok) {
+      const result = await response?.json().catch(() => null);
+      setError(result?.message ?? "Não foi possível consultar as evidências.");
+      setLoading(false);
+      return;
+    }
+    const result = (await response.json()) as { messages: ReportMessage[] };
+    setMessages(result.messages);
+    setOpen(true);
+    setLoading(false);
+  }
+
+  return (
+    <div className="mt-4 space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-bold uppercase tracking-wider text-black/45">
+          Evidências ({report.evidenceCount})
+        </p>
+        {report.evidenceCount > 0 ? (
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => void toggleEvidence()}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 px-3 py-2 text-xs font-bold hover:border-[var(--gold)] disabled:opacity-50"
+          >
+            {loading ? (
+              <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+            ) : open ? (
+              <EyeOff className="h-3.5 w-3.5" />
+            ) : (
+              <Eye className="h-3.5 w-3.5" />
+            )}
+            {loading
+              ? "Abrindo…"
+              : open
+                ? "Ocultar evidências"
+                : "Ver evidências"}
+          </button>
+        ) : null}
+      </div>
+      {error ? (
+        <p className="rounded-xl bg-[var(--ruby)]/8 p-3 text-sm font-bold text-[var(--ruby)]">
+          {error}
+        </p>
+      ) : null}
+      {open && messages?.length ? (
+        messages.map((message) => (
+          <div
+            key={message.id}
+            className="rounded-xl border border-black/8 bg-[#fcfaf6] px-3 py-2 text-sm"
+          >
+            <div className="mb-1 flex justify-between text-[0.68rem] font-bold text-black/40">
+              <span>
+                {message.senderId === report.reported.id
+                  ? report.reported.username
+                  : report.reporter.username}
+              </span>
+              <span>{formatDateTime(message.createdAt)}</span>
+            </div>
+            <p className="whitespace-pre-wrap break-words">{message.body}</p>
+          </div>
+        ))
+      ) : report.evidenceCount === 0 ? (
+        <p className="text-sm text-black/45">
+          Nenhuma mensagem foi selecionada ou as evidências já expiraram.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function ResolutionDialog({
   report,
   onClose,
@@ -312,8 +387,8 @@ function ResolutionDialog({
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!resolution.trim()) {
-      setError("Registre a justificativa da decisão.");
+    if (resolution.trim().length < 5) {
+      setError("Registre uma justificativa com pelo menos 5 caracteres.");
       return;
     }
     setSaving(true);

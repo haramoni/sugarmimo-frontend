@@ -2,7 +2,11 @@ import type { ProfilePhoto, PublicProfile } from "./types";
 
 export type ContactChannel = "whatsapp" | "telegram" | "instagram";
 
-export function getAge(birthDate?: string | null) {
+export function getAge(birthDate?: string | null, providedAge?: number | null) {
+  if (typeof providedAge === "number" && Number.isFinite(providedAge)) {
+    return Math.max(18, Math.floor(providedAge));
+  }
+
   if (!birthDate) {
     return null;
   }

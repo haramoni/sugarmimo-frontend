@@ -58,7 +58,7 @@ export function ModalForgotPassword() {
       }
 
       setSuccess(
-        "Se o e-mail estiver cadastrado, a nova senha será enviada em instantes. Verifique também a caixa de spam.",
+        "Se o e-mail estiver cadastrado, um link seguro será enviado. Ele vale por 30 minutos e só pode ser usado uma vez.",
       );
       setEmail("");
     } catch (requestError) {
@@ -84,7 +84,8 @@ export function ModalForgotPassword() {
         <DialogHeader>
           <DialogTitle>Recuperar senha</DialogTitle>
           <DialogDescription>
-            Digite seu e-mail cadastrado para receber uma nova senha temporária.
+            Digite seu e-mail cadastrado para receber um link seguro de
+            redefinição. Sua senha atual não será alterada até você usar o link.
           </DialogDescription>
         </DialogHeader>
 
@@ -123,7 +124,7 @@ export function ModalForgotPassword() {
           )}
 
           <Button className="bg-gold" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Enviando..." : "Enviar nova senha"}
+            {isSubmitting ? "Enviando..." : "Enviar link seguro"}
           </Button>
         </form>
       </DialogContent>

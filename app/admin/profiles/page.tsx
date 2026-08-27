@@ -32,12 +32,15 @@ type AdminPhoto = {
   mimeType: string | null;
   sortOrder: number;
   isPrivate: boolean;
+  moderationStatus: "PENDING" | "APPROVED" | "REJECTED";
+  moderationReason: string | null;
 };
 
 type AdminProfile = {
   id: string;
   username: string;
   email: string;
+  accountPhone: string | null;
   role: string | null;
   city: string | null;
   state: string | null;
@@ -193,12 +196,32 @@ export default function AdminProfilesPage() {
       title: activating ? "Reativar este perfil?" : "Bloquear este perfil?",
       text: activating
         ? `${profile.username} voltará a acessar normalmente a plataforma.`
-        : `${profile.username} perderá o acesso imediatamente, mas os dados serão preservados.`,
+        : undefined,
       icon: activating ? "question" : "warning",
+      input: activating ? undefined : "textarea",
+      inputLabel: activating
+        ? undefined
+        : "Motivo que será exibido para a pessoa ao tentar entrar",
+      inputPlaceholder: activating
+        ? undefined
+        : "Descreva de forma clara a razão do bloqueio...",
+      inputAttributes: activating ? undefined : { maxlength: "1000" },
       showCancelButton: true,
       confirmButtonText: activating ? "Sim, reativar" : "Sim, bloquear",
       cancelButtonText: "Cancelar",
       confirmButtonColor: activating ? "var(--emerald)" : "var(--ruby)",
+      preConfirm: activating
+        ? undefined
+        : (value) => {
+            const reason = String(value ?? "").trim();
+            if (reason.length < 5) {
+              Swal.showValidationMessage(
+                "Informe um motivo com pelo menos 5 caracteres.",
+              );
+              return false;
+            }
+            return reason;
+          },
     });
     if (!confirmation.isConfirmed) return;
 
@@ -206,7 +229,15 @@ export default function AdminProfilesPage() {
     try {
       const response = await fetch(
         `/api/admin/profiles/${encodeURIComponent(profile.id)}/${activating ? "activate" : "ban"}`,
-        { method: "PATCH" },
+        {
+          method: "PATCH",
+          ...(activating
+            ? {}
+            : {
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ reason: confirmation.value }),
+              }),
+        },
       );
       const result = await response.json().catch(() => null);
       if (!response.ok) throw new Error(result?.message ?? "Não foi possível alterar o acesso.");
@@ -238,12 +269,26 @@ export default function AdminProfilesPage() {
   async function removePhoto(profile: AdminProfile, photo: AdminPhoto) {
     const confirmation = await Swal.fire({
       title: "Remover esta foto?",
-      text: `A imagem será excluída permanentemente do perfil de ${profile.username}.`,
+      text: `A imagem será excluída permanentemente do perfil de ${profile.username}. O motivo será exibido no próximo login.`,
       icon: "warning",
+      input: "textarea",
+      inputLabel: "Motivo da remoção",
+      inputPlaceholder: "Explique qual regra ou diretriz a foto não atende...",
+      inputAttributes: { maxlength: "1000" },
       showCancelButton: true,
       confirmButtonText: "Sim, remover foto",
       cancelButtonText: "Cancelar",
       confirmButtonColor: "var(--ruby)",
+      preConfirm: (value) => {
+        const reason = String(value ?? "").trim();
+        if (reason.length < 5) {
+          Swal.showValidationMessage(
+            "Informe um motivo com pelo menos 5 caracteres.",
+          );
+          return false;
+        }
+        return reason;
+      },
     });
     if (!confirmation.isConfirmed) return;
 
@@ -251,7 +296,11 @@ export default function AdminProfilesPage() {
     try {
       const response = await fetch(
         `/api/admin/profiles/${encodeURIComponent(profile.id)}/photos/${encodeURIComponent(photo.id)}`,
-        { method: "DELETE" },
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: confirmation.value }),
+        },
       );
       const result = await response.json().catch(() => null);
       if (!response.ok) throw new Error(result?.message ?? "Não foi possível remover a foto.");
@@ -423,7 +472,7 @@ export default function AdminProfilesPage() {
               <article key={profile.id} className="overflow-hidden rounded-xl border border-black/8 bg-white shadow-[0_12px_35px_rgba(36,21,13,0.06)]">
                 <div className="grid grid-cols-3 gap-1 bg-[#eee8df] p-1">
                   {profile.photos.length ? (
-                    profile.photos.slice(0, 3).map((photo, index) => (
+                    profile.photos.map((photo, index) => (
                       <div key={photo.id} className="group relative aspect-[4/3] overflow-hidden bg-[#ddd5ca]">
                         <PhotoZoom
                           src={`/api/admin/review-photos/${encodeURIComponent(photo.id)}`}
@@ -432,7 +481,22 @@ export default function AdminProfilesPage() {
                           buttonClassName="absolute inset-0 block h-full w-full cursor-zoom-in"
                         />
                         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/65 to-transparent p-2 pt-7">
-                          {photo.isPrivate ? <span className="rounded bg-black/50 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">Privada</span> : <span />}
+                          <span className="rounded bg-black/50 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
+                            {photo.isPrivate ? "Privada" : "Pública"}
+                          </span>
+                          <span className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase ${
+                            photo.moderationStatus === "APPROVED"
+                              ? "bg-emerald-100 text-emerald-900"
+                              : photo.moderationStatus === "REJECTED"
+                                ? "bg-red-100 text-red-900"
+                                : "bg-amber-100 text-amber-900"
+                          }`}>
+                            {photo.moderationStatus === "APPROVED"
+                              ? "Aprovada"
+                              : photo.moderationStatus === "REJECTED"
+                                ? "Não aprovada"
+                                : "Em análise"}
+                          </span>
                         </div>
                         <button
                           type="button"
@@ -451,9 +515,6 @@ export default function AdminProfilesPage() {
                       <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide"><ImageOff className="h-4 w-4" /> Sem fotos</span>
                     </div>
                   )}
-                  {profile.photos.length > 3 ? (
-                    <span className="absolute sr-only">{profile.photos.length - 3} fotos adicionais</span>
-                  ) : null}
                 </div>
 
                 <div className="space-y-4 p-5">
@@ -472,6 +533,10 @@ export default function AdminProfilesPage() {
 
                   <div className="grid grid-cols-2 gap-3 rounded-lg bg-[#faf7f1] p-3 text-xs sm:grid-cols-4">
                     <Info label="Perfil" value={roleLabel(profile.role)} />
+                    <Info
+                      label="Celular privado"
+                      value={profile.accountPhone ?? "Não informado"}
+                    />
                     <Info label="Aprovação" value={approvalLabel(profile.approvalStatus)} />
                     <Info label="Fotos" value={String(profile.photos.length)} />
                     <Info label="Cadastro" value={formatDate(profile.createdAt)} />

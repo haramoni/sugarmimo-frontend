@@ -20,6 +20,7 @@ import {
   setRegisterStep,
 } from "./register-flow";
 import { RegisterStepDots } from "./RegisterStepDots";
+import { useRegistrationSecret } from "./RegistrationSecretProvider";
 import {
   relationshipIntentOptions,
   type RelationshipIntent,
@@ -29,6 +30,7 @@ type ProfileCategory = "daddy" | "baby";
 
 export default function Register() {
   const router = useRouter();
+  const { clearPassword } = useRegistrationSecret();
   const [profileCategory, setProfileCategory] =
     useState<ProfileCategory | null>(null);
   const [relationshipIntent, setRelationshipIntent] =
@@ -49,8 +51,9 @@ export default function Register() {
       return;
     }
 
+    clearPassword();
     setRegisterStep("/register");
-  }, [router]);
+  }, [clearPassword, router]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

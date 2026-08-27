@@ -16,6 +16,43 @@ export function clearRegisterFlow() {
   window.localStorage.removeItem(REGISTER_REFERRAL_KEY);
 }
 
+export function scrubPersistedRegistrationSecrets() {
+  removeSecretFields(REGISTER_STEP_ONE_KEY);
+  removeSecretFields(REGISTER_PAYLOAD_KEY);
+}
+
+function removeSecretFields(storageKey: string) {
+  const storedValue = window.localStorage.getItem(storageKey);
+
+  if (!storedValue) {
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(storedValue) as Record<string, unknown>;
+    const secretFields = [
+      "password",
+      "passwordHash",
+      "accessToken",
+      "approvalAccessToken",
+    ];
+    let changed = false;
+
+    secretFields.forEach((field) => {
+      if (field in parsed) {
+        delete parsed[field];
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      window.localStorage.setItem(storageKey, JSON.stringify(parsed));
+    }
+  } catch {
+    window.localStorage.removeItem(storageKey);
+  }
+}
+
 export function captureReferralFromUrl() {
   const referralUsername = new URLSearchParams(window.location.search)
     .get("ref")

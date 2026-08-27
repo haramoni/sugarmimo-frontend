@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import policyPages from "@/app/privacy/policy-pages.json";
+import policyPages from "@/app/privacy/policy-pages";
 import {
   CURRENT_PRIVACY_POLICY_DATE,
   CURRENT_PRIVACY_POLICY_VERSION,
@@ -98,7 +98,7 @@ export function PrivacyPolicyAcceptanceDialog({
       setError(
         acceptanceError instanceof Error
           ? acceptanceError.message
-          : "Não foi possível registrar o aceite. Tente novamente.",
+          : "Não foi possível registrar a ciência. Tente novamente.",
       );
     } finally {
       setIsAccepting(false);
@@ -125,7 +125,7 @@ export function PrivacyPolicyAcceptanceDialog({
               </DialogTitle>
               <DialogDescription className="mt-1 leading-relaxed text-black-jewel/65">
                 Leia o documento integral até o final para liberar o botão de
-                aceite e continuar usando a SugarMimo.
+                confirmação e continuar usando a SugarMimo.
               </DialogDescription>
               <p className="mt-2 text-xs font-bold tracking-wide text-cognac uppercase">
                 Versão {CURRENT_PRIVACY_POLICY_VERSION} · Atualizada em{" "}
@@ -217,10 +217,10 @@ export function PrivacyPolicyAcceptanceDialog({
                     className="size-4 animate-spin"
                     aria-hidden="true"
                   />
-                  Registrando aceite...
+                  Registrando...
                 </>
               ) : (
-                "Li e aceito a Política de Privacidade"
+                "Li e estou ciente da Política de Privacidade"
               )}
             </Button>
           </div>

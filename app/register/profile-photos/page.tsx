@@ -42,6 +42,7 @@ import {
   setRegisterStep,
 } from "../register-flow";
 import { RegisterStepDots } from "../RegisterStepDots";
+import { useRegistrationSecret } from "../RegistrationSecretProvider";
 import { useRegistrationCompletion } from "./useRegistrationCompletion";
 
 type ProfilePhoto = {
@@ -60,6 +61,7 @@ type RegistrationPolicies = {
 type RegistrationSummary = {
   username: string;
   email: string;
+  accountPhone: string;
   profileType: string;
   location: string;
   marketingConsent: boolean;
@@ -69,6 +71,7 @@ const MAX_PHOTOS = 3;
 
 export default function ProfilePhotosPage() {
   const router = useRouter();
+  const { password } = useRegistrationSecret();
   const completeRegistration = useRegistrationCompletion();
   const [photos, setPhotos] = useState<ProfilePhoto[]>([]);
   const photosRequired = useSyncExternalStore(
@@ -98,13 +101,14 @@ export default function ProfilePhotosPage() {
   useEffect(() => {
     const savedPayload = localStorage.getItem(REGISTER_PAYLOAD_KEY);
 
-    if (!savedPayload) {
+    if (!savedPayload || !password) {
+      setRegisterStep("/register/basic-info");
       router.replace("/register/basic-info");
       return;
     }
 
     setRegisterStep("/register/profile-photos");
-  }, [router]);
+  }, [password, router]);
 
   useEffect(() => {
     photosRef.current = photos;
@@ -311,6 +315,7 @@ export default function ProfilePhotosPage() {
 
       const payload = {
         ...currentPayload,
+        password,
         referralUsername: getStoredReferralUsername(),
         profilePhotos,
         registrationReceiptConfirmed: true,
@@ -582,6 +587,10 @@ export default function ProfilePhotosPage() {
                     value={registrationSummary.email}
                   />
                   <ReceiptItem
+                    label="Celular da conta (privado)"
+                    value={registrationSummary.accountPhone}
+                  />
+                  <ReceiptItem
                     label="Tipo de perfil"
                     value={registrationSummary.profileType}
                   />
@@ -746,6 +755,7 @@ function buildRegistrationSummary(
   return {
     username: toDisplayText(payload.username),
     email: toDisplayText(payload.email),
+    accountPhone: toDisplayText(payload.accountPhone),
     profileType: getProfileTypeLabel(toDisplayText(payload.profileType)),
     location: location || "Não informado",
     marketingConsent: payload.marketingConsent === true,

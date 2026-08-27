@@ -43,6 +43,7 @@ type PendingProfile = {
   id: string;
   username: string;
   email: string;
+  accountPhone: string | null;
   role: string | null;
   gender: string | null;
   lookingFor: string | null;
@@ -170,12 +171,51 @@ function AdminReviewQueue({
     id: string,
     action: "approve" | "reject" | "wait",
   ) {
+    let rejectionReason = "";
+    if (action === "reject") {
+      const confirmation = await Swal.fire({
+        title: "Rejeitar este cadastro?",
+        text: "A justificativa será exibida para a pessoa quando ela tentar entrar.",
+        icon: "warning",
+        input: "textarea",
+        inputLabel: "Motivo da não aprovação",
+        inputPlaceholder:
+          "Explique o que precisa ser corrigido ou qual regra não foi atendida...",
+        inputAttributes: { maxlength: "1000" },
+        showCancelButton: true,
+        confirmButtonText: "Confirmar rejeição",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "var(--ruby)",
+        preConfirm: (value) => {
+          const reason = String(value ?? "").trim();
+          if (reason.length < 5) {
+            Swal.showValidationMessage(
+              "Informe um motivo com pelo menos 5 caracteres.",
+            );
+            return false;
+          }
+          return reason;
+        },
+      });
+
+      if (!confirmation.isConfirmed) {
+        return;
+      }
+      rejectionReason = String(confirmation.value);
+    }
+
     setReviewingId(id);
     setError("");
 
     try {
       const response = await fetch(`/api/admin/profiles/${id}/${action}`, {
         method: "PATCH",
+        ...(action === "reject"
+          ? {
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ reason: rejectionReason }),
+            }
+          : {}),
       });
 
       const result = await response.json().catch(() => null);
@@ -259,12 +299,26 @@ function AdminReviewQueue({
   async function removePhoto(profile: PendingProfile, photo: PendingPhoto) {
     const confirmation = await Swal.fire({
       title: "Remover esta foto?",
-      text: `A foto será excluída permanentemente do perfil de ${profile.username}.`,
+      text: `A foto será excluída permanentemente do perfil de ${profile.username}. O motivo será exibido no próximo login.`,
       icon: "warning",
+      input: "textarea",
+      inputLabel: "Motivo da remoção",
+      inputPlaceholder: "Explique qual regra ou diretriz a foto não atende...",
+      inputAttributes: { maxlength: "1000" },
       showCancelButton: true,
       confirmButtonText: "Sim, remover",
       cancelButtonText: "Cancelar",
       confirmButtonColor: "var(--ruby)",
+      preConfirm: (value) => {
+        const reason = String(value ?? "").trim();
+        if (reason.length < 5) {
+          Swal.showValidationMessage(
+            "Informe um motivo com pelo menos 5 caracteres.",
+          );
+          return false;
+        }
+        return reason;
+      },
     });
 
     if (!confirmation.isConfirmed) {
@@ -277,7 +331,11 @@ function AdminReviewQueue({
     try {
       const response = await fetch(
         `/api/admin/profiles/${profile.id}/photos/${photo.id}`,
-        { method: "DELETE" },
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: confirmation.value }),
+        },
       );
       const result = await response.json().catch(() => null);
 
@@ -563,6 +621,10 @@ function AdminReviewQueue({
                   <div className="grid gap-3 text-sm sm:grid-cols-2">
                     <ProfileField label="Usuário" value={profile.username} />
                     <ProfileField label="E-mail" value={profile.email} />
+                    <ProfileField
+                      label="Celular da conta (privado)"
+                      value={profile.accountPhone}
+                    />
                     <ProfileField label="Perfil" value={profile.gender} />
                     <ProfileField label="Busca" value={profile.lookingFor} />
                     <ProfileField
@@ -575,7 +637,10 @@ function AdminReviewQueue({
                         .filter(Boolean)
                         .join(", ")}
                     />
-                    <ProfileField label="WhatsApp" value={profile.whatsapp} />
+                    <ProfileField
+                      label="WhatsApp para contato"
+                      value={profile.whatsapp}
+                    />
                     <ProfileField label="Telegram" value={profile.telegram} />
                     <ProfileField label="Instagram" value={profile.instagram} />
                     <ProfileField

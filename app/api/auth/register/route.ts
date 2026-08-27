@@ -7,8 +7,12 @@ import {
   setApprovalSessionCookie,
   setSessionCookie,
 } from "../_cookies";
+import { rejectBodyLargerThan } from "../../_request-security";
 
 export async function POST(request: Request) {
+  const oversized = rejectBodyLargerThan(request, 64 * 1024 * 1024);
+  if (oversized) return oversized;
+
   const body = await request.json();
 
   const response = await fetch(`${API_URL}/auth/register`, {

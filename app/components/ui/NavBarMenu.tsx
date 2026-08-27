@@ -11,7 +11,6 @@ const menuItems = [
   { label: "Inicio", href: "/" },
   { label: "Como Funciona", href: "/#como-funciona" },
   { label: "Blog", href: "/blog" },
-  { label: "Contato", href: "/contato" },
 ];
 
 function isActivePath(pathname: string, hash: string, href: string) {

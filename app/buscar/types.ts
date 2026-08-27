@@ -17,6 +17,7 @@ export type PublicProfile = {
   gender?: string | null;
   lookingFor?: string | null;
   relationshipIntent?: string | null;
+  age?: number | null;
   birthDate?: string | null;
   country?: string | null;
   state?: string | null;

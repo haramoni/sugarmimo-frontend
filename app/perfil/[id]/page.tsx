@@ -235,7 +235,7 @@ function ProfileView({
           : `Foto privada ${index - galleryPhotos.length + 1} de ${profile.username ?? "perfil"}`,
     }),
   );
-  const age = getAge(profile.birthDate);
+  const age = getAge(profile.birthDate, profile.age);
   const location = getLocation(profile);
   const interests = getCustomInterests(profile);
   const visibleContacts = contactOptions

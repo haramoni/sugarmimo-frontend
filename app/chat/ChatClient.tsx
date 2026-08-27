@@ -35,6 +35,8 @@ import type { ChatMessage, Conversation } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
 const DEFAULT_FREE_MESSAGE_LIMIT = 50;
+const CHAT_MONITORING_NOTICE_TEXT =
+  "Mensagens e interações poderão ser analisadas por mecanismos automatizados e/ou pessoas autorizadas para apuração de denúncias e cumprimento legal, conforme a Política de Privacidade.";
 
 const reportCategories = [
   ["HARASSMENT", "Assédio"],
@@ -54,6 +56,14 @@ type MessageAccess = {
   freeMessagesUsed: number | null;
   freeMessagesRemaining: number | null;
   requiresUpgrade: boolean;
+};
+
+type MonitoringNotice = {
+  version: string;
+  text: string;
+  privacyUrl: string;
+  required: boolean;
+  acknowledgedAt: string | null;
 };
 
 export function ChatClient() {
@@ -78,9 +88,14 @@ export function ChatClient() {
     null,
   );
   const [upgradeAlertOpen, setUpgradeAlertOpen] = useState(false);
+  const [monitoringNotice, setMonitoringNotice] =
+    useState<MonitoringNotice | null>(null);
+  const [loadingMonitoringNotice, setLoadingMonitoringNotice] = useState(false);
+  const [acknowledgingNotice, setAcknowledgingNotice] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const selectedIdRef = useRef<string | null>(null);
+  const conversationMenuRef = useRef<HTMLDivElement | null>(null);
 
   const selected = conversations.find(({ id }) => id === selectedId) ?? null;
   const isStandardDaddy =
@@ -123,6 +138,33 @@ export function ChatClient() {
       return;
     }
     setMessageAccess((await response.json()) as MessageAccess);
+  }, []);
+
+  const loadMonitoringNotice = useCallback(async (conversationId: string) => {
+    setLoadingMonitoringNotice(true);
+    const response = await fetch(
+      `/api/chat/conversations/${encodeURIComponent(conversationId)}/monitoring-notice`,
+      { cache: "no-store" },
+    ).catch(() => null);
+    if (selectedIdRef.current !== conversationId) {
+      return;
+    }
+    if (!response?.ok) {
+      setMonitoringNotice({
+        version: "",
+        text: CHAT_MONITORING_NOTICE_TEXT,
+        privacyUrl: "/privacy",
+        required: true,
+        acknowledgedAt: null,
+      });
+      setError(
+        "Não foi possível confirmar o aviso de privacidade desta conversa.",
+      );
+      setLoadingMonitoringNotice(false);
+      return;
+    }
+    setMonitoringNotice((await response.json()) as MonitoringNotice);
+    setLoadingMonitoringNotice(false);
   }, []);
 
   useEffect(() => {
@@ -217,17 +259,20 @@ export function ChatClient() {
     const timeoutId = window.setTimeout(() => {
       if (!selectedId) {
         setMessages([]);
+        setMonitoringNotice(null);
+        setLoadingMonitoringNotice(false);
         return;
       }
       setMenuOpen(false);
       void loadMessages(selectedId);
+      void loadMonitoringNotice(selectedId);
       void markRead(selectedId);
       socketRef.current?.emit("conversation:join", {
         conversationId: selectedId,
       });
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [loadMessages, markRead, selectedId]);
+  }, [loadMessages, loadMonitoringNotice, markRead, selectedId]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -305,6 +350,34 @@ export function ChatClient() {
     };
   }, [loadConversations, markRead, user?.id]);
 
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+
+    function closeMenuOnOutsideClick(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        !conversationMenuRef.current?.contains(event.target)
+      ) {
+        setMenuOpen(false);
+      }
+    }
+
+    function closeMenuOnEscape(event: globalThis.KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", closeMenuOnOutsideClick);
+    document.addEventListener("keydown", closeMenuOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeMenuOnOutsideClick);
+      document.removeEventListener("keydown", closeMenuOnEscape);
+    };
+  }, [menuOpen]);
+
   async function sendMessage(event?: FormEvent) {
     event?.preventDefault();
     if (
@@ -312,7 +385,9 @@ export function ChatClient() {
       !draft.trim() ||
       sending ||
       selected?.blocked ||
-      !canSendMessages
+      !canSendMessages ||
+      loadingMonitoringNotice ||
+      monitoringNotice?.required
     ) {
       return;
     }
@@ -334,6 +409,8 @@ export function ChatClient() {
       if (response?.status === 403 && isStandardDaddy) {
         await loadMessageAccess();
         setUpgradeAlertOpen(true);
+      } else if (response?.status === 412 && selectedId) {
+        await loadMonitoringNotice(selectedId);
       }
     } else {
       const message = (await response.json()) as ChatMessage & {
@@ -367,6 +444,38 @@ export function ChatClient() {
       );
     }
     setSending(false);
+  }
+
+  async function acknowledgeMonitoringNotice() {
+    if (!selectedId || acknowledgingNotice) {
+      return;
+    }
+    setAcknowledgingNotice(true);
+    setError("");
+    const response = await fetch(
+      `/api/chat/conversations/${encodeURIComponent(selectedId)}/monitoring-notice/acknowledge`,
+      { method: "POST" },
+    ).catch(() => null);
+    if (!response?.ok) {
+      const result = await response?.json().catch(() => null);
+      setError(
+        result?.message ?? "Não foi possível registrar a ciência do aviso.",
+      );
+      setAcknowledgingNotice(false);
+      return;
+    }
+    const result = (await response.json()) as {
+      version: string;
+      acknowledgedAt: string;
+    };
+    setMonitoringNotice((current) => ({
+      version: result.version,
+      text: current?.text ?? CHAT_MONITORING_NOTICE_TEXT,
+      privacyUrl: current?.privacyUrl ?? "/privacy",
+      required: false,
+      acknowledgedAt: result.acknowledgedAt,
+    }));
+    setAcknowledgingNotice(false);
   }
 
   function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -531,26 +640,48 @@ export function ChatClient() {
                         : "Conversa privada"}
                     </p>
                   </div>
-                  <div className="relative">
+                  <div ref={conversationMenuRef} className="relative">
                     <button
                       type="button"
                       onClick={() => setMenuOpen((current) => !current)}
                       aria-label="Opções da conversa"
-                      className="grid h-10 w-10 place-items-center rounded-full hover:bg-black/5"
+                      aria-expanded={menuOpen}
+                      aria-haspopup="menu"
+                      className="grid h-11 w-11 place-items-center rounded-full border border-transparent text-black/60 transition hover:border-black/8 hover:bg-black/5 hover:text-black"
                     >
                       <MoreVertical className="h-5 w-5" />
                     </button>
                     {menuOpen ? (
-                      <div className="absolute right-0 top-12 z-20 w-52 overflow-hidden rounded-2xl border border-black/10 bg-white p-1.5 shadow-xl">
+                      <div
+                        role="menu"
+                        className="absolute right-0 top-12 z-30 w-60 overflow-hidden rounded-2xl border border-black/10 bg-white p-2 shadow-[0_18px_55px_rgba(20,17,14,0.18)]"
+                      >
+                        <div className="mb-1 flex items-center justify-between px-2 py-1.5">
+                          <span className="text-[0.68rem] font-bold uppercase tracking-wider text-black/40">
+                            Ações da conversa
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setMenuOpen(false)}
+                            aria-label="Fechar opções da conversa"
+                            className="grid h-8 w-8 place-items-center rounded-full text-black/45 hover:bg-black/5 hover:text-black"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
                             setReportOpen(true);
                             setMenuOpen(false);
                           }}
-                          className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-semibold hover:bg-black/5"
+                          role="menuitem"
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-[var(--ruby)]/5"
                         >
-                          <Flag className="h-4 w-4" /> Denunciar conversa
+                          <span className="grid h-8 w-8 place-items-center rounded-full bg-[var(--ruby)]/8 text-[var(--ruby)]">
+                            <Flag className="h-4 w-4" />
+                          </span>
+                          Denunciar conversa
                         </button>
                         <button
                           type="button"
@@ -558,19 +689,37 @@ export function ChatClient() {
                             setBlockOpen(true);
                             setMenuOpen(false);
                           }}
-                          className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-[var(--ruby)] hover:bg-[var(--ruby)]/5"
+                          role="menuitem"
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold text-[var(--ruby)] hover:bg-[var(--ruby)]/5"
                         >
-                          <Ban className="h-4 w-4" /> Bloquear perfil
+                          <span className="grid h-8 w-8 place-items-center rounded-full bg-[var(--ruby)]/8">
+                            <Ban className="h-4 w-4" />
+                          </span>
+                          Bloquear perfil
                         </button>
                       </div>
                     ) : null}
                   </div>
                 </header>
 
-                <div className="flex items-center justify-center gap-2 border-b border-black/5 bg-[var(--emerald)]/[0.035] px-4 py-2 text-center text-[0.7rem] font-medium text-black/52">
-                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--emerald)]" />
-                  Protegida no envio e armazenamento · histórico de até 60 dias
-                </div>
+                <details className="group border-b border-black/5 bg-[var(--emerald)]/[0.035] text-black/55">
+                  <summary className="flex min-h-10 cursor-pointer list-none items-center justify-center gap-2 px-4 py-2 text-center text-[0.7rem] font-semibold marker:hidden hover:bg-[var(--emerald)]/[0.025]">
+                    <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[var(--emerald)]" />
+                    <span>
+                      Mensagens protegidas · histórico de até 60 dias
+                    </span>
+                    <ChevronUp className="h-3.5 w-3.5 rotate-180 transition group-open:rotate-0" />
+                  </summary>
+                  <div className="border-t border-black/5 px-5 py-3 text-center text-[0.7rem] leading-5">
+                    {monitoringNotice?.text ?? CHAT_MONITORING_NOTICE_TEXT}{" "}
+                    <Link
+                      href={monitoringNotice?.privacyUrl ?? "/privacy"}
+                      className="font-bold text-[var(--emerald)] underline underline-offset-2"
+                    >
+                      Política de Privacidade
+                    </Link>
+                  </div>
+                </details>
 
                 <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-8">
                   {nextCursor ? (
@@ -631,6 +780,44 @@ export function ChatClient() {
                   {selected.blocked ? (
                     <div className="rounded-2xl bg-black/5 px-4 py-3 text-center text-sm font-semibold text-black/50">
                       Esta conversa está bloqueada.
+                    </div>
+                  ) : loadingMonitoringNotice ? (
+                    <div className="rounded-2xl border border-black/8 bg-black/[0.025] px-4 py-3 text-center text-sm font-semibold text-black/50">
+                      Verificando o aviso de privacidade…
+                    </div>
+                  ) : monitoringNotice?.required ? (
+                    <div className="rounded-2xl border border-[var(--gold)]/30 bg-[var(--gold-soft)]/15 p-4">
+                      <div className="flex items-start gap-3">
+                        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[var(--emerald)]" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold">
+                            Aviso de privacidade do chat
+                          </p>
+                          <p className="mt-1 text-xs leading-5 text-black/58">
+                            {monitoringNotice.text}
+                          </p>
+                          <div className="mt-3 flex flex-wrap items-center gap-3">
+                            <button
+                              type="button"
+                              disabled={acknowledgingNotice}
+                              onClick={() =>
+                                void acknowledgeMonitoringNotice()
+                              }
+                              className="rounded-xl bg-[var(--emerald)] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50"
+                            >
+                              {acknowledgingNotice
+                                ? "Registrando…"
+                                : "Li e estou ciente"}
+                            </button>
+                            <Link
+                              href={monitoringNotice.privacyUrl}
+                              className="text-xs font-bold text-[var(--emerald)] underline underline-offset-2"
+                            >
+                              Ler a Política de Privacidade
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ) : !canSendMessages ? (
                     <div className="flex items-center justify-center gap-2 rounded-2xl border border-[var(--gold)]/25 bg-[var(--gold-soft)]/20 px-4 py-3 text-center text-sm font-semibold text-black/60">
@@ -693,7 +880,10 @@ export function ChatClient() {
       ) : null}
 
       {upgradeAlertOpen ? (
-        <ModalShell onClose={() => setUpgradeAlertOpen(false)}>
+        <ModalShell
+          onClose={() => setUpgradeAlertOpen(false)}
+          ariaLabel="Limite de mensagens"
+        >
           <div className="text-center">
             <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[var(--gold-soft)]/30 text-[var(--gold)]">
               <LockKeyhole className="h-6 w-6" />
@@ -727,7 +917,10 @@ export function ChatClient() {
       ) : null}
 
       {blockOpen && selected ? (
-        <ModalShell onClose={() => setBlockOpen(false)}>
+        <ModalShell
+          onClose={() => setBlockOpen(false)}
+          ariaLabel="Bloquear perfil"
+        >
           <div className="text-center">
             <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[var(--ruby)]/10 text-[var(--ruby)]">
               <Ban className="h-5 w-5" />
@@ -913,9 +1106,9 @@ function ReportDialog({
   }
 
   return (
-    <ModalShell onClose={onClose} wide>
+    <ModalShell onClose={onClose} ariaLabel="Denunciar conversa" wide>
       <form onSubmit={submit}>
-        <div className="flex items-start justify-between gap-4">
+        <div className="sticky top-0 z-10 -mx-1 flex items-start justify-between gap-4 border-b border-black/8 bg-white px-1 pb-4 pt-1">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-[var(--ruby)]">
               Segurança
@@ -931,9 +1124,9 @@ function ReportDialog({
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="grid h-9 w-9 place-items-center rounded-full hover:bg-black/5"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-black/10 bg-white text-black/55 shadow-sm transition hover:border-black/20 hover:bg-black/5 hover:text-black"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
@@ -1019,13 +1212,22 @@ function ReportDialog({
             {error}
           </p>
         ) : null}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="mt-5 w-full rounded-xl bg-[var(--ruby)] px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
-        >
-          {submitting ? "Enviando…" : "Enviar denúncia com segurança"}
-        </button>
+        <div className="sticky bottom-0 -mx-1 mt-5 grid grid-cols-[0.8fr_1.2fr] gap-3 border-t border-black/8 bg-white px-1 pb-1 pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl border border-black/12 px-4 py-3 text-sm font-bold text-black/60 transition hover:bg-black/5 hover:text-black"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="rounded-xl bg-[var(--ruby)] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:brightness-105 disabled:opacity-50"
+          >
+            {submitting ? "Enviando…" : "Enviar denúncia"}
+          </button>
+        </div>
       </form>
     </ModalShell>
   );
@@ -1034,27 +1236,63 @@ function ReportDialog({
 function ModalShell({
   children,
   onClose,
+  ariaLabel,
   wide = false,
 }: {
   children: React.ReactNode;
   onClose: () => void;
+  ariaLabel: string;
   wide?: boolean;
 }) {
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const previousOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    dialogRef.current?.focus();
+
+    function closeOnEscape(event: globalThis.KeyboardEvent) {
+      if (event.key === "Escape") {
+        onCloseRef.current();
+      }
+    }
+
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("keydown", closeOnEscape);
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
+    };
+  }, []);
+
   return (
     <div
       role="presentation"
-      onMouseDown={(event) => {
+      onPointerDown={(event) => {
         if (event.target === event.currentTarget) {
-          onClose();
+          onCloseRef.current();
         }
       }}
-      className="fixed inset-0 z-[80] grid place-items-center overflow-y-auto bg-black/45 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/45 px-3 pb-4 pt-20 backdrop-blur-sm sm:items-center sm:p-6"
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
+        aria-label={ariaLabel}
+        tabIndex={-1}
         className={[
-          "w-full rounded-3xl bg-white p-5 shadow-2xl sm:p-6",
+          "max-h-[calc(100dvh-6rem)] w-full overflow-y-auto overscroll-contain rounded-3xl bg-white p-5 shadow-2xl outline-none sm:max-h-[calc(100dvh-3rem)] sm:p-6",
           wide ? "max-w-xl" : "max-w-md",
         ].join(" ")}
       >

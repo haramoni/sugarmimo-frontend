@@ -18,15 +18,25 @@ import Image from "next/image";
 import { ModalForgotPassword } from "./ModalForgotPassword";
 import { saveAuthUser } from "../lib/auth-storage";
 import {
+  pendingModerationNotice,
+  type ModerationNotice,
+} from "../lib/auth";
+import {
   PENDING_APPROVAL_ROUTE,
   shouldShowPendingApproval,
 } from "../perfil/ProfileApprovalGuard";
+import { AccountModerationDialog } from "../components/AccountModerationDialog";
 
 export function LoginForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [moderationNotice, setModerationNotice] =
+    useState<ModerationNotice | null>(null);
+  const [moderationNextRoute, setModerationNextRoute] = useState<string | null>(
+    null,
+  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,6 +62,15 @@ export function LoginForm() {
       if (!response.ok) {
         const message = String(result?.message ?? "");
 
+        if (
+          result?.code === "ACCOUNT_RESTRICTED" &&
+          result.moderationNotice?.reason
+        ) {
+          setModerationNextRoute(null);
+          setModerationNotice(result.moderationNotice as ModerationNotice);
+          return;
+        }
+
         if (message.toLowerCase().includes("pending")) {
           router.replace(PENDING_APPROVAL_ROUTE);
           return;
@@ -72,6 +91,12 @@ export function LoginForm() {
 
       saveAuthUser(result.user);
       if (shouldShowPendingApproval(result.user)) {
+        const pendingNotice = pendingModerationNotice(result.user);
+        if (pendingNotice) {
+          setModerationNextRoute(PENDING_APPROVAL_ROUTE);
+          setModerationNotice(pendingNotice);
+          return;
+        }
         window.location.replace(PENDING_APPROVAL_ROUTE);
         return;
       }
@@ -184,6 +209,19 @@ export function LoginForm() {
           </div>
         </CardContent>
       </Card>
+      <AccountModerationDialog
+        key={moderationNotice?.appliedAt ?? "blocked-moderation-notice"}
+        open={Boolean(moderationNotice)}
+        notice={moderationNotice}
+        blocked={!moderationNextRoute}
+        onConfirm={() => {
+          if (moderationNextRoute) {
+            window.location.replace(moderationNextRoute);
+            return;
+          }
+          setModerationNotice(null);
+        }}
+      />
     </div>
   );
 }

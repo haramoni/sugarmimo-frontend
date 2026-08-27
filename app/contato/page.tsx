@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import {
   ArrowUpRight,
-  Headphones,
   Mail,
   MessageCircle,
   ShieldCheck,
 } from "lucide-react";
 
-import { contact, whatsappUrl, whatsappUrl2 } from "@/lib/contact";
+import { contact, whatsappUrl } from "@/lib/contact";
 import NavBarMenu from "../components/ui/NavBarMenu";
 import { SiteFooter } from "../components/ui/SiteFooter";
 import { ContactForm } from "./contact-form";
@@ -39,7 +38,21 @@ const contactChannels = [
   },
 ];
 
-export default function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
+  const { category } = await searchParams;
+  const initialCategory = [
+    "ATENDIMENTO",
+    "RECLAMACAO",
+    "CANCELAMENTO",
+    "PRIVACIDADE",
+    "DENUNCIA",
+  ].includes(category ?? "")
+    ? category
+    : "ATENDIMENTO";
   return (
     <main className="page-marble-background min-h-screen bg-cover bg-center text-black-jewel">
       <NavBarMenu />
@@ -121,7 +134,7 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <ContactForm />
+          <ContactForm initialCategory={initialCategory} />
         </div>
       </section>
 
