@@ -14,12 +14,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  getStoredReferralUsername,
   REGISTER_PAYLOAD_KEY,
   setRegisterStep,
 } from "../register-flow";
 import { RegisterStepDots } from "../RegisterStepDots";
-import { useRegistrationCompletion } from "../profile-photos/useRegistrationCompletion";
 import {
   describeForProfile,
   occupationOptions,
@@ -69,10 +67,7 @@ const educationOptions = [
 
 export default function AlmostTherePage() {
   const router = useRouter();
-  const completeRegistration = useRegistrationCompletion();
   const profileType = getSavedValue("profileType");
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [smoke, setSmoke] = useState(() => getSavedValue("smoke"));
   const [drink, setDrink] = useState(() => getSavedValue("drink"));
   const [relationship, setRelationship] = useState(() =>
@@ -119,39 +114,9 @@ export default function AlmostTherePage() {
       return;
     }
 
-    setError("");
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...nextPayload,
-          referralUsername: getStoredReferralUsername(),
-          profilePhotos: [],
-        }),
-      });
-      const result = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        throw new Error(
-          result?.message ?? "Não foi possível finalizar o cadastro.",
-        );
-      }
-
-      await completeRegistration(result);
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Não foi possível finalizar o cadastro.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+    const nextStep = "/register/profile-photos";
+    setRegisterStep(nextStep);
+    router.push(nextStep);
   }
 
   return (
@@ -215,12 +180,6 @@ export default function AlmostTherePage() {
             required={false}
           />
 
-          {error && (
-            <p className="rounded-sm bg-[color-mix(in_srgb,var(--ruby)_12%,white)] px-3 py-2 text-sm font-bold text-ruby">
-              {error}
-            </p>
-          )}
-
           <div className="grid gap-3 sm:grid-cols-[0.8fr_1.2fr]">
             <Button
               type="button"
@@ -234,10 +193,9 @@ export default function AlmostTherePage() {
 
             <Button
               type="submit"
-              disabled={isSubmitting}
               className="h-12 rounded-sm bg-emerald text-base font-bold text-white hover:bg-emerald/80 hover:text-surface"
             >
-              {isSubmitting ? "Finalizando..." : "Salvar e Continuar"}
+              Salvar e Continuar
             </Button>
           </div>
         </form>

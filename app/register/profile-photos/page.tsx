@@ -6,6 +6,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import {
   CheckCircle2,
@@ -70,6 +71,11 @@ export default function ProfilePhotosPage() {
   const router = useRouter();
   const completeRegistration = useRegistrationCompletion();
   const [photos, setPhotos] = useState<ProfilePhoto[]>([]);
+  const photosRequired = useSyncExternalStore(
+    subscribeToSavedProfile,
+    arePhotosRequiredForSavedProfile,
+    () => true,
+  );
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
@@ -90,7 +96,9 @@ export default function ProfilePhotosPage() {
     photos.length > 0 && photos.every((photo) => photo.rightsConfirmed);
 
   useEffect(() => {
-    if (!localStorage.getItem(REGISTER_PAYLOAD_KEY)) {
+    const savedPayload = localStorage.getItem(REGISTER_PAYLOAD_KEY);
+
+    if (!savedPayload) {
       router.replace("/register/basic-info");
       return;
     }
@@ -248,7 +256,7 @@ export default function ProfilePhotosPage() {
   }
 
   function validatePhotosForCompletion() {
-    if (photos.length < 1) {
+    if (photosRequired && photos.length < 1) {
       setError("Envie pelo menos 1 foto para continuar.");
       return false;
     }
@@ -258,7 +266,7 @@ export default function ProfilePhotosPage() {
       return false;
     }
 
-    if (!allPhotosConfirmed) {
+    if (photos.length > 0 && !allPhotosConfirmed) {
       setError(
         "Confirme a titularidade e a autorização de uso de cada foto antes de finalizar.",
       );
@@ -349,7 +357,9 @@ export default function ProfilePhotosPage() {
                   Fotos do perfil
                 </h1>
                 <p className="text-sm text-[color-mix(in_srgb,var(--black)_64%,transparent)]">
-                  Escolha suas melhores fotos para completar o cadastro.
+                  {photosRequired
+                    ? "Escolha suas melhores fotos para completar o cadastro."
+                    : "Você pode adicionar fotos agora ou concluir o cadastro sem elas."}
                 </p>
               </div>
               <span className="shrink-0 rounded-full bg-[color-mix(in_srgb,var(--gold-soft)_65%,white)] px-3 py-1 text-xs font-extrabold text-black-jewel">
@@ -358,7 +368,11 @@ export default function ProfilePhotosPage() {
             </div>
 
             <div className="grid grid-cols-3 gap-2 rounded-sm border border-gold/45 bg-[color-mix(in_srgb,var(--gold-soft)_24%,white)] p-3 text-center text-xs font-bold text-black-jewel/75">
-              <span>De 1 a {MAX_PHOTOS} fotos</span>
+              <span>
+                {photosRequired
+                  ? `De 1 a ${MAX_PHOTOS} fotos`
+                  : `Até ${MAX_PHOTOS} fotos (opcional)`}
+              </span>
               <span>Até {MAX_PHOTO_SIZE_LABEL} cada</span>
               <span>JPEG, PNG, WebP, AVIF ou HEIC</span>
             </div>
@@ -462,7 +476,7 @@ export default function ProfilePhotosPage() {
               <span>
                 {photos.length} de {MAX_PHOTOS} fotos
               </span>
-              <span>Mínimo 1</span>
+              <span>{photosRequired ? "Mínimo 1" : "Opcional"}</span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--silver)_45%,white)]">
               <div
@@ -490,7 +504,8 @@ export default function ProfilePhotosPage() {
             <Button
               type="submit"
               disabled={
-                !allPhotosConfirmed ||
+                (photosRequired && !allPhotosConfirmed) ||
+                (!photosRequired && photos.length > 0 && !allPhotosConfirmed) ||
                 isProcessingPhotos ||
                 isLoadingReview ||
                 isSubmitting
@@ -686,6 +701,38 @@ function getCurrentRegistrationPayload(): Record<string, unknown> {
   } catch {
     return {};
   }
+}
+
+function parseRegistrationPayload(value: string): Record<string, unknown> {
+  try {
+    const payload = JSON.parse(value);
+    return payload && typeof payload === "object" ? payload : {};
+  } catch {
+    return {};
+  }
+}
+
+function arePhotosRequiredForSavedProfile() {
+  if (typeof window === "undefined") {
+    return true;
+  }
+
+  const savedPayload = window.localStorage.getItem(REGISTER_PAYLOAD_KEY);
+  return savedPayload
+    ? isSugarBabyProfile(parseRegistrationPayload(savedPayload))
+    : true;
+}
+
+function subscribeToSavedProfile() {
+  return () => undefined;
+}
+
+function isSugarBabyProfile(payload: Record<string, unknown>) {
+  const profileType = String(payload.profileType ?? "")
+    .trim()
+    .toLowerCase();
+
+  return profileType.startsWith("sugar-baby");
 }
 
 function buildRegistrationSummary(
