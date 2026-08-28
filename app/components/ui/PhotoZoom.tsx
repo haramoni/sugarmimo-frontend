@@ -3,17 +3,19 @@
 import {
   ChevronLeft,
   ChevronRight,
+  ImageOff,
   Minus,
   Plus,
   RotateCcw,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 3;
 const SCALE_STEP = 0.5;
+const THUMBNAIL_RETRY_LIMIT = 2;
 
 export type PhotoZoomItem = {
   src: string;
@@ -40,9 +42,25 @@ export function PhotoZoom({
   const [isOpen, setIsOpen] = useState(false);
   const [scale, setScale] = useState(MIN_SCALE);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const [thumbnailAttempt, setThumbnailAttempt] = useState(0);
+  const [thumbnailFailed, setThumbnailFailed] = useState(false);
+  const thumbnailRetryTimer = useRef<number | null>(null);
   const items = gallery?.length ? gallery : [{ src, alt }];
   const currentItem = items[activeIndex] ?? items[0];
   const hasNavigation = items.length > 1;
+  const thumbnailSource = withRetryParameter(
+    thumbnailSrc ?? src,
+    thumbnailAttempt,
+  );
+
+  useEffect(() => {
+    return () => {
+      if (thumbnailRetryTimer.current !== null) {
+        window.clearTimeout(thumbnailRetryTimer.current);
+        thumbnailRetryTimer.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!isOpen) {
@@ -99,6 +117,20 @@ export function PhotoZoom({
     setScale(MIN_SCALE);
   }
 
+  function handleThumbnailError() {
+    if (
+      thumbnailAttempt >= THUMBNAIL_RETRY_LIMIT ||
+      !isRetryablePhotoSource(thumbnailSrc ?? src)
+    ) {
+      setThumbnailFailed(true);
+      return;
+    }
+
+    thumbnailRetryTimer.current = window.setTimeout(() => {
+      setThumbnailAttempt((current) => current + 1);
+    }, 450 * (thumbnailAttempt + 1));
+  }
+
   return (
     <>
       <button
@@ -107,14 +139,28 @@ export function PhotoZoom({
         className={buttonClassName}
         aria-label={`Ampliar ${alt}`}
       >
-        {/* User uploads and authorized photo URLs should not use Next image optimization. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={thumbnailSrc ?? src}
-          alt={alt}
-          loading="lazy"
-          className={imageClassName}
-        />
+        <span className="relative block h-full w-full overflow-hidden">
+          {/* User uploads and authorized photo URLs should not use Next image optimization. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            key={thumbnailSource}
+            src={thumbnailSource}
+            alt={alt}
+            loading="lazy"
+            decoding="async"
+            onLoad={() => setThumbnailFailed(false)}
+            onError={handleThumbnailError}
+            className={imageClassName}
+          />
+          {thumbnailFailed ? (
+            <span className="pointer-events-none absolute inset-0 grid place-items-center bg-black/55 px-3 text-center text-xs font-bold text-white">
+              <span className="flex flex-col items-center gap-2">
+                <ImageOff aria-hidden="true" className="h-5 w-5" />
+                Foto indisponível
+              </span>
+            </span>
+          ) : null}
+        </span>
       </button>
 
       {isOpen && typeof document !== "undefined"
@@ -234,4 +280,17 @@ export function PhotoZoom({
         : null}
     </>
   );
+}
+
+function isRetryablePhotoSource(source: string) {
+  return /^(https?:)?\/\//.test(source) || source.startsWith("/");
+}
+
+function withRetryParameter(source: string, attempt: number) {
+  if (attempt === 0 || !isRetryablePhotoSource(source)) {
+    return source;
+  }
+
+  const separator = source.includes("?") ? "&" : "?";
+  return `${source}${separator}retry=${attempt}`;
 }

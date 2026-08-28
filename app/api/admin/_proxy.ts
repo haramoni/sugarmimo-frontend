@@ -45,10 +45,19 @@ export async function forwardAdminAssetRequest(path: string) {
     return NextResponse.json({ message: "Não autenticado." }, { status: 401 });
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  }).catch(() => null);
+  const requestAsset = () =>
+    fetch(`${API_URL}${path}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    }).catch(() => null);
+
+  let response = await requestAsset();
+
+  if (!response || [502, 503, 504].includes(response.status)) {
+    await response?.body?.cancel().catch(() => undefined);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    response = await requestAsset();
+  }
 
   if (!response) {
     return NextResponse.json(
