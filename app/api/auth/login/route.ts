@@ -55,6 +55,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ user: result.user });
   }
 
+  if (result.requiresReapplication && result.reapplicationAccessToken) {
+    await clearSessionCookie();
+    await setApprovalSessionCookie(result.reapplicationAccessToken);
+    return NextResponse.json({
+      user: result.user,
+      requiresReapplication: true,
+      moderationNotice: result.moderationNotice,
+    });
+  }
+
   return NextResponse.json(
     { message: "Resposta de login inválida." },
     { status: 502 },

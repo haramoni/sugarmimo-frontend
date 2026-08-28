@@ -7,9 +7,11 @@ import {
   Crown,
   Download,
   ImageOff,
+  KeyRound,
   LoaderCircle,
   MapPin,
   RefreshCw,
+  RotateCcw,
   Search,
   ShieldCheck,
   Sparkles,
@@ -17,6 +19,7 @@ import {
   UserRoundCheck,
   UsersRound,
   X,
+  XCircle,
 } from "lucide-react";
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -42,9 +45,14 @@ type AdminProfile = {
   email: string;
   accountPhone: string | null;
   role: string | null;
+  gender: string | null;
+  age: number | null;
   city: string | null;
   state: string | null;
   approvalStatus: string;
+  reapplicationCount: number;
+  reapplicationPin: string | null;
+  reappliedAt: string | null;
   accountStatus: string;
   suspendedUntil: string | null;
   isPremium: boolean;
@@ -266,6 +274,62 @@ export default function AdminProfilesPage() {
     }
   }
 
+  async function rejectProfile(profile: AdminProfile) {
+    const confirmation = await Swal.fire({
+      title: "Rejeitar este cadastro?",
+      text: "A justificativa será exibida para a pessoa quando ela tentar entrar.",
+      icon: "warning",
+      input: "textarea",
+      inputLabel: "Motivo da não aprovação",
+      inputPlaceholder:
+        "Explique o que precisa ser corrigido ou qual regra não foi atendida...",
+      inputAttributes: { maxlength: "1000" },
+      showCancelButton: true,
+      confirmButtonText: "Confirmar rejeição",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "var(--ruby)",
+      preConfirm: (value) => {
+        const reason = String(value ?? "").trim();
+        if (reason.length < 5) {
+          Swal.showValidationMessage(
+            "Informe um motivo com pelo menos 5 caracteres.",
+          );
+          return false;
+        }
+        return reason;
+      },
+    });
+    if (!confirmation.isConfirmed) return;
+
+    setBusyId(profile.id);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/admin/profiles/${encodeURIComponent(profile.id)}/reject`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: confirmation.value }),
+        },
+      );
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(
+          result?.message ?? "Não foi possível rejeitar o perfil.",
+        );
+      }
+      await loadProfiles();
+    } catch (actionError) {
+      setError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Não foi possível rejeitar o perfil.",
+      );
+    } finally {
+      setBusyId("");
+    }
+  }
+
   async function removePhoto(profile: AdminProfile, photo: AdminPhoto) {
     const confirmation = await Swal.fire({
       title: "Remover esta foto?",
@@ -470,52 +534,11 @@ export default function AdminProfilesPage() {
           <section className="grid gap-4 xl:grid-cols-2" aria-label="Lista de perfis">
             {profiles.map((profile) => (
               <article key={profile.id} className="overflow-hidden rounded-xl border border-black/8 bg-white shadow-[0_12px_35px_rgba(36,21,13,0.06)]">
-                <div className="grid grid-cols-3 gap-1 bg-[#eee8df] p-1">
-                  {profile.photos.length ? (
-                    profile.photos.map((photo, index) => (
-                      <div key={photo.id} className="group relative aspect-[4/3] overflow-hidden bg-[#ddd5ca]">
-                        <PhotoZoom
-                          src={`/api/admin/review-photos/${encodeURIComponent(photo.id)}`}
-                          thumbnailSrc={`/api/admin/review-photos/${encodeURIComponent(photo.id)}?variant=card`}
-                          alt={`Foto ${index + 1} de ${profile.username}`}
-                          buttonClassName="absolute inset-0 block h-full w-full cursor-zoom-in"
-                        />
-                        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/65 to-transparent p-2 pt-7">
-                          <span className="rounded bg-black/50 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
-                            {photo.isPrivate ? "Privada" : "Pública"}
-                          </span>
-                          <span className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase ${
-                            photo.moderationStatus === "APPROVED"
-                              ? "bg-emerald-100 text-emerald-900"
-                              : photo.moderationStatus === "REJECTED"
-                                ? "bg-red-100 text-red-900"
-                                : "bg-amber-100 text-amber-900"
-                          }`}>
-                            {photo.moderationStatus === "APPROVED"
-                              ? "Aprovada"
-                              : photo.moderationStatus === "REJECTED"
-                                ? "Não aprovada"
-                                : "Em análise"}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          aria-label={`Remover foto ${index + 1}`}
-                          title="Remover foto"
-                          disabled={deletingPhotoId === photo.id}
-                          onClick={() => void removePhoto(profile, photo)}
-                          className="absolute right-2 top-2 z-10 grid h-9 w-9 place-items-center rounded-full bg-[var(--ruby)] text-white opacity-100 shadow-md transition hover:scale-105 disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
-                        >
-                          {deletingPhotoId === photo.id ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-3 grid aspect-[4/1] place-items-center text-black/30">
-                      <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide"><ImageOff className="h-4 w-4" /> Sem fotos</span>
-                    </div>
-                  )}
-                </div>
+                <AdminProfilePhotoCarousel
+                  profile={profile}
+                  deletingPhotoId={deletingPhotoId}
+                  onRemove={removePhoto}
+                />
 
                 <div className="space-y-4 p-5">
                   <div className="flex items-start justify-between gap-3">
@@ -525,6 +548,16 @@ export default function AdminProfilesPage() {
                         {profile.isPremiere ? <Badge label="Premiere" tone="gold" /> : null}
                         {profile.isPremium ? <Badge label="Premium" tone="emerald" /> : null}
                         {profile.isAdminFeatured ? <Badge label="Destaque" tone="ruby" /> : null}
+                        {profile.reapplicationCount > 0 && ["PENDING", "WAITING"].includes(profile.approvalStatus) ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-ruby/10 px-2 py-1 text-[9px] font-extrabold uppercase tracking-wide text-ruby">
+                            <RotateCcw className="h-3 w-3" /> Retorno
+                            {profile.reapplicationPin ? (
+                              <span className="inline-flex items-center gap-1 tracking-[0.14em]">
+                                <KeyRound className="h-3 w-3" /> {profile.reapplicationPin}
+                              </span>
+                            ) : null}
+                          </span>
+                        ) : null}
                       </div>
                       <p className="mt-1 truncate text-sm text-black/50">{profile.email}</p>
                     </div>
@@ -533,6 +566,15 @@ export default function AdminProfilesPage() {
 
                   <div className="grid grid-cols-2 gap-3 rounded-lg bg-[#faf7f1] p-3 text-xs sm:grid-cols-4">
                     <Info label="Perfil" value={roleLabel(profile.role)} />
+                    <Info label="Gênero" value={genderLabel(profile.gender)} />
+                    <Info
+                      label="Idade"
+                      value={
+                        profile.age === null
+                          ? "Não informada"
+                          : `${profile.age} anos`
+                      }
+                    />
                     <Info
                       label="Celular privado"
                       value={profile.accountPhone ?? "Não informado"}
@@ -540,6 +582,9 @@ export default function AdminProfilesPage() {
                     <Info label="Aprovação" value={approvalLabel(profile.approvalStatus)} />
                     <Info label="Fotos" value={String(profile.photos.length)} />
                     <Info label="Cadastro" value={formatDate(profile.createdAt)} />
+                    {profile.reappliedAt ? (
+                      <Info label="Reenvio" value={formatDate(profile.reappliedAt)} />
+                    ) : null}
                   </div>
 
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-black/48">
@@ -557,6 +602,17 @@ export default function AdminProfilesPage() {
                         className="h-9 rounded-lg border-[var(--emerald)]/25 text-xs font-bold text-[var(--emerald)] hover:bg-[var(--emerald)]/8"
                       >
                         <ShieldCheck className="h-4 w-4" /> Aprovar
+                      </Button>
+                    ) : null}
+                    {profile.role === "SUGAR_BABY" && ["PENDING", "WAITING"].includes(profile.approvalStatus) ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={busyId === profile.id}
+                        onClick={() => void rejectProfile(profile)}
+                        className="h-9 rounded-lg border-[var(--ruby)]/25 text-xs font-bold text-[var(--ruby)] hover:bg-[var(--ruby)]/8"
+                      >
+                        <XCircle className="h-4 w-4" /> Rejeitar
                       </Button>
                     ) : null}
                     <Button
@@ -606,6 +662,150 @@ export default function AdminProfilesPage() {
   );
 }
 
+const PHOTOS_PER_SLIDE = 3;
+
+function AdminProfilePhotoCarousel({
+  profile,
+  deletingPhotoId,
+  onRemove,
+}: {
+  profile: AdminProfile;
+  deletingPhotoId: string;
+  onRemove: (profile: AdminProfile, photo: AdminPhoto) => Promise<void>;
+}) {
+  const [slide, setSlide] = useState(0);
+  const slideCount = Math.max(
+    1,
+    Math.ceil(profile.photos.length / PHOTOS_PER_SLIDE),
+  );
+  const currentSlide = Math.min(slide, slideCount - 1);
+  const firstPhotoIndex = currentSlide * PHOTOS_PER_SLIDE;
+  const visiblePhotos = profile.photos.slice(
+    firstPhotoIndex,
+    firstPhotoIndex + PHOTOS_PER_SLIDE,
+  );
+
+  if (!profile.photos.length) {
+    return (
+      <div className="grid aspect-[4/1] place-items-center bg-[#eee8df] p-1 text-black/30">
+        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide">
+          <ImageOff className="h-4 w-4" /> Sem fotos
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <section
+      className="bg-[#eee8df] p-1"
+      aria-label={`Fotos de ${profile.username}`}
+    >
+      <div className="grid grid-cols-3 gap-1">
+        {visiblePhotos.map((photo, index) => {
+          const photoNumber = firstPhotoIndex + index + 1;
+
+          return (
+            <div
+              key={photo.id}
+              className="group relative aspect-[4/3] overflow-hidden bg-[#ddd5ca]"
+            >
+              <PhotoZoom
+                src={`/api/admin/review-photos/${encodeURIComponent(photo.id)}`}
+                thumbnailSrc={`/api/admin/review-photos/${encodeURIComponent(photo.id)}?variant=card&v=3`}
+                alt={`Foto ${photoNumber} de ${profile.username}`}
+                buttonClassName="absolute inset-0 block h-full w-full cursor-zoom-in"
+              />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/65 to-transparent p-2 pt-7">
+                <span className="rounded bg-black/50 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
+                  {photo.isPrivate ? "Privada" : "Pública"}
+                </span>
+                <span
+                  className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase ${
+                    photo.moderationStatus === "APPROVED"
+                      ? "bg-emerald-100 text-emerald-900"
+                      : photo.moderationStatus === "REJECTED"
+                        ? "bg-red-100 text-red-900"
+                        : "bg-amber-100 text-amber-900"
+                  }`}
+                >
+                  {photo.moderationStatus === "APPROVED"
+                    ? "Aprovada"
+                    : photo.moderationStatus === "REJECTED"
+                      ? "Não aprovada"
+                      : "Em análise"}
+                </span>
+              </div>
+              <button
+                type="button"
+                aria-label={`Remover foto ${photoNumber}`}
+                title="Remover foto"
+                disabled={deletingPhotoId === photo.id}
+                onClick={() => void onRemove(profile, photo)}
+                className="absolute right-2 top-2 z-10 grid h-9 w-9 place-items-center rounded-full bg-[var(--ruby)] text-white opacity-100 shadow-md transition hover:scale-105 disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
+              >
+                {deletingPhotoId === photo.id ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {slideCount > 1 ? (
+        <div className="flex min-h-10 items-center justify-between gap-3 px-2 py-1.5">
+          <button
+            type="button"
+            aria-label="Ver fotos anteriores"
+            disabled={currentSlide === 0}
+            onClick={() => setSlide((current) => Math.max(0, current - 1))}
+            className="grid h-8 w-8 place-items-center rounded-full bg-white text-black/65 shadow-sm transition hover:bg-[var(--gold)] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+
+          <div className="flex min-w-0 flex-1 flex-col items-center gap-1">
+            <span className="text-[10px] font-extrabold uppercase tracking-wide text-black/48">
+              Fotos {firstPhotoIndex + 1}–
+              {Math.min(
+                firstPhotoIndex + PHOTOS_PER_SLIDE,
+                profile.photos.length,
+              )}{" "}
+              de {profile.photos.length}
+            </span>
+            <div className="flex items-center gap-1" aria-hidden="true">
+              {Array.from({ length: slideCount }, (_, index) => (
+                <span
+                  key={index}
+                  className={`h-1.5 rounded-full transition-all ${
+                    index === currentSlide
+                      ? "w-5 bg-[var(--gold)]"
+                      : "w-1.5 bg-black/20"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            aria-label="Ver próximas fotos"
+            disabled={currentSlide === slideCount - 1}
+            onClick={() =>
+              setSlide((current) => Math.min(slideCount - 1, current + 1))
+            }
+            className="grid h-8 w-8 place-items-center rounded-full bg-white text-black/65 shadow-sm transition hover:bg-[var(--gold)] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function FilterSelect({ label, value, onChange, children }: { label: string; value: string; onChange: (value: string) => void; children: React.ReactNode }) {
   return (
     <label>
@@ -648,6 +848,20 @@ function Info({ label, value }: { label: string; value: string }) {
 
 function roleLabel(role: string | null) {
   return role === "SUGAR_BABY" ? "Sugar Baby" : role === "SUGAR_DADDY" ? "Sugar Daddy" : "—";
+}
+
+function genderLabel(value: string | null) {
+  const labels: Record<string, string> = {
+    "sugar-daddy": "Homem",
+    "sugar-mommy": "Mulher",
+    "sugar-baby-woman": "Mulher",
+    "sugar-baby-trans-woman": "Mulher trans",
+    "sugar-baby-man": "Homem",
+    "sugar-baby-trans-man": "Homem trans",
+  };
+
+  if (!value?.trim()) return "Não informado";
+  return labels[value.trim().toLowerCase()] ?? value;
 }
 
 function approvalLabel(status: string) {

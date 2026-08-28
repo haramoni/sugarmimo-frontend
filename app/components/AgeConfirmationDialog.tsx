@@ -8,38 +8,14 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-
-const AGE_CONFIRMATION_KEY = "sugarmimo_age_confirmation";
-const AGE_CONFIRMATION_VERSION = "v1.18-plus";
-const AGE_CONFIRMATION_EVENT = "sugarmimo-age-confirmation";
-
-function subscribeToAgeConfirmation(callback: () => void) {
-  window.addEventListener(AGE_CONFIRMATION_EVENT, callback);
-  window.addEventListener("storage", callback);
-
-  return () => {
-    window.removeEventListener(AGE_CONFIRMATION_EVENT, callback);
-    window.removeEventListener("storage", callback);
-  };
-}
+import {
+  hasAgeConfirmation,
+  saveAgeConfirmation,
+  subscribeToAgeConfirmation,
+} from "./age-confirmation-store";
 
 function needsAgeConfirmation() {
-  try {
-    return (
-      window.localStorage.getItem(AGE_CONFIRMATION_KEY) !==
-      AGE_CONFIRMATION_VERSION
-    );
-  } catch {
-    return true;
-  }
-}
-
-function saveAgeConfirmation() {
-  try {
-    window.localStorage.setItem(AGE_CONFIRMATION_KEY, AGE_CONFIRMATION_VERSION);
-  } finally {
-    window.dispatchEvent(new Event(AGE_CONFIRMATION_EVENT));
-  }
+  return !hasAgeConfirmation();
 }
 
 export function AgeConfirmationDialog() {

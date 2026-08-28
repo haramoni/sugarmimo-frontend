@@ -75,12 +75,15 @@ export function ModalForgotPassword() {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button className="mt-3 p-0" variant="link">
+        <Button
+          className="mt-3 p-0 text-[#99958d] hover:text-[#e1bd8a]"
+          variant="link"
+        >
           Esqueceu sua senha?
         </Button>
       </DialogTrigger>
 
-      <DialogContent>
+      <DialogContent className="border-[#e1bd8a]/18 bg-[#11100e] text-[#f4ecdf]">
         <DialogHeader>
           <DialogTitle>Recuperar senha</DialogTitle>
           <DialogDescription>
@@ -102,6 +105,7 @@ export function ModalForgotPassword() {
               onChange={(event) => setEmail(event.target.value)}
               placeholder="exemplo@email.com"
               disabled={isSubmitting}
+              className="border-[#e1bd8a]/18 bg-[#080808] text-[#f4ecdf] placeholder:text-[#716e68] focus-visible:border-[#e1bd8a]/60 focus-visible:ring-[#e1bd8a]/20"
             />
           </div>
 
@@ -123,7 +127,11 @@ export function ModalForgotPassword() {
             </p>
           )}
 
-          <Button className="bg-gold" type="submit" disabled={isSubmitting}>
+          <Button
+            className="rounded-full bg-[#e1bd8a] text-[#080808] hover:bg-[#f3d7aa]"
+            type="submit"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Enviando..." : "Enviar link seguro"}
           </Button>
         </form>

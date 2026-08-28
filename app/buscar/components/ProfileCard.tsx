@@ -188,7 +188,7 @@ export default function ProfileCard({
               fetchPriority={eager ? "high" : "auto"}
               decoding="async"
               className={[
-                "block h-full w-full object-full",
+                "block h-full w-full object-cover",
                 isPremiereDaddy ? styles.premiereImage : "",
               ].join(" ")}
             />

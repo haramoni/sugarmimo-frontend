@@ -61,6 +61,7 @@ export default function BlogPage() {
                     alt={post.imageAlt}
                     fill
                     priority={index === 0}
+                    quality={95}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover transition duration-500 group-hover:scale-[1.03]"
                   />

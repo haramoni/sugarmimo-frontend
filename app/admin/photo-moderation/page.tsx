@@ -46,6 +46,8 @@ type ModerationProfile = {
   username: string;
   email: string;
   role: string | null;
+  gender: string | null;
+  age: number | null;
   approvalStatus: string;
   accountStatus: string;
   city: string | null;
@@ -206,15 +208,61 @@ export default function PhotoModerationPage() {
       const result = await response.json().catch(() => null);
       if (!response.ok) throw new Error(result?.message ?? "Não foi possível revisar a foto.");
 
-      await loadQueue();
-      await Swal.fire({
+      const nextStatus: ModerationStatus =
+        action === "approve" ? "APPROVED" : "REJECTED";
+      setProfiles((currentProfiles) =>
+        currentProfiles.map((currentProfile) => {
+          if (currentProfile.id !== profile.id) return currentProfile;
+
+          return {
+            ...currentProfile,
+            photos: currentProfile.photos
+              .filter(
+                (currentPhoto) =>
+                  action !== "approve" ||
+                  !photo.replacesPhotoId ||
+                  currentPhoto.id !== photo.replacesPhotoId,
+              )
+              .map((currentPhoto) =>
+                currentPhoto.id === photo.id
+                  ? {
+                      ...currentPhoto,
+                      moderationStatus: nextStatus,
+                      moderationReason:
+                        action === "reject"
+                          ? (result?.moderationReason ?? reason)
+                          : null,
+                      moderatedAt:
+                        result?.moderatedAt ?? new Date().toISOString(),
+                      replacesPhotoId:
+                        action === "approve"
+                          ? null
+                          : currentPhoto.replacesPhotoId,
+                    }
+                  : currentPhoto,
+              ),
+          };
+        }),
+      );
+      setStats((currentStats) => ({
+        ...currentStats,
+        pending: Math.max(0, currentStats.pending - 1),
+        approved:
+          currentStats.approved + (action === "approve" ? 1 : 0),
+        rejected:
+          currentStats.rejected + (action === "reject" ? 1 : 0),
+      }));
+
+      void Swal.fire({
+        toast: true,
+        position: "top-end",
         title: action === "approve" ? "Foto aprovada" : "Foto não aprovada",
         text:
           action === "approve"
-            ? "A imagem já pode seguir as regras de visibilidade escolhidas pelo usuário."
-            : "A imagem continuará indisponível e o usuário receberá o motivo.",
+            ? "Você já pode continuar avaliando as próximas fotos."
+            : "A pessoa receberá o motivo informado.",
         icon: "success",
-        timer: 1800,
+        timer: 1500,
         showConfirmButton: false,
       });
     } catch (reviewError) {
@@ -384,6 +432,12 @@ export default function PhotoModerationPage() {
                         <span className="rounded-full bg-black/6 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide">
                           {profile.role === "SUGAR_BABY" ? "Sugar Baby" : "Sugar Daddy"}
                         </span>
+                        <span className="rounded-full bg-[var(--gold)]/12 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-[var(--cognac)]">
+                          Gênero: {genderLabel(profile.gender)}
+                        </span>
+                        <span className="rounded-full bg-[var(--emerald)]/10 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-[var(--emerald)]">
+                          Idade: {profile.age === null ? "Não informada" : `${profile.age} anos`}
+                        </span>
                         {profile.accountStatus === "BANNED" ? (
                           <span className="rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-extrabold uppercase text-red-800">Bloqueado</span>
                         ) : null}
@@ -413,7 +467,7 @@ export default function PhotoModerationPage() {
                         <div className="relative aspect-[4/3] overflow-hidden bg-[#e9e3d9]">
                           <PhotoZoom
                             src={`/api/admin/review-photos/${encodeURIComponent(photo.id)}`}
-                            thumbnailSrc={`/api/admin/review-photos/${encodeURIComponent(photo.id)}?variant=card`}
+                            thumbnailSrc={`/api/admin/review-photos/${encodeURIComponent(photo.id)}?variant=card&v=3`}
                             alt={`Foto ${index + 1} de ${profile.username}`}
                             imageClassName="h-full w-full object-cover"
                           />
@@ -508,4 +562,18 @@ function formatDateTime(value: string | null) {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function genderLabel(value: string | null) {
+  const labels: Record<string, string> = {
+    "sugar-daddy": "Homem",
+    "sugar-mommy": "Mulher",
+    "sugar-baby-woman": "Mulher",
+    "sugar-baby-trans-woman": "Mulher trans",
+    "sugar-baby-man": "Homem",
+    "sugar-baby-trans-man": "Homem trans",
+  };
+
+  if (!value?.trim()) return "Não informado";
+  return labels[value.trim().toLowerCase()] ?? value;
 }

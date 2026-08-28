@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { APPROVAL_PRIORITY_PRICE_DISPLAY } from "@/lib/contact";
 import { clearRegisterFlow } from "../register-flow";
+import { RegistrationFormShell } from "../RegistrationFormShell";
 
 type PaymentState = {
   status: string;
@@ -184,44 +185,34 @@ export default function PendingApprovalPage() {
     );
 
   return (
-    <main className="flex h-screen h-[100dvh] items-start justify-center overflow-x-hidden overflow-y-auto bg-[url('/register-wallpaper-marble.jpg')] bg-cover bg-center px-3 py-3 text-black-jewel sm:px-5 sm:py-4">
-      <section className="my-auto w-full max-w-[620px] bg-surface px-4 py-4 text-center shadow-[0_22px_60px_rgba(20,17,14,0.18)] sm:px-6 sm:py-5">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-gold bg-[color-mix(in_srgb,var(--gold-soft)_38%,white)] text-gold sm:h-14 sm:w-14">
-          <MailCheck className="h-6 w-6 sm:h-7 sm:w-7" />
-        </div>
+    <RegistrationFormShell
+      eyebrow="Cadastro enviado"
+      title="Seu perfil está em análise"
+      description="Nossa equipe vai revisar suas informações e fotos antes de liberar seu acesso. Você poderá entrar normalmente assim que o perfil for aprovado."
+      icon={MailCheck}
+      size="compact"
+      aside={null}
+    >
+      <div className="registration-pending-content">
 
-        <div className="mt-3 space-y-1.5 sm:mt-4 sm:space-y-2">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
-            Cadastro enviado
-          </p>
-          <h1 className="text-xl font-bold text-black-jewel sm:text-2xl">
-            Seu perfil está em análise
-          </h1>
-          <p className="text-xs leading-5 text-[color:color-mix(in_srgb,var(--black)_68%,transparent)] sm:text-sm">
-            Nossa equipe vai revisar suas informações e fotos antes de liberar
-            seu acesso ao SugarMimo. Assim que o perfil for aprovado, você
-            poderá entrar normalmente.
-          </p>
-        </div>
-
-        <div className="mt-3 flex items-center justify-center gap-2 border-y border-silver py-2.5 text-sm font-bold text-black-jewel sm:mt-4">
+        <div className="registration-pending-status">
           <Clock className="h-4 w-4 text-gold" />
           Aprovação manual pendente
         </div>
 
-        <div className="mt-3 rounded-xl border border-gold/45 bg-[linear-gradient(145deg,color-mix(in_srgb,var(--gold-soft)_36%,white),white)] p-3 text-left shadow-[0_14px_35px_rgba(20,17,14,0.08)] sm:mt-4 sm:p-4">
+        <div className="registration-priority-card">
           <div className="flex items-start gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold text-white">
+            <span className="registration-priority-icon">
               <Zap className="h-5 w-5" />
             </span>
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-gold">
                 Análise prioritária
               </p>
-              <h2 className="mt-1 text-base font-extrabold text-black-jewel sm:text-lg">
+              <h2 className="mt-1 text-base font-extrabold text-[#f4ecdf] sm:text-lg">
                 Entre primeiro na fila por {APPROVAL_PRIORITY_PRICE_DISPLAY}
               </h2>
-              <p className="mt-1.5 text-xs font-medium leading-5 text-black-jewel/70 sm:text-sm">
+              <p className="mt-1.5 text-xs font-medium leading-5 text-[#aaa49b] sm:text-sm">
                 Gere um PIX exclusivo para o seu perfil. Assim que o pagamento
                 for recebido, sua prioridade será ativada automaticamente.
               </p>
@@ -302,9 +293,10 @@ export default function PendingApprovalPage() {
 
           {!isLoadingPayment && canGenerate && !paymentReceived ? (
             <form onSubmit={generatePix} className="mt-3 space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="payment-full-name">Nome completo</Label>
-                <Input
+              <div className="registration-field">
+                <Label htmlFor="payment-full-name" className="registration-label">Nome completo</Label>
+                <div className="registration-control">
+                  <Input
                   id="payment-full-name"
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
@@ -312,11 +304,14 @@ export default function PendingApprovalPage() {
                   maxLength={120}
                   placeholder="Seu nome completo"
                   disabled={isGenerating}
-                />
+                    className="registration-input"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="payment-document">CPF ou CNPJ</Label>
-                <Input
+              <div className="registration-field">
+                <Label htmlFor="payment-document" className="registration-label">CPF ou CNPJ</Label>
+                <div className="registration-control">
+                  <Input
                   id="payment-document"
                   value={cpfCnpj}
                   onChange={(event) =>
@@ -327,8 +322,10 @@ export default function PendingApprovalPage() {
                   maxLength={18}
                   placeholder="000.000.000-00"
                   disabled={isGenerating}
-                />
-                <p className="text-xs font-medium leading-5 text-black-jewel/55">
+                    className="registration-input"
+                  />
+                </div>
+                <p className="registration-helper">
                   O documento é enviado à Asaas para gerar a cobrança e não é
                   armazenado pela SugarMimo.
                 </p>
@@ -336,7 +333,7 @@ export default function PendingApprovalPage() {
               <Button
                 type="submit"
                 disabled={isGenerating}
-                className="h-10 w-full rounded-sm bg-emerald font-extrabold text-white hover:bg-emerald/85"
+                className="registration-submit h-11 w-full"
               >
                 {isGenerating ? (
                   <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -372,12 +369,12 @@ export default function PendingApprovalPage() {
           type="button"
           disabled={isClearingSession}
           onClick={() => void goToLogin()}
-          className="mt-3 h-10 w-full rounded-sm bg-emerald text-sm font-bold text-white hover:bg-emerald/80 hover:text-surface sm:mt-4 sm:text-base"
+          className="registration-submit mt-4 h-11 w-full"
         >
           {isClearingSession ? "Limpando acesso..." : "Ir para o login"}
         </Button>
-      </section>
-    </main>
+      </div>
+    </RegistrationFormShell>
   );
 }
 

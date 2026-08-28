@@ -27,6 +27,8 @@ import {
 } from "../perfil/ProfileApprovalGuard";
 import { AccountModerationDialog } from "../components/AccountModerationDialog";
 
+const REAPPLICATION_ROUTE = "/register/reapply";
+
 export function LoginForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -90,6 +92,15 @@ export function LoginForm() {
       }
 
       saveAuthUser(result.user);
+      if (result.requiresReapplication) {
+        setModerationNextRoute(REAPPLICATION_ROUTE);
+        setModerationNotice(
+          (result.moderationNotice as ModerationNotice | null) ??
+            pendingModerationNotice(result.user),
+        );
+        return;
+      }
+
       if (shouldShowPendingApproval(result.user)) {
         const pendingNotice = pendingModerationNotice(result.user);
         if (pendingNotice) {
@@ -118,36 +129,59 @@ export function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background-vanilla/20 px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="flex flex-col items-center gap-2">
-          <Image
-            src="/sm-image.png"
-            alt="SugarMimo"
-            width={300}
-            height={100}
-            priority
-            style={{ height: "auto" }}
+    <div className="sm-grain relative flex min-h-screen items-center justify-center overflow-hidden bg-[#080808] px-5 py-12 text-[#f4ecdf]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(112,81,39,0.24),transparent_55%)]" />
+      <Card className="relative w-full max-w-sm rounded-[1.5rem] border border-[#e1bd8a]/18 bg-[#11100e]/92 text-[#f4ecdf] shadow-[0_28px_80px_rgba(0,0,0,0.48)] backdrop-blur-xl">
+        <CardHeader className="flex flex-col items-center gap-2 px-7 pt-9">
+          <button
+            type="button"
             onClick={() => router.push("/")}
-            className="cursor-pointer select-none"
-          />
+            aria-label="Voltar para a página inicial"
+            className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e1bd8a]"
+          >
+            <Image
+              src="/brand/monogram-champagne.webp"
+              alt="SugarMimo"
+              width={64}
+              height={39}
+              priority
+              className="h-auto w-16 select-none object-contain"
+            />
+          </button>
+          <h1 className="mt-5 font-serif text-3xl font-medium">
+            Bem-vindo de volta
+          </h1>
+          <p className="text-center text-sm text-[#969189]">
+            Acesse sua área privada de membro.
+          </p>
         </CardHeader>
 
-        <CardContent>
-          <form className="space-y-4" onSubmit={handleSubmit}>
+        <CardContent className="px-7 pb-8 pt-4">
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <Label htmlFor="username">Nome de usuário ou e-mail</Label>
+              <Label
+                htmlFor="username"
+                className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#c7c2b9]"
+              >
+                Nome de usuário ou e-mail
+              </Label>
               <Input
                 id="username"
                 name="identifier"
                 type="text"
                 required
                 placeholder="Digite seu nome de usuário ou e-mail"
+                className="h-12 rounded-xl border-[#e1bd8a]/18 bg-[#080808] px-4 text-[#f4ecdf] placeholder:text-[#6f6c67] focus-visible:border-[#e1bd8a]/60 focus-visible:ring-[#e1bd8a]/20"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <Label
+                htmlFor="password"
+                className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#c7c2b9]"
+              >
+                Senha
+              </Label>
 
               <div className="relative">
                 <Input
@@ -156,15 +190,16 @@ export function LoginForm() {
                   type={showPassword ? "text" : "password"}
                   required
                   placeholder="Digite sua senha"
-                  className="pr-10"
+                  className="h-12 rounded-xl border-[#e1bd8a]/18 bg-[#080808] px-4 pr-11 text-[#f4ecdf] placeholder:text-[#6f6c67] focus-visible:border-[#e1bd8a]/60 focus-visible:ring-[#e1bd8a]/20"
                 />
 
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-0 top-0 h-full px-3"
+                  className="absolute right-0 top-0 h-full px-3 text-[#969189] hover:bg-transparent hover:text-[#e1bd8a]"
                   onClick={() => setShowPassword((value) => !value)}
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -176,34 +211,41 @@ export function LoginForm() {
             </div>
 
             {error && (
-              <p className="rounded-sm bg-[color:color-mix(in_srgb,var(--ruby)_12%,white)] px-3 py-2 text-sm font-bold text-[var(--ruby)]">
+              <p role="alert" className="rounded-xl border border-[#c85168]/30 bg-[#c85168]/10 px-4 py-3 text-sm font-semibold text-[#f0a5b3]">
                 {error}
               </p>
             )}
 
             <Button
-              className="bg-emerald w-full rounded-md"
+              className="h-12 w-full rounded-full bg-[linear-gradient(135deg,#f3d7aa_0%,#e1bd8a_50%,#9c7443_125%)] text-xs font-extrabold uppercase tracking-[0.2em] text-[#080808] shadow-[0_12px_34px_rgba(225,189,138,0.2)] transition hover:-translate-y-0.5 hover:opacity-100"
               type="submit"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Entrando..." : "Entrar"}
+              {isSubmitting ? "Entrando..." : "Entrar no clube"}
             </Button>
           </form>
-          <div className="flex flex-row items-center justify-between">
+          <div className="mt-1 flex flex-row items-center justify-between text-xs">
             <ModalForgotPassword />
             <Link
               href="/register"
-              className="flex w-fit items-center gap-3 rounded-md mt-3 underline hover:text-gold font-semibold text-gold"
+              className="mt-3 font-semibold text-[#e1bd8a] underline-offset-4 transition hover:underline"
             >
-              <span>Cadastre-se agora!</span>
+              <span>Cadastre-se agora</span>
             </Link>
           </div>
-          <div className="flex w-full justify-between items-center gap-3 rounded-md mt-3 underline hover:text-gold font-semibold text-gold cursor-pointer">
-            <Link href="/admin/login" className="flex items-center gap-3">
-              <CrownIcon />
+          <div className="mt-8 flex w-full items-center justify-between border-t border-[#e1bd8a]/12 pt-5 text-xs font-semibold text-[#77736d]">
+            <Link
+              href="/admin/login"
+              aria-label="Acesso administrativo"
+              className="flex items-center gap-2 transition hover:text-[#e1bd8a]"
+            >
+              <CrownIcon className="h-4 w-4" />
             </Link>
-            <Link href="/" className="flex items-center gap-3">
-              <ArrowLeft />
+            <Link
+              href="/"
+              className="flex items-center gap-2 transition hover:text-[#e1bd8a]"
+            >
+              <ArrowLeft className="h-4 w-4" />
               Voltar
             </Link>
           </div>
@@ -214,6 +256,11 @@ export function LoginForm() {
         open={Boolean(moderationNotice)}
         notice={moderationNotice}
         blocked={!moderationNextRoute}
+        confirmLabel={
+          moderationNextRoute === REAPPLICATION_ROUTE
+            ? "Corrigir cadastro e tentar novamente"
+            : undefined
+        }
         onConfirm={() => {
           if (moderationNextRoute) {
             window.location.replace(moderationNextRoute);

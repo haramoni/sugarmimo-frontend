@@ -1,7 +1,7 @@
 "use client";
 
 import { type FormEvent, useEffect, useMemo, useState } from "react";
-import { Eye, EyeOff, Lock } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Lock, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -277,30 +277,63 @@ export default function RegisterAccountForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[url('/register-wallpaper-marble.jpg')] bg-cover bg-center px-4 py-3 lg:py-2">
-      <div className="w-full max-w-230 bg-surface px-4 py-3 shadow-[0_22px_60px_rgba(20,17,14,0.18)] sm:px-6 lg:px-8">
-        <div className="lg:col-span-2">
+    <main className="registration-stage">
+      <div className="registration-account-card">
+        <div className="registration-account-progress">
           <RegisterStepDots currentStep="/register/basic-info" />
         </div>
-        <form
-          className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-x-8 lg:gap-y-4 mt-5"
-          onSubmit={handleSubmit}
-        >
-          <div className="flex min-w-0 flex-col gap-4">
-            <div className="space-y-2 lg:col-start-1 lg:row-start-2">
-              <h1 className="text-2xl font-bold text-black-jewel">
-                Crie sua conta
-              </h1>
 
-              <Label htmlFor="username" className="font-bold text-black-jewel">
+        <header className="registration-account-header">
+          <div>
+            <button
+              type="button"
+              onClick={() => router.push("/register")}
+              className="registration-back-link"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Voltar ao perfil
+            </button>
+            <p className="registration-eyebrow">
+              <Lock className="h-3.5 w-3.5" />
+              Etapa 2 de 6 · Conta privada
+            </p>
+            <h1>Crie sua conta</h1>
+            <p>
+              Seus dados de acesso e localização ficam protegidos e não são
+              exibidos publicamente.
+            </p>
+          </div>
+
+          <div className="registration-security-note">
+            <ShieldCheck className="h-5 w-5" />
+            <span>
+              <strong>Ambiente seguro</strong>
+              Validação individual de cada cadastro
+            </span>
+          </div>
+        </header>
+
+        <form className="registration-account-form" onSubmit={handleSubmit}>
+          <section className="registration-form-section">
+            <div className="registration-section-heading">
+              <span>01</span>
+              <div>
+                <h2>Dados de acesso</h2>
+                <p>Informações usadas para entrar na sua conta.</p>
+              </div>
+            </div>
+
+            <div className="registration-fields-stack">
+              <div className="registration-field">
+                <Label htmlFor="username" className="registration-label">
                 Nome de Usuário
-              </Label>
-              <p className="flex items-center gap-1 text-xs text-[color:color-mix(in_srgb,var(--black)_58%,transparent)]">
-                Use até 30 caracteres entre letras, números, ponto, hífen ou
-                sublinhado. Não use seu e-mail.
-              </p>
+                </Label>
+                <p className="registration-helper">
+                  Até 30 caracteres; use letras, números, ponto, hífen ou
+                  sublinhado.
+                </p>
 
-              <div className="relative border-b border-silver bg-[color-mix(in_srgb,var(--gold-soft)_30%,white)]">
+                <div className="registration-control">
                 <Input
                   id="username"
                   name="username"
@@ -344,24 +377,23 @@ export default function RegisterAccountForm() {
                     }));
                   }}
                   placeholder="Escolha um nome para seu perfil"
-                  className="border-0 bg-transparent shadow-none focus-visible:ring-0"
+                    className="registration-input"
                 />
+                </div>
+
+                <FieldMessage message={fieldErrors.username} />
               </div>
 
-              <FieldMessage message={fieldErrors.username} />
-            </div>
+              <div className="registration-field">
+                <Label htmlFor="email" className="registration-label">
+                  E-mail
+                </Label>
 
-            <div className="space-y-2 lg:col-start-1 lg:row-start-3">
-              <Label htmlFor="email" className="font-bold text-[var(--black)]">
-                E-mail
-              </Label>
-
-              <p className="flex items-center gap-1 text-xs text-[color:color-mix(in_srgb,var(--black)_58%,transparent)]">
-                Seu e-mail será utilizado para criação e segurança da conta,
-                autenticação e comunicações relacionadas ao serviço, conforme a
-                Política de Privacidade.
-              </p>
-              <div className="relative border-b border-[var(--silver)] bg-[color:color-mix(in_srgb,var(--gold-soft)_30%,white)]">
+                <p className="registration-helper">
+                  Usado apenas para autenticação, segurança e comunicações da
+                  conta.
+                </p>
+                <div className="registration-control">
                 <Input
                   id="email"
                   name="email"
@@ -378,26 +410,23 @@ export default function RegisterAccountForm() {
                     }));
                   }}
                   placeholder="Ex.: nome@email.com.br"
-                  className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+                    className="registration-input"
                 />
+                </div>
+
+                <FieldMessage message={fieldErrors.email} />
               </div>
 
-              <FieldMessage message={fieldErrors.email} />
-            </div>
+              <div className="registration-field">
+                <Label htmlFor="account-phone" className="registration-label">
+                  Celular da conta
+                </Label>
 
-            <div className="space-y-2 lg:col-start-1 lg:row-start-4">
-              <Label
-                htmlFor="account-phone"
-                className="font-bold text-[var(--black)]"
-              >
-                Celular da conta
-              </Label>
-
-              <p className="flex items-center gap-1 text-xs text-[color:color-mix(in_srgb,var(--black)_58%,transparent)]">
-                Usado somente para controle e segurança. Não será exibido no
-                site.
-              </p>
-              <div className="relative border-b border-[var(--silver)] bg-[color:color-mix(in_srgb,var(--gold-soft)_30%,white)]">
+                <p className="registration-helper">
+                  Uso privado para controle e segurança. Não será exibido no
+                  site.
+                </p>
+                <div className="registration-control">
                 <Input
                   id="account-phone"
                   name="accountPhone"
@@ -412,22 +441,19 @@ export default function RegisterAccountForm() {
                     setError("");
                   }}
                   placeholder="Ex.: +55 11 99999-9999"
-                  className="h-11 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+                    className="registration-input"
                 />
+                </div>
+
+                <FieldMessage message={fieldErrors.accountPhone} />
               </div>
 
-              <FieldMessage message={fieldErrors.accountPhone} />
-            </div>
+              <div className="registration-field">
+                <Label htmlFor="password" className="registration-label">
+                  Senha
+                </Label>
 
-            <div className="space-y-2 lg:col-start-1 lg:row-start-5">
-              <Label
-                htmlFor="password"
-                className="font-bold text-[var(--black)]"
-              >
-                Senha
-              </Label>
-
-              <div className="relative border-b border-[var(--silver)] bg-[color:color-mix(in_srgb,var(--gold-soft)_30%,white)]">
+                <div className="registration-control">
                 <Input
                   id="password"
                   name="password"
@@ -439,7 +465,7 @@ export default function RegisterAccountForm() {
                     setError("");
                   }}
                   placeholder="Digite sua senha"
-                  className="h-11 border-0 bg-transparent pr-11 shadow-none focus-visible:ring-0"
+                    className="registration-input pr-12"
                 />
 
                 <Button
@@ -448,7 +474,7 @@ export default function RegisterAccountForm() {
                   size="icon"
                   aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
                   onClick={() => setShowPassword((value) => !value)}
-                  className="absolute right-0 top-0 h-11 w-11 rounded-none text-[var(--black)] hover:bg-transparent"
+                    className="registration-password-toggle"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -456,29 +482,37 @@ export default function RegisterAccountForm() {
                     <Eye className="h-4 w-4" />
                   )}
                 </Button>
+                </div>
+
+                <p className="registration-helper">
+                  Mínimo de 8 caracteres, com maiúscula, minúscula, número e
+                  caractere especial.
+                </p>
+
+                <FieldMessage message={fieldErrors.password} />
               </div>
-
-              <p className="text-xs text-[color-mix(in_srgb,var(--black)_58%,transparent)]">
-                Mínimo 8 caracteres, com letra maiúscula, minúscula, número e
-                caractere especial. A senha não será salva no navegador.
-              </p>
-
-              <FieldMessage message={fieldErrors.password} />
             </div>
-          </div>
+          </section>
 
-          <div className="flex min-w-0 flex-col gap-4">
-            <div className="space-y-3 lg:col-start-2 lg:row-start-2">
-              <p className="text-sm font-bold text-black-jewel">
-                Data de nascimento
-              </p>
+          <section className="registration-form-section">
+            <div className="registration-section-heading">
+              <span>02</span>
+              <div>
+                <h2>Informações pessoais</h2>
+                <p>Esses dados ajudam a manter a comunidade segura.</p>
+              </div>
+            </div>
 
-              <div className="grid grid-cols-3 gap-4">
+            <div className="registration-fields-stack">
+              <div className="registration-field">
+                <p className="registration-label">Data de nascimento</p>
+
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 <Select value={birthDay} onValueChange={setBirthDay} required>
-                  <SelectTrigger className="rounded-none w-full border-0 border-b border-[var(--silver)] bg-transparent px-0 shadow-none focus:ring-0">
+                    <SelectTrigger className="registration-select-trigger">
                     <SelectValue placeholder="Dia" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="registration-select-content">
                     {Array.from({ length: 31 }, (_, index) => (
                       <SelectItem key={index + 1} value={String(index + 1)}>
                         {index + 1}
@@ -492,10 +526,10 @@ export default function RegisterAccountForm() {
                   onValueChange={setBirthMonth}
                   required
                 >
-                  <SelectTrigger className="w-full rounded-none border-0 border-b border-[var(--silver)] bg-transparent px-0 shadow-none focus:ring-0">
+                    <SelectTrigger className="registration-select-trigger">
                     <SelectValue placeholder="Mês" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="registration-select-content">
                     <SelectItem value="01">Janeiro</SelectItem>
                     <SelectItem value="02">Fevereiro</SelectItem>
                     <SelectItem value="03">Março</SelectItem>
@@ -512,10 +546,10 @@ export default function RegisterAccountForm() {
                 </Select>
 
                 <Select value={birthYear} onValueChange={setBirthYear} required>
-                  <SelectTrigger className="w-full rounded-none border-0 border-b border-[var(--silver)] bg-transparent px-0 shadow-none focus:ring-0">
+                    <SelectTrigger className="registration-select-trigger">
                     <SelectValue placeholder="Ano" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="registration-select-content">
                     {Array.from({ length: 83 }, (_, index) => {
                       const year = new Date().getFullYear() - 18 - index;
 
@@ -527,74 +561,84 @@ export default function RegisterAccountForm() {
                     })}
                   </SelectContent>
                 </Select>
+                </div>
+              </div>
+
+              <div className="registration-location-grid">
+                <div className="registration-field">
+                  <Label className="registration-label">País</Label>
+                  <Select value={country} onValueChange={setCountry} required>
+                    <SelectTrigger className="registration-select-trigger">
+                      <SelectValue placeholder="Selecione o país" />
+                    </SelectTrigger>
+                    <SelectContent className="registration-select-content">
+                      <SelectItem value="brasil">Brasil</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="registration-field">
+                  <Label className="registration-label">Estado</Label>
+                  <Select
+                    value={state}
+                    onValueChange={handleStateChange}
+                    required
+                  >
+                    <SelectTrigger className="registration-select-trigger">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent className="registration-select-content">
+                      {states.map((uf) => (
+                        <SelectItem key={uf.id} value={uf.sigla}>
+                          {uf.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="registration-field">
+                <Label className="registration-label">Cidade</Label>
+                <Select
+                  value={city}
+                  onValueChange={setCity}
+                  required
+                  disabled={!state}
+                >
+                  <SelectTrigger className="registration-select-trigger">
+                    <SelectValue placeholder="Selecione uma opção" />
+                  </SelectTrigger>
+                  <SelectContent className="registration-select-content">
+                    {cities.map((cidade) => (
+                      <SelectItem key={cidade.id} value={cidade.nome}>
+                        {cidade.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="registration-field">
+                <Label className="registration-label">
+                  Onde ouviu sobre a SugarMimo?
+                </Label>
+                <Select value={source} onValueChange={setSource} required>
+                  <SelectTrigger className="registration-select-trigger">
+                    <SelectValue placeholder="Selecione uma opção" />
+                  </SelectTrigger>
+                  <SelectContent className="registration-select-content">
+                    <SelectItem value="instagram">Instagram</SelectItem>
+                    <SelectItem value="google">Google</SelectItem>
+                    <SelectItem value="indicacao">Indicação</SelectItem>
+                    <SelectItem value="evento">Evento</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            <div className="space-y-2 lg:col-start-2 lg:row-start-3">
-              <Label className="font-bold text-[var(--black)]">País</Label>
-              <Select value={country} onValueChange={setCountry} required>
-                <SelectTrigger className="w-full rounded-none border-0 border-b border-[var(--silver)] bg-transparent px-0 shadow-none focus:ring-0">
-                  <SelectValue placeholder="Selecione o país" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="brasil">Brasil</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          </section>
 
-            <div className="space-y-2 lg:col-start-2 lg:row-start-4">
-              <Label className="font-bold text-[var(--black)]">Estado</Label>
-              <Select value={state} onValueChange={handleStateChange} required>
-                <SelectTrigger className="w-full rounded-none border-0 border-b border-[var(--silver)] bg-transparent px-0 shadow-none focus:ring-0">
-                  <SelectValue placeholder="Selecione uma opção" />
-                </SelectTrigger>
-                <SelectContent>
-                  {states.map((uf) => (
-                    <SelectItem key={uf.id} value={uf.sigla}>
-                      {uf.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2 lg:col-start-2 lg:row-start-5">
-              <Label className="font-bold text-[var(--black)]">Cidade</Label>
-              <Select
-                value={city}
-                onValueChange={setCity}
-                required
-                disabled={!state}
-              >
-                <SelectTrigger className="w-full rounded-none border-0 border-b border-[var(--silver)] bg-transparent px-0 shadow-none focus:ring-0">
-                  <SelectValue placeholder="Selecione uma opção" />
-                </SelectTrigger>
-                <SelectContent>
-                  {cities.map((cidade) => (
-                    <SelectItem key={cidade.id} value={cidade.nome}>
-                      {cidade.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2 lg:col-start-2 lg:row-start-6">
-              <Label className="font-bold text-[var(--black)]">
-                Onde ouviu sobre a SugarMimo?
-              </Label>
-              <Select value={source} onValueChange={setSource} required>
-                <SelectTrigger className="w-full rounded-none border-0 border-b border-[var(--silver)] bg-transparent px-0 shadow-none focus:ring-0">
-                  <SelectValue placeholder="Selecione uma opção" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="instagram">Instagram</SelectItem>
-                  <SelectItem value="google">Google</SelectItem>
-                  <SelectItem value="indicacao">Indicação</SelectItem>
-                  <SelectItem value="evento">Evento</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
+          <div className="registration-account-actions">
             <StatusMessage
               error={error}
               isCheckingAvailability={isCheckingAvailability}
@@ -602,27 +646,29 @@ export default function RegisterAccountForm() {
 
             <Button
               type="submit"
-              className="h-10 w-full rounded-md bg-emerald text-base font-bold text-white hover:bg-emerald/80 hover:text-white lg:col-start-2"
+              disabled={isSubmitting}
+              className="registration-submit"
             >
               {isSubmitting ? "Validando..." : "Continuar Cadastro"}
             </Button>
           </div>
         </form>
       </div>
-    </div>
+    </main>
   );
 }
 
 function FieldMessage({ message }: { message?: string }) {
+  if (!message) {
+    return null;
+  }
+
   return (
     <p
       aria-live="polite"
-      className={[
-        "min-h-8 text-xs font-bold leading-4",
-        message ? "text-ruby" : "text-transparent",
-      ].join(" ")}
+      className="registration-field-error"
     >
-      {message ?? "\u00a0"}
+      {message}
     </p>
   );
 }
@@ -637,19 +683,19 @@ function StatusMessage({
   const message =
     error || (isCheckingAvailability ? "Validando usuário e e-mail..." : "");
 
+  if (!message) {
+    return null;
+  }
+
   return (
     <p
       aria-live="polite"
       className={[
-        "min-h-12 rounded-sm px-3 py-2 text-sm font-bold",
-        error
-          ? "bg-[color-mix(in_srgb,var(--ruby)_12%,white)] text-ruby"
-          : message
-            ? "bg-transparent text-[color:color-mix(in_srgb,var(--black)_58%,transparent)]"
-            : "bg-transparent text-transparent",
+        "registration-status-message",
+        error ? "registration-status-error" : "",
       ].join(" ")}
     >
-      {message || "\u00a0"}
+      {message}
     </p>
   );
 }

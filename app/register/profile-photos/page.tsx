@@ -41,7 +41,7 @@ import {
   REGISTER_PAYLOAD_KEY,
   setRegisterStep,
 } from "../register-flow";
-import { RegisterStepDots } from "../RegisterStepDots";
+import { RegistrationFormShell } from "../RegistrationFormShell";
 import { useRegistrationSecret } from "../RegistrationSecretProvider";
 import { useRegistrationCompletion } from "./useRegistrationCompletion";
 
@@ -350,29 +350,41 @@ export default function ProfilePhotosPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[url('/register-wallpaper-marble.jpg')] bg-cover bg-center px-5 py-10 text-black-jewel">
-      <section className="w-full max-w-140 bg-surface px-4 py-6 shadow-[0_22px_60px_rgba(20,17,14,0.18)] sm:px-6">
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          <RegisterStepDots currentStep="/register/profile-photos" />
-
-          <div className="space-y-3">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold text-black-jewel">
-                  Fotos do perfil
-                </h1>
-                <p className="text-sm text-[color-mix(in_srgb,var(--black)_64%,transparent)]">
-                  {photosRequired
-                    ? "Escolha suas melhores fotos para completar o cadastro."
-                    : "Você pode adicionar fotos agora ou concluir o cadastro sem elas."}
-                </p>
-              </div>
-              <span className="shrink-0 rounded-full bg-[color-mix(in_srgb,var(--gold-soft)_65%,white)] px-3 py-1 text-xs font-extrabold text-black-jewel">
-                Até {MAX_PHOTOS} fotos
-              </span>
+    <>
+      <RegistrationFormShell
+        currentStep="/register/profile-photos"
+        eyebrow="Etapa 6 de 6 · Fotos"
+        title="Fotos do perfil"
+        description={
+          photosRequired
+            ? "Escolha suas melhores fotos para concluir o cadastro e iniciar a análise do perfil."
+            : "Você pode adicionar fotos agora ou concluir seu cadastro sem elas."
+        }
+        icon={ImagePlus}
+        onBack={() => router.push(getPreviousStep())}
+        backLabel="Voltar para a etapa anterior"
+        size="wide"
+        aside={
+          <div className="registration-security-note">
+            <ShieldCheck className="h-5 w-5" />
+            <span>
+              <strong>Até {MAX_PHOTOS} fotos</strong>
+              Validação e moderação individual
+            </span>
+          </div>
+        }
+      >
+        <form className="registration-standard-form" onSubmit={handleSubmit}>
+          <div className="registration-section-heading">
+            <span>06</span>
+            <div>
+              <h2>Galeria do perfil</h2>
+              <p>Escolha imagens nítidas, atuais e que representem você.</p>
             </div>
+          </div>
 
-            <div className="grid grid-cols-3 gap-2 rounded-sm border border-gold/45 bg-[color-mix(in_srgb,var(--gold-soft)_24%,white)] p-3 text-center text-xs font-bold text-black-jewel/75">
+          <div className="registration-photo-intro-grid">
+            <div className="registration-photo-specs">
               <span>
                 {photosRequired
                   ? `De 1 a ${MAX_PHOTOS} fotos`
@@ -382,9 +394,9 @@ export default function ProfilePhotosPage() {
               <span>JPEG, PNG, WebP, AVIF ou HEIC</span>
             </div>
 
-            <div className="space-y-2 rounded-sm border border-emerald/25 bg-white/78 p-4 text-sm leading-6 text-black-jewel/72">
-              <div className="flex items-start gap-2 font-bold text-black-jewel">
-                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald" />
+            <div className="registration-photo-rules">
+              <div className="flex items-start gap-2 font-bold text-[#e9dfd0]">
+                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#e1bd8a]" />
                 <p>Confirme separadamente a autorização de cada foto.</p>
               </div>
               <ul className="list-disc space-y-1 pl-5 text-xs font-medium leading-5">
@@ -404,10 +416,10 @@ export default function ProfilePhotosPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="registration-photo-grid">
             {photos.map((photo, index) => (
-              <div key={photo.previewUrl} className="space-y-2">
-                <div className="relative aspect-3/4 overflow-hidden rounded-sm border border-silver bg-[color-mix(in_srgb,var(--gold-soft)_28%,white)]">
+                <div key={photo.previewUrl} className="registration-photo-item">
+                <div className="registration-photo-preview">
                   {/* Blob previews come from local files and should not use Next image optimization. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -431,7 +443,7 @@ export default function ProfilePhotosPage() {
                 </div>
                 <label
                   htmlFor={`photo-rights-${index}`}
-                  className="flex cursor-pointer items-start gap-2 rounded-sm border border-silver/80 bg-white/85 p-2 text-xs font-semibold leading-4 text-black-jewel"
+                  className="registration-photo-consent"
                 >
                   <Checkbox
                     id={`photo-rights-${index}`}
@@ -457,10 +469,10 @@ export default function ProfilePhotosPage() {
               Array.from({ length: remainingSlots }, (_, index) => (
                 <label
                   key={index}
-                  className="flex aspect-3/4 cursor-pointer flex-col items-center justify-center gap-3 rounded-sm border border-dashed border-[color-mix(in_srgb,var(--gold)_70%,var(--black))] bg-[color-mix(in_srgb,var(--gold-soft)_34%,white)] text-center transition hover:border-gold hover:bg-[color-mix(in_srgb,var(--gold-soft)_56%,white)]"
+                  className="registration-photo-upload"
                 >
                   <ImagePlus className="h-7 w-7 text-gold" />
-                  <span className="px-2 text-xs font-bold text-black-jewel">
+                  <span className="px-2 text-xs font-bold text-[#d8cfc2]">
                     Adicionar foto
                   </span>
                   <input
@@ -476,14 +488,14 @@ export default function ProfilePhotosPage() {
               ))}
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm font-bold text-black-jewel">
+          <div className="registration-photo-progress">
+            <div className="flex items-center justify-between text-sm font-bold text-[#d8cfc2]">
               <span>
                 {photos.length} de {MAX_PHOTOS} fotos
               </span>
               <span>{photosRequired ? "Mínimo 1" : "Opcional"}</span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--silver)_45%,white)]">
+            <div className="h-2 overflow-hidden rounded-full bg-white/8">
               <div
                 className="h-full bg-gold transition-all"
                 style={{ width: `${(photos.length / MAX_PHOTOS) * 100}%` }}
@@ -492,17 +504,17 @@ export default function ProfilePhotosPage() {
           </div>
 
           {error && (
-            <p className="rounded-sm bg-[color-mix(in_srgb,var(--ruby)_12%,white)] px-3 py-2 text-sm font-bold text-ruby">
+              <p className="registration-status-message registration-status-error">
               {error}
             </p>
           )}
 
-          <div className="grid gap-3 sm:grid-cols-[0.8fr_1.2fr]">
+          <div className="registration-form-actions">
             <Button
               type="button"
               variant="ghost"
               onClick={() => router.push(getPreviousStep())}
-              className="h-12 rounded-sm border border-silver text-base font-bold text-black-jewel hover:bg-[color-mix(in_srgb,var(--silver)_28%,white)]"
+              className="registration-secondary-button"
             >
               Voltar
             </Button>
@@ -515,7 +527,7 @@ export default function ProfilePhotosPage() {
                 isLoadingReview ||
                 isSubmitting
               }
-              className="h-12 rounded-sm bg-emerald text-base font-bold text-white hover:bg-emerald/80 disabled:cursor-not-allowed disabled:opacity-60"
+              className="registration-submit"
             >
               {isProcessingPhotos
                 ? "Preparando fotos..."
@@ -527,7 +539,7 @@ export default function ProfilePhotosPage() {
             </Button>
           </div>
         </form>
-      </section>
+      </RegistrationFormShell>
 
       <Dialog
         open={isReviewOpen}
@@ -537,15 +549,17 @@ export default function ProfilePhotosPage() {
           }
         }}
       >
-        <DialogContent className="max-h-[92vh] overflow-y-auto border-gold/35 bg-surface sm:max-w-2xl">
-          <DialogHeader>
-            <div className="flex items-center gap-3">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-emerald/12 text-emerald">
+        <DialogContent className="registration-dialog registration-review-dialog">
+          <DialogHeader className="registration-review-header">
+            <div className="flex min-w-0 items-start gap-3 pr-10">
+              <span className="registration-dialog-icon grid h-11 w-11 shrink-0 place-items-center rounded-full">
                 <FileCheck2 className="h-5 w-5" />
               </span>
-              <div>
-                <DialogTitle>Revise antes de concluir</DialogTitle>
-                <DialogDescription className="mt-1">
+              <div className="min-w-0 pt-0.5">
+                <DialogTitle className="registration-review-title font-serif">
+                  Revise antes de concluir
+                </DialogTitle>
+                <DialogDescription className="registration-review-description mt-1">
                   Confira o resumo e as versões registradas no seu aceite.
                 </DialogDescription>
               </div>
@@ -553,97 +567,97 @@ export default function ProfilePhotosPage() {
           </DialogHeader>
 
           {registrationSummary && registrationPolicies && reviewedAt ? (
-            <div className="space-y-5">
-              <div className="flex items-start gap-3 rounded-lg border border-emerald/25 bg-emerald/6 p-4 text-sm">
-                <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-emerald" />
+            <div className="registration-review-body">
+              <div className="registration-review-time flex items-start gap-3">
+                <Clock3 className="mt-0.5 h-5 w-5 shrink-0" />
                 <div>
-                  <p className="font-extrabold text-black-jewel">
+                  <p className="registration-review-time-title font-extrabold">
                     Data e hora da confirmação
                   </p>
-                  <p className="mt-1 text-black-jewel/70">
+                  <p className="registration-review-time-value mt-1">
                     {formatReceiptDate(reviewedAt)}
                   </p>
-                  <p className="mt-1 text-xs text-black-jewel/58">
+                  <p className="registration-review-muted mt-1 text-xs">
                     O horário definitivo será registrado pelo servidor ao
                     concluir.
                   </p>
                 </div>
               </div>
 
-              <section aria-labelledby="registration-summary-title">
-                <h3
-                  id="registration-summary-title"
-                  className="text-sm font-extrabold uppercase tracking-wide text-black-jewel"
+              <div className="registration-review-columns">
+                <section
+                  className="registration-review-section"
+                  aria-labelledby="registration-summary-title"
                 >
-                  Resumo do cadastro
-                </h3>
-                <dl className="mt-3 grid gap-2 rounded-lg border border-silver/65 bg-white/75 p-4 text-sm sm:grid-cols-2">
-                  <ReceiptItem
-                    label="Usuário"
-                    value={registrationSummary.username}
-                  />
-                  <ReceiptItem
-                    label="E-mail"
-                    value={registrationSummary.email}
-                  />
-                  <ReceiptItem
-                    label="Celular da conta (privado)"
-                    value={registrationSummary.accountPhone}
-                  />
-                  <ReceiptItem
-                    label="Tipo de perfil"
-                    value={registrationSummary.profileType}
-                  />
-                  <ReceiptItem
-                    label="Localização"
-                    value={registrationSummary.location}
-                  />
-                  <ReceiptItem
-                    label="Fotos"
-                    value={`${photos.length} ${photos.length === 1 ? "foto" : "fotos"}`}
-                  />
-                  <ReceiptItem
-                    label="Comunicações promocionais"
-                    value={
-                      registrationSummary.marketingConsent
-                        ? "Aceitas"
-                        : "Não aceitas"
-                    }
-                  />
-                </dl>
-              </section>
+                  <h3 id="registration-summary-title">
+                    Resumo do cadastro
+                  </h3>
+                  <dl className="registration-review-summary-grid">
+                    <ReceiptItem
+                      label="Usuário"
+                      value={registrationSummary.username}
+                    />
+                    <ReceiptItem
+                      label="E-mail"
+                      value={registrationSummary.email}
+                    />
+                    <ReceiptItem
+                      label="Celular da conta (privado)"
+                      value={registrationSummary.accountPhone}
+                    />
+                    <ReceiptItem
+                      label="Tipo de perfil"
+                      value={registrationSummary.profileType}
+                    />
+                    <ReceiptItem
+                      label="Localização"
+                      value={registrationSummary.location}
+                    />
+                    <ReceiptItem
+                      label="Fotos"
+                      value={`${photos.length} ${photos.length === 1 ? "foto" : "fotos"}`}
+                    />
+                    <ReceiptItem
+                      label="Comunicações promocionais"
+                      value={
+                        registrationSummary.marketingConsent
+                          ? "Aceitas"
+                          : "Não aceitas"
+                      }
+                    />
+                  </dl>
+                </section>
 
-              <section aria-labelledby="policy-summary-title">
-                <h3
-                  id="policy-summary-title"
-                  className="text-sm font-extrabold uppercase tracking-wide text-black-jewel"
+                <section
+                  className="registration-review-section"
+                  aria-labelledby="policy-summary-title"
                 >
-                  Políticas e versões
-                </h3>
-                <div className="mt-3 divide-y divide-silver/55 rounded-lg border border-silver/65 bg-white/75">
-                  <PolicyReceiptRow
-                    href="/terms"
-                    label="Termos de Uso"
-                    version={registrationPolicies.termsVersion}
-                  />
-                  <PolicyReceiptRow
-                    href="/privacy"
-                    label="Política de Privacidade"
-                    version={registrationPolicies.privacyVersion}
-                  />
-                  <PolicyReceiptRow
-                    href="/privacy#pagina-8"
-                    label="Política de Cookies"
-                    version={registrationPolicies.cookieVersion}
-                  />
-                </div>
-                <p className="mt-2 text-xs leading-5 text-black-jewel/58">
-                  A ciência da Política de Cookies não altera sua escolha sobre
-                  cookies opcionais.
-                </p>
-              </section>
+                  <h3 id="policy-summary-title">Políticas e versões</h3>
+                  <div className="registration-policy-list">
+                    <PolicyReceiptRow
+                      href="/terms"
+                      label="Termos de Uso"
+                      version={registrationPolicies.termsVersion}
+                    />
+                    <PolicyReceiptRow
+                      href="/privacy"
+                      label="Política de Privacidade"
+                      version={registrationPolicies.privacyVersion}
+                    />
+                    <PolicyReceiptRow
+                      href="/privacy#pagina-8"
+                      label="Política de Cookies"
+                      version={registrationPolicies.cookieVersion}
+                    />
+                  </div>
+                  <p className="registration-review-muted mt-3 text-xs leading-5">
+                    A ciência da Política de Cookies não altera sua escolha
+                    sobre cookies opcionais.
+                  </p>
+                </section>
+              </div>
 
-              <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-gold/45 bg-gold-soft/22 p-4 text-sm font-bold leading-5 text-black-jewel">
+              <label className="registration-review-confirm flex cursor-pointer items-start gap-3">
                 <Checkbox
                   checked={receiptConfirmed}
                   onCheckedChange={(checked) => {
@@ -659,20 +673,20 @@ export default function ProfilePhotosPage() {
               </label>
 
               {receiptError ? (
-                <p className="rounded-lg bg-ruby/10 px-3 py-2 text-sm font-bold text-ruby">
+                <p className="registration-review-error">
                   {receiptError}
                 </p>
               ) : null}
             </div>
           ) : null}
 
-          <DialogFooter className="gap-2 sm:gap-2">
+          <DialogFooter className="registration-review-footer">
             <Button
               type="button"
               variant="ghost"
               disabled={isSubmitting}
               onClick={() => setIsReviewOpen(false)}
-              className="border border-silver"
+              className="registration-review-secondary"
             >
               Voltar e editar
             </Button>
@@ -680,14 +694,14 @@ export default function ProfilePhotosPage() {
               type="button"
               disabled={!receiptConfirmed || isSubmitting}
               onClick={() => void finalizeRegistration()}
-              className="bg-emerald font-bold text-white hover:bg-emerald/85"
+              className="registration-submit registration-review-primary"
             >
               {isSubmitting ? "Concluindo..." : "Confirmar e finalizar"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </main>
+    </>
   );
 }
 
@@ -806,13 +820,9 @@ function formatReceiptDate(value: Date) {
 
 function ReceiptItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0">
-      <dt className="text-xs font-bold uppercase tracking-wide text-black-jewel/52">
-        {label}
-      </dt>
-      <dd className="mt-1 break-words font-semibold text-black-jewel">
-        {value}
-      </dd>
+    <div className="registration-receipt-item min-w-0">
+      <dt>{label}</dt>
+      <dd>{value}</dd>
     </div>
   );
 }
@@ -827,17 +837,17 @@ function PolicyReceiptRow({
   version: string;
 }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3 text-sm">
-      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald" />
+    <div className="registration-policy-row">
+      <CheckCircle2 className="h-4 w-4 shrink-0" />
       <Link
         href={href}
         target="_blank"
         rel="noreferrer"
-        className="min-w-0 flex-1 font-bold text-emerald underline decoration-emerald/30 underline-offset-3"
+        className="min-w-0"
       >
         {label}
       </Link>
-      <span className="shrink-0 rounded-full bg-gold-soft/45 px-2.5 py-1 text-xs font-extrabold text-black-jewel">
+      <span className="registration-policy-version">
         Versão {version}
       </span>
     </div>

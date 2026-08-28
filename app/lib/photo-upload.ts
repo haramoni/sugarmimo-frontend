@@ -17,7 +17,7 @@ export async function normalizeMobilePhoto(file: File) {
     const converted = await heic2any({
       blob: file,
       toType: "image/jpeg",
-      quality: 0.88,
+      quality: 0.95,
     });
     const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
 

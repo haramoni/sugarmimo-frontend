@@ -37,7 +37,7 @@ export async function GET() {
               ? profile.photos.map((photo: { id?: string }) => ({
                   ...photo,
                   dataUrl: photo.id
-                    ? `/api/match-photos/${encodeURIComponent(photo.id)}?variant=card&v=2`
+                    ? `/api/match-photos/${encodeURIComponent(photo.id)}?variant=card&v=3`
                     : "",
                 }))
               : [],

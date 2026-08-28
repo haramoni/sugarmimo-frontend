@@ -1,7 +1,7 @@
 "use client";
 
 import { type FormEvent, useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, SlidersHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import {
   REGISTER_PAYLOAD_KEY,
   setRegisterStep,
 } from "../register-flow";
-import { RegisterStepDots } from "../RegisterStepDots";
+import { RegistrationFormShell } from "../RegistrationFormShell";
 import { useRegistrationSecret } from "../RegistrationSecretProvider";
 import {
   describeForProfile,
@@ -123,17 +123,26 @@ export default function AlmostTherePage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[url('/register-wallpaper-marble.jpg')] bg-cover bg-center px-5 py-10 text-black-jewel">
-      <section className="w-full max-w-140 bg-surface px-4 py-6 shadow-[0_22px_60px_rgba(20,17,14,0.18)] sm:px-6">
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          <RegisterStepDots currentStep="/register/almost-there" />
-
+    <RegistrationFormShell
+      currentStep="/register/almost-there"
+      eyebrow="Etapa 4 de 6 · Preferências"
+      title="Seu estilo de vida"
+      description="Compartilhe suas preferências para encontrarmos conexões mais compatíveis com você."
+      icon={SlidersHorizontal}
+      onBack={() => router.push("/register/how-you-are")}
+      backLabel="Voltar para aparência"
+      size="standard"
+    >
+      <form className="registration-standard-form" onSubmit={handleSubmit}>
+        <div className="registration-section-heading">
+          <span>04</span>
           <div>
-            <h1 className="text-2xl font-bold text-black-jewel">
-              Preencha com suas preferências
-            </h1>
+            <h2>Preferências e rotina</h2>
+            <p>Responda somente o que se aplica ao seu momento atual.</p>
           </div>
+        </div>
 
+        <div className="registration-form-grid">
           <ProfileSelect
             label="Você fuma?"
             value={smoke}
@@ -182,13 +191,14 @@ export default function AlmostTherePage() {
             options={optionsForProfile(occupationOptions, profileType)}
             required={false}
           />
+        </div>
 
-          <div className="grid gap-3 sm:grid-cols-[0.8fr_1.2fr]">
+        <div className="registration-form-actions">
             <Button
               type="button"
               variant="ghost"
               onClick={() => router.push("/register/how-you-are")}
-              className="h-12 rounded-sm border border-silver text-base font-bold text-black-jewel hover:bg-[color-mix(in_srgb,var(--silver)_28%,white)]"
+              className="registration-secondary-button"
             >
               <ArrowLeft className="h-4 w-4" />
               Voltar
@@ -196,14 +206,13 @@ export default function AlmostTherePage() {
 
             <Button
               type="submit"
-              className="h-12 rounded-sm bg-emerald text-base font-bold text-white hover:bg-emerald/80 hover:text-surface"
+              className="registration-submit"
             >
               Salvar e Continuar
             </Button>
           </div>
-        </form>
-      </section>
-    </main>
+      </form>
+    </RegistrationFormShell>
   );
 }
 
@@ -225,13 +234,13 @@ function ProfileSelect({
   required = true,
 }: ProfileSelectProps) {
   return (
-    <div className="space-y-2">
-      <Label className="font-bold text-black-jewel">{label}</Label>
+    <div className="registration-field">
+      <Label className="registration-label">{label}</Label>
       <Select value={value} onValueChange={onValueChange} required={required}>
-        <SelectTrigger className="h-12 w-full rounded-none border-0 border-b border-silver bg-transparent px-0 shadow-none focus:ring-0">
+        <SelectTrigger className="registration-select-trigger">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="registration-select-content">
           {options.map((option) => (
             <SelectItem key={option} value={option}>
               {option}

@@ -14,8 +14,10 @@ import {
   ClipboardList,
   Crown,
   Hourglass,
+  KeyRound,
   LogOut,
   RefreshCw,
+  RotateCcw,
   Rocket,
   Search,
   Star,
@@ -55,6 +57,9 @@ type PendingProfile = {
   telegram: string | null;
   instagram: string | null;
   approvalStatus: string;
+  reapplicationCount: number;
+  reapplicationPin: string | null;
+  reappliedAt: string | null;
   isApprovalPriority: boolean;
   approvalPriorityPaidAt: string | null;
   createdAt: string | null;
@@ -566,7 +571,7 @@ function AdminReviewQueue({
                     >
                       <PhotoZoom
                         src={`/api/admin/review-photos/${encodeURIComponent(photo.id)}`}
-                        thumbnailSrc={`/api/admin/review-photos/${encodeURIComponent(photo.id)}?variant=card`}
+                        thumbnailSrc={`/api/admin/review-photos/${encodeURIComponent(photo.id)}?variant=card&v=3`}
                         alt={`Foto ${index + 1} de ${profile.username}`}
                         buttonClassName="absolute inset-0 z-0 block h-full w-full cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--gold)]"
                       />
@@ -591,16 +596,30 @@ function AdminReviewQueue({
 
                 <div className="flex flex-col justify-between gap-5">
                   <div className="flex flex-col gap-3 border-b border-[var(--platinum)] pb-4 sm:flex-row sm:items-center sm:justify-between">
-                    {profile.isApprovalPriority ? (
-                      <span className="inline-flex w-fit items-center gap-2 rounded-full bg-gold/15 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.12em] text-gold">
-                        <Zap className="h-4 w-4" />
-                        Prioridade paga
-                      </span>
-                    ) : (
-                      <span className="text-xs font-bold uppercase tracking-[0.12em] text-black/45">
-                        Fila normal
-                      </span>
-                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      {profile.reapplicationCount > 0 ? (
+                        <span className="inline-flex w-fit items-center gap-2 rounded-full bg-ruby/10 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.1em] text-ruby">
+                          <RotateCcw className="h-4 w-4" />
+                          Retorno {profile.reapplicationCount + 1}ª tentativa
+                          {profile.reapplicationPin ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 tracking-[0.16em]">
+                              <KeyRound className="h-3 w-3" />
+                              {profile.reapplicationPin}
+                            </span>
+                          ) : null}
+                        </span>
+                      ) : null}
+                      {profile.isApprovalPriority ? (
+                        <span className="inline-flex w-fit items-center gap-2 rounded-full bg-gold/15 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.12em] text-gold">
+                          <Zap className="h-4 w-4" />
+                          Prioridade paga
+                        </span>
+                      ) : (
+                        <span className="text-xs font-bold uppercase tracking-[0.12em] text-black/45">
+                          Fila normal
+                        </span>
+                      )}
+                    </div>
                     <Button
                       type="button"
                       variant="outline"
@@ -657,6 +676,12 @@ function AdminReviewQueue({
                       label="Status"
                       value={profile.approvalStatus}
                     />
+                    {profile.reappliedAt ? (
+                      <ProfileField
+                        label="Reenviado em"
+                        value={formatDate(profile.reappliedAt)}
+                      />
+                    ) : null}
                   </div>
 
                   <div

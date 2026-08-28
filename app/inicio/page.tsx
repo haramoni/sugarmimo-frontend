@@ -318,25 +318,29 @@ export default function InicioPage() {
             />
           ) : (
             <div className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {profiles.map((profile) => (
-                  <ProfileCard
+                  <div
                     key={profile.id}
-                    profile={profile}
-                    onNavigate={() => {
-                      navigationAnchorRef.current = getProfileAnchor(
-                        profile.id,
-                      );
-                      saveHomeState({
-                        page,
-                        scrollY: window.scrollY,
-                        anchorProfileId:
-                          navigationAnchorRef.current?.profileId ?? null,
-                        anchorOffset:
-                          navigationAnchorRef.current?.offset ?? null,
-                      });
-                    }}
-                  />
+                    className="w-full max-w-72 justify-self-center"
+                  >
+                    <ProfileCard
+                      profile={profile}
+                      onNavigate={() => {
+                        navigationAnchorRef.current = getProfileAnchor(
+                          profile.id,
+                        );
+                        saveHomeState({
+                          page,
+                          scrollY: window.scrollY,
+                          anchorProfileId:
+                            navigationAnchorRef.current?.profileId ?? null,
+                          anchorOffset:
+                            navigationAnchorRef.current?.offset ?? null,
+                        });
+                      }}
+                    />
+                  </div>
                 ))}
               </div>
 

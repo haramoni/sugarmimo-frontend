@@ -28,6 +28,28 @@ export const metadata: Metadata = {
   },
   description:
     "Conexões entre adultos com transparência, respeito e experiências especiais.",
+  openGraph: {
+    title: "SugarMimo — Clube privado de conexões entre adultos",
+    description:
+      "Elegância, segurança e liberdade de escolha em conexões entre adultos.",
+    type: "website",
+    locale: "pt_BR",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "SugarMimo — Elegância, segurança e liberdade de escolha",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SugarMimo — Clube privado de conexões entre adultos",
+    description:
+      "Elegância, segurança e liberdade de escolha em conexões entre adultos.",
+    images: ["/og.png"],
+  },
 };
 
 export default function RootLayout({
@@ -38,6 +60,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
+      data-scroll-behavior="smooth"
       className={cn(
         "h-full antialiased font-sans",
         manrope.variable,

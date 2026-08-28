@@ -139,14 +139,14 @@ export function Navbar() {
   }, [canSearch, user]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[color:color-mix(in_srgb,var(--gold)_28%,transparent)] bg-[color:color-mix(in_srgb,var(--surface)_88%,white)] px-4 py-3 shadow-[0_10px_34px_rgba(20,17,14,0.08)] backdrop-blur-2xl sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-[#e1bd8a]/15 bg-[#080808]/92 px-4 py-3 text-[#f4ecdf] shadow-[0_12px_38px_rgba(0,0,0,0.28)] backdrop-blur-2xl sm:px-6 lg:px-8">
       <nav className="mx-auto grid max-w-7xl items-center gap-4 lg:grid-cols-[1fr_auto_1fr]">
         <Link
           href="/"
-          className="group flex w-fit items-center gap-3 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--emerald)]"
+          className="group flex w-fit items-center gap-3 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e1bd8a]"
         >
-          <span className="relative grid h-11 w-11 place-items-center overflow-hidden rounded-full border border-[color:color-mix(in_srgb,var(--gold)_54%,var(--silver))] bg-[linear-gradient(145deg,var(--surface),color-mix(in_srgb,var(--gold-soft)_24%,white))] shadow-[0_12px_28px_rgba(185,138,56,0.14)] transition duration-300 group-hover:border-[var(--emerald)]">
-            <span className="absolute inset-1 rounded-full border border-[color-mix(in_srgb,var(--silver)_58%,transparent)]" />
+          <span className="relative grid h-11 w-11 place-items-center overflow-hidden rounded-full border border-[#e1bd8a]/35 bg-[#11100e] shadow-[0_12px_28px_rgba(0,0,0,0.28)] transition duration-300 group-hover:border-[#e1bd8a]/75">
+            <span className="absolute inset-1 rounded-full border border-[#e1bd8a]/14" />
             <Image
               src="/sm-icon.png"
               alt="SugarMimo"
@@ -158,16 +158,16 @@ export function Navbar() {
           </span>
 
           <span className="leading-none">
-            <span className="block font-serif text-2xl font-semibold text-[var(--black)] transition duration-300 group-hover:text-silver">
-              Sugar<span className="text-[var(--gold)]">Mimo</span>
+            <span className="block font-serif text-2xl font-semibold text-[#f4ecdf] transition duration-300 group-hover:text-[#e1bd8a]">
+              Sugar<span className="text-[#e1bd8a]">Mimo</span>
             </span>
-            <span className="hidden text-[0.62rem] font-bold uppercase tracking-[0.22em] text-[color-mix(in_srgb,var(--black)_52%,var(--silver))] sm:block">
+            <span className="hidden text-[0.58rem] font-bold uppercase tracking-[0.22em] text-[#77736d] sm:block">
               Private Social Club
             </span>
           </span>
         </Link>
 
-        <div className="order-3 flex gap-1.5 overflow-x-auto justify-center rounded-full border border-[color:color-mix(in_srgb,var(--silver)_42%,transparent)] bg-[color:color-mix(in_srgb,var(--surface)_78%,white)] p-1.5 text-sm font-bold text-[color-mix(in_srgb,var(--black)_68%,var(--silver))] shadow-[inset_0_1px_0_rgba(255,255,255,0.82),0_16px_42px_rgba(20,17,14,0.08)] backdrop-blur-2xl lg:order-none lg:justify-center">
+        <div className="order-3 flex justify-center gap-1.5 overflow-x-auto rounded-full border border-[#e1bd8a]/14 bg-[#11100e]/88 p-1.5 text-sm font-bold text-[#99958d] shadow-[0_16px_42px_rgba(0,0,0,0.2)] backdrop-blur-2xl lg:order-none lg:justify-center">
           {loggedMenuItems.map((item) => {
             const active = isActivePath(pathname, item.href);
 
@@ -177,10 +177,10 @@ export function Navbar() {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={[
-                  "relative shrink-0 rounded-full px-4 py-2.5 transition duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--emerald)]",
+                  "relative shrink-0 rounded-full px-4 py-2.5 transition duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e1bd8a]",
                   active
-                    ? "bg-silver text-white shadow-[0_10px_24px_rgba(0,108,88,0.22)]"
-                    : "hover:bg-[color:color-mix(in_srgb,var(--gold-soft)_28%,white)] hover:text-[var(--black)]",
+                    ? "bg-[#e1bd8a] text-[#080808] shadow-[0_10px_24px_rgba(225,189,138,0.18)]"
+                    : "hover:bg-[#e1bd8a]/10 hover:text-[#e1bd8a]",
                 ].join(" ")}
               >
                 <span className="relative z-10">{item.label}</span>
@@ -210,7 +210,7 @@ export function Navbar() {
                   </span>
                 ) : null}
                 {active ? (
-                  <span className="absolute inset-x-5 bottom-1 h-px rounded-full bg-[linear-gradient(90deg,var(--silver),var(--gold-soft),white)]" />
+                  <span className="absolute inset-x-5 bottom-1 h-px rounded-full bg-[#705127]" />
                 ) : null}
               </Link>
             );
@@ -227,7 +227,7 @@ export function Navbar() {
               aria-label="Abrir meu perfil"
               className="flex items-center gap-2"
             >
-              <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald/12 text-emerald">
+              <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full border border-[#e1bd8a]/28 bg-[#11100e] text-[#e1bd8a]">
                 {profilePhoto?.dataUrl ? (
                   // User uploads are data URLs and should not use Next image optimization.
                   // eslint-disable-next-line @next/next/no-img-element
@@ -240,10 +240,10 @@ export function Navbar() {
                   <UserRound className="h-5 w-5" />
                 )}
               </span>
-              <span className="hidden max-w-36 truncate rounded-md px-2 py-1 text-sm font-bold text-black-jewel transition duration-200 hover:text-gold sm:block">
+              <span className="hidden max-w-36 truncate rounded-md px-2 py-1 text-sm font-bold text-[#e6ded1] transition duration-200 hover:text-[#e1bd8a] sm:block">
                 <span>Olá, {user.username}</span>
                 <br />
-                <span className="text-xs text-gold">Minha Conta</span>
+                <span className="text-xs text-[#e1bd8a]">Minha Conta</span>
               </span>
             </Link>
           ) : null}

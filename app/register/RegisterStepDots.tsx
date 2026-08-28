@@ -32,7 +32,7 @@ export function RegisterStepDots({ currentStep }: RegisterStepDotsProps) {
   return (
     <nav
       aria-label="Etapas do cadastro"
-      className="grid grid-cols-6 gap-x-2"
+      className="registration-stepper grid grid-cols-6 gap-x-2"
     >
       <div className="col-span-6 grid grid-cols-subgrid">
         {registerSteps.map((step, index) => {
@@ -52,13 +52,13 @@ export function RegisterStepDots({ currentStep }: RegisterStepDotsProps) {
                 disabled={!canNavigate}
                 onClick={() => goToStep(step.href)}
                 className={[
-                  "grid h-8 w-8 shrink-0 place-items-center rounded-full border text-xs font-bold transition",
+                  "registration-step-dot",
                   isCurrent
-                    ? "border-gold bg-gold text-white"
+                    ? "is-current"
                     : isDone
-                      ? "border-emerald bg-emerald text-white hover:bg-emerald/80"
-                      : "border-silver bg-white text-silver",
-                  canNavigate ? "cursor-pointer" : "cursor-not-allowed",
+                      ? "is-complete"
+                      : "is-upcoming",
+                  canNavigate ? "is-navigable" : "is-locked",
                 ].join(" ")}
               >
                 {isDone ? <Check className="h-4 w-4" /> : index + 1}
@@ -67,18 +67,16 @@ export function RegisterStepDots({ currentStep }: RegisterStepDotsProps) {
               {index < registerSteps.length - 1 ? (
                 <span
                   className={[
-                    "absolute left-[calc(50%+20px)] right-[calc(-50%+20px)] top-4 h-0.5 rounded-full",
-                    index < currentIndex
-                      ? "bg-emerald"
-                      : "bg-[color-mix(in_srgb,var(--silver)_54%,white)]",
+                    "registration-step-line",
+                    index < currentIndex ? "is-complete" : "",
                   ].join(" ")}
                 />
               ) : null}
 
               <span
                 className={[
-                  "min-h-4 text-center text-[0.68rem] font-bold leading-tight text-[color-mix(in_srgb,var(--black)_58%,transparent)]",
-                  isCurrent ? "text-gold" : "",
+                  "registration-step-label",
+                  isCurrent ? "is-current" : "",
                 ].join(" ")}
               >
                 {step.label}

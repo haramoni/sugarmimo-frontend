@@ -598,7 +598,7 @@ export default function BuscarPage() {
                     </label>
                     <select
                       id="gender-filter"
-                      defaultValue="sugar-baby-woman"
+                      value="sugar-baby-woman"
                       onChange={(event) => setGenderDraft(event.target.value)}
                       className="h-11 w-full rounded-sm border border-emerald/28 bg-white/88 px-3 text-sm font-semibold text-black-jewel outline-none transition focus:border-emerald focus:ring-2 focus:ring-emerald/20"
                     >

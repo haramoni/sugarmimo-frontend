@@ -246,6 +246,14 @@ function getUserSnapshot() {
 }
 
 export default function PerfilPage() {
+  return <ProfilePageContent />;
+}
+
+export function ProfilePageContent({
+  reapplication = false,
+}: {
+  reapplication?: boolean;
+}) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const privateFileInputRef = useRef<HTMLInputElement>(null);
@@ -255,17 +263,19 @@ export default function PerfilPage() {
     () => "",
   );
   const [remoteProfile, setRemoteProfile] = useState<ProfileUser | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(reapplication);
   const [isSaving, setIsSaving] = useState(false);
   const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [invitationCopied, setInvitationCopied] = useState(false);
   const [error, setError] = useState("");
   const [photos, setPhotos] = useState<ProfilePhoto[]>(() => {
+    if (reapplication) return [];
     const profile = getStoredProfile();
     return [...(profile?.photos ?? [])].sort(sortPhotos);
   });
   const [form, setForm] = useState<ProfileForm>(() => {
+    if (reapplication) return emptyForm;
     const profile = getStoredProfile();
     return profile ? formFromUser(profile) : emptyForm;
   });
@@ -287,6 +297,10 @@ export default function PerfilPage() {
   const [privateViewerError, setPrivateViewerError] = useState("");
 
   const storedUser = useMemo(() => {
+    if (reapplication) {
+      return null;
+    }
+
     if (!savedUser) {
       return null;
     }
@@ -297,10 +311,11 @@ export default function PerfilPage() {
       removeAuthUser();
       return null;
     }
-  }, [savedUser]);
+  }, [reapplication, savedUser]);
 
   const user = remoteProfile ?? storedUser;
-  const isApprovalPending = shouldShowPendingApproval(user);
+  const isApprovalPending =
+    !reapplication && shouldShowPendingApproval(user);
 
   function hydrateProfile(profile: ProfileUser) {
     setForm(formFromUser(profile));
@@ -308,7 +323,11 @@ export default function PerfilPage() {
   }
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch(
+      reapplication
+        ? "/api/auth/reapplication-profile"
+        : "/api/auth/me",
+    )
       .then(async (response) => {
         if (!response.ok) {
           throw new Error("Sessão expirada.");
@@ -317,9 +336,11 @@ export default function PerfilPage() {
         return (await response.json()) as ProfileUser;
       })
       .then((profile) => {
-        saveAuthUser(profile);
+        if (!reapplication) {
+          saveAuthUser(profile);
+        }
         setRemoteProfile(profile);
-        if (shouldShowPendingApproval(profile)) {
+        if (!reapplication && shouldShowPendingApproval(profile)) {
           router.replace("/register/pending-approval");
           return;
         }
@@ -357,12 +378,13 @@ export default function PerfilPage() {
         window.dispatchEvent(new Event("sugarmimo-auth"));
         router.replace("/login");
       });
-  }, [router]);
+  }, [reapplication, router]);
 
   useEffect(() => {
     const normalizedDraft = normalizeUsername(contactViewerDraft);
     const canSearch =
       isEditing &&
+      !reapplication &&
       user?.role?.trim().toUpperCase() === "SUGAR_BABY" &&
       normalizedDraft.length > 0;
 
@@ -418,11 +440,11 @@ export default function PerfilPage() {
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [contactViewerDraft, isEditing, user?.role]);
+  }, [contactViewerDraft, isEditing, reapplication, user?.role]);
 
   useEffect(() => {
     const normalizedDraft = normalizeUsername(privateViewerDraft);
-    if (!isEditing || !normalizedDraft) {
+    if (reapplication || !isEditing || !normalizedDraft) {
       return;
     }
 
@@ -471,7 +493,17 @@ export default function PerfilPage() {
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [isEditing, privateViewerDraft]);
+  }, [isEditing, privateViewerDraft, reapplication]);
+
+  if (!user && reapplication) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-[url('/wallpaper-marble.webp')] px-5 text-center text-black-jewel">
+        <p className="rounded-xl border border-gold/30 bg-white/90 px-6 py-5 font-bold shadow-lg">
+          Carregando seu cadastro para correção...
+        </p>
+      </main>
+    );
+  }
 
   if (!user || isApprovalPending) {
     return <ProfileApprovalGuard user={user} />;
@@ -852,6 +884,20 @@ export default function PerfilPage() {
         throw new Error(result?.message ?? "Não foi possível salvar o perfil.");
       }
 
+      if (reapplication) {
+        await Swal.fire({
+          icon: "success",
+          title: "Cadastro reenviado para análise",
+          html: result?.reapplicationPin
+            ? `Seu PIN de retorno é <strong>${result.reapplicationPin}</strong>. A equipe verá o mesmo código no painel.`
+            : "Suas correções entraram novamente na fila de análise.",
+          confirmButtonText: "Acompanhar análise",
+          confirmButtonColor: "var(--emerald)",
+        });
+        window.location.replace("/register/pending-approval");
+        return;
+      }
+
       saveAuthUser(result);
       window.dispatchEvent(new Event("sugarmimo-auth"));
       setRemoteProfile(result);
@@ -877,19 +923,44 @@ export default function PerfilPage() {
   }
 
   async function patchProfile(payload: Record<string, unknown>) {
-    return fetch("/api/auth/profile", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
+    return fetch(
+      reapplication
+        ? "/api/auth/reapplication-profile"
+        : "/api/auth/profile",
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       },
-      body: JSON.stringify(payload),
-    });
+    );
   }
 
   return (
-    <ProfileApprovalGuard user={user}>
+    <ProfileApprovalGuard
+      user={
+        reapplication ? { ...user, approvalStatus: "APPROVED" } : user
+      }
+    >
       <main className="min-h-screen bg-[radial-gradient(circle_at_18%_12%,color-mix(in_srgb,var(--emerald)_13%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--gold-soft)_22%,transparent),transparent_30%),url('/wallpaper-marble.webp')] bg-cover bg-center text-black-jewel md:bg-fixed">
-        <Navbar />
+        {reapplication ? (
+          <header className="border-b border-gold/25 bg-espresso px-5 py-4 text-white">
+            <div className="mx-auto max-w-7xl">
+              <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-gold-soft">
+                Nova tentativa
+              </p>
+              <h1 className="mt-1 text-xl font-bold">
+                Corrija seu cadastro e entre novamente na fila
+              </h1>
+              <p className="mt-1 text-sm text-white/70">
+                Revise as informações e fotos. Ao reenviar, a equipe receberá um PIN que identifica seu retorno.
+              </p>
+            </div>
+          </header>
+        ) : (
+          <Navbar />
+        )}
 
         <section className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8 lg:px-8">
           <input
@@ -1090,6 +1161,7 @@ export default function PerfilPage() {
                     isSearchingViewers={isSearchingContactViewers}
                     viewerError={contactViewerError}
                     canSelectViewers={
+                      !reapplication &&
                       user.role?.trim().toUpperCase() === "SUGAR_BABY"
                     }
                   />
@@ -1226,6 +1298,7 @@ export default function PerfilPage() {
                     suggestions={privateViewerSuggestions}
                     isSearching={isSearchingPrivateViewers}
                     error={privateViewerError}
+                    canManageViewers={!reapplication}
                   />
                 </div>
               </section>
@@ -1240,7 +1313,7 @@ export default function PerfilPage() {
                     {user.role?.trim().toUpperCase() === "SUGAR_DADDY" ? (
                       <PremiereOfferDialog />
                     ) : null}
-                    {isSugarBaby ? (
+                    {isSugarBaby && !reapplication ? (
                       <div className="rounded-xl border border-gold/35 bg-white/10 p-4">
                         <p className="text-sm font-extrabold text-gold-soft">
                           Seu link de convite
@@ -1263,25 +1336,31 @@ export default function PerfilPage() {
                         </Button>
                       </div>
                     ) : null}
-                    <BoostControl
-                      credits={user.boostCredits ?? 0}
-                      boostedUntil={user.boostedUntil ?? null}
-                      onActivated={handleBoostActivated}
-                    />
-                    <Button
-                      type="button"
-                      onClick={
-                        isEditing ? cancelEditing : () => setIsEditing(true)
-                      }
-                      className="h-auto min-h-12 w-full rounded-full border border-white/55 bg-white/5 px-4 py-2 text-sm font-extrabold text-white hover:bg-white hover:text-emerald sm:text-base"
-                    >
-                      {isEditing ? (
-                        <X className="h-4 w-4" />
-                      ) : (
-                        <Pencil className="h-4 w-4" />
-                      )}
-                      {isEditing ? "Cancelar Edição" : "Editar Perfil"}
-                    </Button>
+                    {!reapplication ? (
+                      <>
+                        <BoostControl
+                          credits={user.boostCredits ?? 0}
+                          boostedUntil={user.boostedUntil ?? null}
+                          onActivated={handleBoostActivated}
+                        />
+                        <Button
+                          type="button"
+                          onClick={
+                            isEditing
+                              ? cancelEditing
+                              : () => setIsEditing(true)
+                          }
+                          className="h-auto min-h-12 w-full rounded-full border border-white/55 bg-white/5 px-4 py-2 text-sm font-extrabold text-white hover:bg-white hover:text-emerald sm:text-base"
+                        >
+                          {isEditing ? (
+                            <X className="h-4 w-4" />
+                          ) : (
+                            <Pencil className="h-4 w-4" />
+                          )}
+                          {isEditing ? "Cancelar Edição" : "Editar Perfil"}
+                        </Button>
+                      </>
+                    ) : null}
                     {isEditing && (
                       <Button
                         type="button"
@@ -1298,7 +1377,9 @@ export default function PerfilPage() {
                           ? "Preparando fotos..."
                           : isSaving
                             ? "Salvando..."
-                            : "Salvar"}
+                            : reapplication
+                              ? "Corrigir e reenviar"
+                              : "Salvar"}
                       </Button>
                     )}
                   </div>
@@ -1353,6 +1434,7 @@ function PrivatePhotosSection({
   suggestions,
   isSearching,
   error,
+  canManageViewers,
 }: {
   photos: ProfilePhoto[];
   isEditing: boolean;
@@ -1366,6 +1448,7 @@ function PrivatePhotosSection({
   suggestions: ContactViewerSuggestion[];
   isSearching: boolean;
   error: string;
+  canManageViewers: boolean;
 }) {
   const availableSuggestions = suggestions.filter(
     (suggestion) =>
@@ -1420,7 +1503,7 @@ function PrivatePhotosSection({
         </button>
       )}
 
-      {isEditing ? (
+      {isEditing && canManageViewers ? (
         <div className="space-y-2 border-t border-gold/20 pt-3">
           <Label className="font-bold text-black-jewel">
             Quem pode ver suas fotos privadas
@@ -1490,6 +1573,10 @@ function PrivatePhotosSection({
             ))}
           </div>
         </div>
+      ) : !canManageViewers && viewerUsernames.length > 0 ? (
+        <p className="border-t border-gold/20 pt-3 text-xs font-semibold text-black-jewel/60">
+          As permissões atuais das fotos privadas serão preservadas nesta correção.
+        </p>
       ) : null}
     </section>
   );

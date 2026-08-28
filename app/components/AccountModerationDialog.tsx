@@ -27,6 +27,7 @@ type AccountModerationDialogProps = {
   blocked?: boolean;
   onConfirm: () => Promise<void> | void;
   onLogout?: () => Promise<void> | void;
+  confirmLabel?: string;
 };
 
 const actionContent: Record<
@@ -77,6 +78,7 @@ export function AccountModerationDialog({
   blocked = false,
   onConfirm,
   onLogout,
+  confirmLabel,
 }: AccountModerationDialogProps) {
   const [isConfirming, setIsConfirming] = useState(false);
   const [error, setError] = useState("");
@@ -248,6 +250,8 @@ export function AccountModerationDialog({
                 />
                 Confirmando...
               </>
+            ) : confirmLabel ? (
+              confirmLabel
             ) : blocked ? (
               "Voltar ao login"
             ) : (
