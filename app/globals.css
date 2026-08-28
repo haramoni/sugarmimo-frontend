@@ -2387,6 +2387,12 @@ body:has([data-slot="dialog-content"].registration-dialog)
     visibility 850ms;
 }
 
+html.sm-intro-active,
+html.sm-intro-active body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 .sm-intro-overlay.sm-intro-closing {
   visibility: hidden;
   opacity: 0;
@@ -2467,14 +2473,26 @@ body:has([data-slot="dialog-content"].registration-dialog)
 
 .sm-hero-media {
   animation: sm-hero-in 1.7s cubic-bezier(0.22, 1, 0.36, 1) 2.35s both;
+  animation-play-state: paused;
 }
 
 .sm-hero-copy {
   animation: sm-rise 1.15s cubic-bezier(0.22, 1, 0.36, 1) 2.62s both;
+  animation-play-state: paused;
 }
 
 .sm-nav-enter {
   animation: sm-nav-drop 800ms cubic-bezier(0.22, 1, 0.36, 1) 2.55s both;
+  animation-play-state: paused;
+}
+
+.sm-intro-play .sm-hero-media,
+.sm-intro-play .sm-hero-copy,
+.sm-intro-play .sm-nav-enter,
+.sm-intro-skip .sm-hero-media,
+.sm-intro-skip .sm-hero-copy,
+.sm-intro-skip .sm-nav-enter {
+  animation-play-state: running;
 }
 
 .sm-intro-skip .sm-hero-media,

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 
 import {
   hasAgeConfirmation,
@@ -10,7 +11,7 @@ import {
 
 const INTRO_CLOSE_AT = 2350;
 const INTRO_END_AT = 3200;
-const INTRO_SESSION_KEY = "sm-intro-after-age-v2";
+const INTRO_SESSION_KEY = "sm-intro-after-age-v3";
 
 export function LandingMotion() {
   const [showIntro, setShowIntro] = useState(true);
@@ -44,6 +45,7 @@ export function LandingMotion() {
 
     root.classList.remove("sm-intro-skip");
     root.classList.add("sm-intro-active");
+    root.classList.add("sm-intro-play");
     document.body.style.overflow = "hidden";
 
     const closingTimer = window.setTimeout(
@@ -61,6 +63,7 @@ export function LandingMotion() {
       window.clearTimeout(closingTimer);
       window.clearTimeout(endTimer);
       root.classList.remove("sm-intro-active");
+      root.classList.remove("sm-intro-play");
       document.body.style.overflow = "";
     };
   }, [ageConfirmed]);
@@ -103,16 +106,42 @@ export function LandingMotion() {
     return () => observer.disconnect();
   }, []);
 
-  if (!ageConfirmed || !showIntro) return null;
+  if (!ageConfirmed || !showIntro || typeof document === "undefined") {
+    return null;
+  }
 
-  return (
+  return createPortal(
     <div
       aria-label="Apresentação SugarMimo"
       role="status"
       className={`sm-intro-overlay ${closing ? "sm-intro-closing" : ""}`}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 220,
+        display: "flex",
+        width: "100vw",
+        minHeight: "100dvh",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+        isolation: "isolate",
+        background:
+          "radial-gradient(circle at 50% 48%, rgba(62, 43, 23, 0.2), transparent 31rem), linear-gradient(145deg, #090806 0%, #050505 52%, #0a0806 100%)",
+      }}
     >
       <div aria-hidden className="sm-intro-glow" />
-      <div className="sm-intro-signature">
+      <div
+        className="sm-intro-signature"
+        style={{
+          position: "relative",
+          display: "grid",
+          width: "clamp(11rem, 28vw, 18rem)",
+          minHeight: "clamp(7rem, 17vw, 11rem)",
+          placeItems: "center",
+        }}
+      >
         <span aria-hidden className="sm-intro-halo" />
         <Image
           src="/brand/monogram-champagne.webp"
@@ -122,10 +151,25 @@ export function LandingMotion() {
           priority
           quality={95}
           className="sm-intro-mark"
+          style={{
+            position: "relative",
+            zIndex: 1,
+            display: "block",
+            width: "100%",
+            height: "auto",
+            maxWidth: "18rem",
+            objectFit: "contain",
+          }}
         />
       </div>
       <div aria-hidden className="sm-intro-line" />
-      <p className="sm-intro-tagline">Um clube privado</p>
-    </div>
+      <p
+        className="sm-intro-tagline"
+        style={{ maxWidth: "calc(100vw - 2rem)", textAlign: "center" }}
+      >
+        Um clube privado
+      </p>
+    </div>,
+    document.body,
   );
 }
