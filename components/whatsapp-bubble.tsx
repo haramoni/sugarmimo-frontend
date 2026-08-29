@@ -143,7 +143,7 @@ export default function WhatsappBubble() {
       href={whatsappUrl}
       target="_blank"
       rel="noreferrer"
-      aria-label="Conversar com a Prospects House pelo WhatsApp"
+      aria-label="Conversar com a SugarMimo pelo WhatsApp"
       title="Arraste para mover ou clique para abrir o WhatsApp"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}

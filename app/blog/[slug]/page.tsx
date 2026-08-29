@@ -7,6 +7,7 @@ import { ArrowLeft, CalendarDays, Clock } from "lucide-react";
 import NavBarMenu from "../../components/ui/NavBarMenu";
 import { SiteFooter } from "../../components/ui/SiteFooter";
 import { blogPosts, formatBlogDate, getBlogPost } from "../blog-data";
+import { site } from "@/lib/site";
 
 type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
@@ -50,22 +51,21 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sugarmimo.com";
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
     description: post.excerpt,
-    image: `${siteUrl}${post.image}`,
+    image: `${site.url}${post.image}`,
     datePublished: post.date,
     dateModified: post.date,
     author: { "@type": "Organization", name: "SugarMimo" },
     publisher: {
       "@type": "Organization",
       name: "SugarMimo",
-      logo: { "@type": "ImageObject", url: `${siteUrl}/sm-icon.png` },
+      logo: { "@type": "ImageObject", url: `${site.url}/sm-icon.png` },
     },
-    mainEntityOfPage: `${siteUrl}/blog/${post.slug}`,
+    mainEntityOfPage: `${site.url}/blog/${post.slug}`,
   };
 
   return (
@@ -73,7 +73,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <NavBarMenu />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c"),
+        }}
       />
 
       <article className="px-6 pb-20 pt-28 sm:px-10 lg:px-16">

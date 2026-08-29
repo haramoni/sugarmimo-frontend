@@ -30,11 +30,17 @@ const contentSecurityPolicy = [
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   images: {
-    qualities: [75, 95],
+    qualities: [75, 85, 95],
   },
   poweredByHeader: false,
   async redirects() {
     return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.sugarmimo.com" }],
+        destination: "https://sugarmimo.com/:path*",
+        permanent: true,
+      },
       {
         source: "/manutencao",
         destination: "/",

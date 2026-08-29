@@ -15,6 +15,13 @@ export const metadata: Metadata = {
   title: "Contato | SugarMimo",
   description:
     "Fale com a equipe SugarMimo por e-mail, WhatsApp ou suporte técnico.",
+  alternates: { canonical: "/contato" },
+  openGraph: {
+    title: "Contato | SugarMimo",
+    description:
+      "Fale com a equipe SugarMimo por e-mail, WhatsApp ou suporte técnico.",
+    url: "/contato",
+  },
 };
 
 const contactChannels = [

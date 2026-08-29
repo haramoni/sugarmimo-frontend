@@ -1,14 +1,23 @@
 import type { MetadataRoute } from "next";
+import { site } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sugarmimo.com";
-
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/blog/"],
-      disallow: ["/api/", "/admin/", "/perfil/", "/chat/", "/configuracoes/"],
+      allow: "/",
+      disallow: [
+        "/api/",
+        "/admin/",
+        "/perfil/",
+        "/chat/",
+        "/configuracoes/",
+        "/buscar/",
+        "/notificacoes/",
+        "/pins/",
+      ],
     },
-    sitemap: `${siteUrl}/sitemap.xml`,
+    sitemap: `${site.url}/sitemap.xml`,
+    host: site.url,
   };
 }

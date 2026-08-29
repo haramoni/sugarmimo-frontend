@@ -9,6 +9,13 @@ export const metadata: Metadata = {
   title: "Termos de Uso e Condições Gerais de Utilização | SugarMimo",
   description:
     "Termos de Uso e Condições Gerais de Utilização da plataforma SugarMimo.",
+  alternates: { canonical: "/terms" },
+  openGraph: {
+    title: "Termos de Uso e Condições Gerais de Utilização | SugarMimo",
+    description:
+      "Termos de Uso e Condições Gerais de Utilização da plataforma SugarMimo.",
+    url: "/terms",
+  },
 };
 
 export default function TermsPage() {

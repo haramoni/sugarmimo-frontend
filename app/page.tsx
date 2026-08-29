@@ -14,32 +14,36 @@ import { SiteFooter } from "./components/ui/SiteFooter";
 import { CustomCursor } from "./components/CustomCursor";
 import { LandingMotion } from "./components/LandingMotion";
 import WhatsappBubble from "@/components/whatsapp-bubble";
+import { absoluteUrl, site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "SugarMimo — Clube privado de conexões entre adultos",
+  title: "SugarMimo | Relacionamento Sugar com Segurança e Privacidade",
   description:
-    "Um clube privado de relacionamentos entre adultos, com perfis verificados, privacidade por padrão e intenções claras.",
+    "Conheça o SugarMimo, clube de relacionamento sugar para adultos com perfis moderados, privacidade, consentimento e intenções claras.",
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "SugarMimo — Clube privado de conexões entre adultos",
+    title: "SugarMimo | Relacionamento Sugar com Segurança e Privacidade",
     description:
-      "Elegância, segurança e liberdade de escolha em conexões entre adultos.",
+      "Conexões e relacionamentos sugar entre adultos com elegância, segurança e liberdade de escolha.",
+    url: "/",
     type: "website",
     locale: "pt_BR",
     images: [
       {
-        url: "/og.png",
+        url: "/og.jpg",
         width: 1200,
         height: 630,
+        type: "image/jpeg",
         alt: "SugarMimo — Elegância, segurança e liberdade de escolha",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SugarMimo — Clube privado de conexões entre adultos",
+    title: "SugarMimo | Relacionamento Sugar com Segurança e Privacidade",
     description:
-      "Elegância, segurança e liberdade de escolha em conexões entre adultos.",
-    images: ["/og.png"],
+      "Conexões e relacionamentos sugar entre adultos com elegância, segurança e liberdade de escolha.",
+    images: ["/og.jpg"],
   },
 };
 
@@ -169,8 +173,79 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 }
 
 export default function Home() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${site.url}/#organization`,
+        name: site.name,
+        alternateName: site.alternateName,
+        legalName: site.legalName,
+        taxID: site.taxId,
+        url: site.url,
+        logo: absoluteUrl("/sm-icon.png"),
+        description: site.description,
+        email: site.email,
+        telephone: site.telephone,
+        contactPoint: [
+          {
+            "@type": "ContactPoint",
+            contactType: "customer support",
+            email: site.email,
+            telephone: site.telephone,
+            availableLanguage: ["Portuguese"],
+            areaServed: "BR",
+          },
+          {
+            "@type": "ContactPoint",
+            contactType: "privacy",
+            email: site.privacyEmail,
+            availableLanguage: ["Portuguese"],
+            areaServed: "BR",
+          },
+        ],
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${site.url}/#website`,
+        url: site.url,
+        name: site.name,
+        alternateName: site.alternateName,
+        description: site.description,
+        inLanguage: site.language,
+        publisher: { "@id": `${site.url}/#organization` },
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${site.url}/#webpage`,
+        url: site.url,
+        name: "SugarMimo | Relacionamento Sugar com Segurança e Privacidade",
+        description: site.description,
+        inLanguage: site.language,
+        isPartOf: { "@id": `${site.url}/#website` },
+        about: { "@id": `${site.url}/#organization` },
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${site.url}/#faq-schema`,
+        mainEntity: faqs.map((faq) => ({
+          "@type": "Question",
+          name: faq.question,
+          acceptedAnswer: { "@type": "Answer", text: faq.answer },
+        })),
+      },
+    ],
+  };
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#080808] text-[#f4ecdf]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
+        }}
+      />
       <LandingMotion />
       <CustomCursor />
       <NavBarMenu />
@@ -181,11 +256,11 @@ export default function Home() {
       >
         <div className="absolute inset-0 -z-10">
           <Image
-            src="/brand/hero-trio-image.png"
+            src="/brand/hero-trio-image.webp"
             alt="Editorial SugarMimo com atmosfera elegante em tons de champagne"
             fill
             priority
-            quality={95}
+            quality={85}
             sizes="100vw"
             className="sm-hero-media scale-105 object-cover object-top"
           />
@@ -196,7 +271,7 @@ export default function Home() {
         <div className="mx-auto flex min-h-svh max-w-7xl flex-col items-center justify-end px-6 pb-24 pt-32 text-center sm:pb-28 lg:px-10">
           <div className="sm-hero-copy max-w-4xl">
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.45em] text-[#e1bd8a] sm:text-xs">
-              Um clube privado de conexões
+              Clube privado de relacionamento sugar
             </p>
             <h1 className="mt-6 font-serif text-5xl font-medium leading-[1.02] tracking-[-0.035em] text-[#f8f1e7] drop-shadow-[0_4px_28px_rgba(0,0,0,0.65)] sm:text-6xl lg:text-7xl">
               Onde a elegância
@@ -205,8 +280,8 @@ export default function Home() {
               </span>
             </h1>
             <p className="mx-auto mt-7 max-w-xl text-base leading-7 text-[#d0d0d0]/85 sm:text-lg sm:leading-8">
-              Relacionamentos entre adultos construídos com transparência,
-              respeito e intenções claras — desde o primeiro olá.
+              Relacionamentos sugar entre adultos, construídos com
+              transparência, respeito e intenções claras — desde o primeiro olá.
             </p>
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -326,7 +401,8 @@ export default function Home() {
           <div className="mx-auto max-w-2xl text-center">
             <Eyebrow>Duas jornadas</Eyebrow>
             <h2 className="mt-6 font-serif text-4xl font-medium sm:text-5xl">
-              Sugar <span className="italic text-[#e1bd8a]">&</span> Daddy
+              Relacionamentos Sugar{" "}
+              <span className="italic text-[#e1bd8a]">&</span> Daddy
             </h2>
             <p className="mt-6 text-base leading-8 text-[#99958d]">
               Perfis diferentes, o mesmo princípio: intenções claras,

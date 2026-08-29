@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { AuthProvider } from "./components/AuthProvider";
 import { CookieConsentBanner } from "./components/CookieConsentBanner";
 import { AgeConfirmationDialog } from "./components/AgeConfirmationDialog";
+import { site } from "@/lib/site";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -19,36 +20,36 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://sugarmimo.com",
-  ),
+  metadataBase: new URL(site.url),
   title: {
-    default: "SugarMimo | Relacionamentos requintados",
+    default: "SugarMimo | Relacionamento Sugar com Segurança e Privacidade",
     template: "%s",
   },
-  description:
-    "Conexões entre adultos com transparência, respeito e experiências especiais.",
+  description: site.description,
+  applicationName: site.name,
+  category: "Relacionamentos",
   openGraph: {
-    title: "SugarMimo — Clube privado de conexões entre adultos",
-    description:
-      "Elegância, segurança e liberdade de escolha em conexões entre adultos.",
+    siteName: site.name,
+    title: "SugarMimo | Relacionamento Sugar com Segurança e Privacidade",
+    description: site.description,
+    url: site.url,
     type: "website",
-    locale: "pt_BR",
+    locale: site.locale,
     images: [
       {
-        url: "/og.png",
+        url: "/og.jpg",
         width: 1200,
         height: 630,
+        type: "image/jpeg",
         alt: "SugarMimo — Elegância, segurança e liberdade de escolha",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SugarMimo — Clube privado de conexões entre adultos",
-    description:
-      "Elegância, segurança e liberdade de escolha em conexões entre adultos.",
-    images: ["/og.png"],
+    title: "SugarMimo | Relacionamento Sugar com Segurança e Privacidade",
+    description: site.description,
+    images: ["/og.jpg"],
   },
 };
 

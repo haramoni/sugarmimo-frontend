@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   title: "Atendimento | SugarMimo",
   description:
     "Canais de atendimento, reclamações, cancelamentos e consulta de protocolos da SugarMimo.",
+  alternates: { canonical: "/atendimento" },
+  openGraph: {
+    title: "Atendimento | SugarMimo",
+    description:
+      "Canais de atendimento, reclamações, cancelamentos e consulta de protocolos da SugarMimo.",
+    url: "/atendimento",
+  },
 };
 
 export default function AtendimentoPage() {

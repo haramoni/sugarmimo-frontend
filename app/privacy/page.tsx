@@ -11,6 +11,13 @@ export const metadata: Metadata = {
   title: "Política de Privacidade e Proteção de Dados | SugarMimo",
   description:
     "Política de Privacidade e Proteção de Dados Pessoais da Sugar Mimo.",
+  alternates: { canonical: "/privacy" },
+  openGraph: {
+    title: "Política de Privacidade e Proteção de Dados | SugarMimo",
+    description:
+      "Política de Privacidade e Proteção de Dados Pessoais da Sugar Mimo.",
+    url: "/privacy",
+  },
 };
 
 export default function PrivacyPage() {
