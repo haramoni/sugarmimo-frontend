@@ -2,7 +2,6 @@
 
 import {
   Ban,
-  Check,
   ChevronLeft,
   ChevronRight,
   Crown,
@@ -427,18 +426,18 @@ export default function AdminProfilesPage() {
     }
   }
 
-  async function reviewWatchAlerts(profile: AdminProfile) {
+  async function removeWatchAlerts(profile: AdminProfile) {
     setBusyId(profile.id);
     setError("");
     try {
       const response = await fetch(
-        `/api/admin/profiles/${encodeURIComponent(profile.id)}/watch-reviewed`,
-        { method: "PATCH" },
+        `/api/admin/profiles/${encodeURIComponent(profile.id)}/watch-alerts`,
+        { method: "DELETE" },
       );
       const result = await response.json().catch(() => null);
       if (!response.ok) {
         throw new Error(
-          result?.message ?? "Não foi possível revisar o alerta Watch.",
+          result?.message ?? "Não foi possível remover o alerta Watch.",
         );
       }
       await loadProfiles();
@@ -446,17 +445,17 @@ export default function AdminProfilesPage() {
       setError(
         actionError instanceof Error
           ? actionError.message
-          : "Não foi possível revisar o alerta Watch.",
+          : "Não foi possível remover o alerta Watch.",
       );
     } finally {
       setBusyId("");
     }
   }
 
-  async function reviewAllWatchAlerts() {
+  async function removeAllWatchAlerts() {
     const confirmation = await Swal.fire({
       title: "Remover todos os alertas Watch?",
-      text: `${stats.watchAlerts} alerta(s) serão retirados do painel e mantidos no histórico como revisados.`,
+      text: `${stats.watchAlerts} alerta(s) serão apagados. Os perfis e os Watches ativos não serão removidos.`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Sim, remover todos",
@@ -468,8 +467,8 @@ export default function AdminProfilesPage() {
     setBusyId("all-watch-alerts");
     setError("");
     try {
-      const response = await fetch("/api/admin/watch-alerts/review-all", {
-        method: "PATCH",
+      const response = await fetch("/api/admin/watch-alerts", {
+        method: "DELETE",
       });
       const result = await response.json().catch(() => null);
       if (!response.ok) {
@@ -481,7 +480,7 @@ export default function AdminProfilesPage() {
       await loadProfiles();
       await Swal.fire({
         title: "Alertas removidos",
-        text: `${result?.reviewedAlerts ?? 0} alerta(s) foram marcados como revisados.`,
+        text: `${result?.removedAlerts ?? 0} alerta(s) foram apagados.`,
         icon: "success",
       });
     } catch (actionError) {
@@ -719,7 +718,7 @@ export default function AdminProfilesPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => void reviewAllWatchAlerts()}
+              onClick={() => void removeAllWatchAlerts()}
               disabled={
                 stats.watchAlerts === 0 || busyId === "all-watch-alerts"
               }
@@ -1063,10 +1062,10 @@ export default function AdminProfilesPage() {
                           type="button"
                           variant="outline"
                           disabled={busyId === profile.id}
-                          onClick={() => void reviewWatchAlerts(profile)}
+                          onClick={() => void removeWatchAlerts(profile)}
                           className="h-8 rounded-lg border-amber-500 bg-white text-xs font-bold text-amber-900 hover:bg-amber-100"
                         >
-                          <Check className="h-3.5 w-3.5" /> Marcar como revisado
+                          <Trash2 className="h-3.5 w-3.5" /> Remover alerta
                         </Button>
                         <p className="mt-2 text-xs text-amber-900/70">
                           IP igual é apenas um sinal técnico e não comprova que

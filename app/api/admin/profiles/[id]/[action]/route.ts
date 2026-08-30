@@ -19,7 +19,6 @@ export async function PATCH(
       "activate",
       "watch",
       "unwatch",
-      "watch-reviewed",
     ].includes(action)
   ) {
     return NextResponse.json({ message: "Ação inválida." }, { status: 400 });
