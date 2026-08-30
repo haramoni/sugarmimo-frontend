@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
 import {
-  API_URL,
   clearApprovalSessionCookie,
   clearSessionCookie,
   setApprovalSessionCookie,
   setSessionCookie,
 } from "../_cookies";
+import { forwardedClientHeaders, SERVER_API_URL } from "../_client-ip";
 import { rejectBodyLargerThan } from "../../_request-security";
 
 export async function POST(request: Request) {
@@ -15,10 +15,11 @@ export async function POST(request: Request) {
 
   const body = await request.json();
 
-  const response = await fetch(`${API_URL}/auth/register`, {
+  const response = await fetch(`${SERVER_API_URL}/auth/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...forwardedClientHeaders(request),
     },
     body: JSON.stringify(body),
   }).catch(() => null);

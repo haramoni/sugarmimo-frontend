@@ -2,6 +2,7 @@
 
 import {
   Ban,
+  Check,
   ChevronLeft,
   ChevronRight,
   Crown,
@@ -420,6 +421,32 @@ export default function AdminProfilesPage() {
         actionError instanceof Error
           ? actionError.message
           : "Não foi possível alterar o Watch.",
+      );
+    } finally {
+      setBusyId("");
+    }
+  }
+
+  async function reviewWatchAlerts(profile: AdminProfile) {
+    setBusyId(profile.id);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/admin/profiles/${encodeURIComponent(profile.id)}/watch-reviewed`,
+        { method: "PATCH" },
+      );
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(
+          result?.message ?? "Não foi possível revisar o alerta Watch.",
+        );
+      }
+      await loadProfiles();
+    } catch (actionError) {
+      setError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Não foi possível revisar o alerta Watch.",
       );
     } finally {
       setBusyId("");
@@ -973,6 +1000,21 @@ export default function AdminProfilesPage() {
                           </p>
                         </div>
                       ))}
+                      <div className="mt-3 border-t border-amber-900/10 pt-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={busyId === profile.id}
+                          onClick={() => void reviewWatchAlerts(profile)}
+                          className="h-8 rounded-lg border-amber-500 bg-white text-xs font-bold text-amber-900 hover:bg-amber-100"
+                        >
+                          <Check className="h-3.5 w-3.5" /> Marcar como revisado
+                        </Button>
+                        <p className="mt-2 text-xs text-amber-900/70">
+                          IP igual é apenas um sinal técnico e não comprova que
+                          seja a mesma pessoa.
+                        </p>
+                      </div>
                     </div>
                   ) : null}
 

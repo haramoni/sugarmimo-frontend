@@ -570,7 +570,7 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
                     ? "border-amber-500 ring-2 ring-amber-400/20"
                     : profile.isApprovalPriority
                       ? "border-gold ring-2 ring-gold/15"
-                    : "border-[var(--platinum)]"
+                      : "border-[var(--platinum)]"
                 }`}
               >
                 <div className="grid grid-cols-3 gap-3">
@@ -653,15 +653,25 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
                   </div>
 
                   {profile.profileWatchMatches.length > 0 ? (
-                    <div className="rounded-sm border border-amber-400 bg-amber-50 p-3 text-sm text-amber-950" role="alert">
+                    <div
+                      className="rounded-sm border border-amber-400 bg-amber-50 p-3 text-sm text-amber-950"
+                      role="alert"
+                    >
                       <div className="flex items-center gap-2 font-extrabold">
-                        <TriangleAlert className="h-4 w-4" /> Este cadastro utilizou o mesmo IP de perfil monitorado
+                        <TriangleAlert className="h-4 w-4" /> Este cadastro
+                        utilizou o mesmo IP de perfil monitorado
                       </div>
                       {profile.profileWatchMatches.map((match) => (
                         <p key={match.id} className="mt-2 leading-5">
-                          Relacionado a <strong>@{match.watch.watchedUser.username}</strong>. Motivo: {match.watch.reason}. IP: {match.ipAddress}.
+                          Relacionado a{" "}
+                          <strong>@{match.watch.watchedUser.username}</strong>.
+                          Motivo: {match.watch.reason}. IP: {match.ipAddress}.
                         </p>
                       ))}
+                      <p className="mt-2 text-xs text-amber-900/70">
+                        Este é apenas um sinal técnico: compartilhar IP não
+                        comprova que os perfis pertençam à mesma pessoa.
+                      </p>
                     </div>
                   ) : null}
 

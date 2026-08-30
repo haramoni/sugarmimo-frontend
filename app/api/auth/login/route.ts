@@ -1,20 +1,21 @@
 import { NextResponse } from "next/server";
 
 import {
-  API_URL,
   clearApprovalSessionCookie,
   clearSessionCookie,
   setApprovalSessionCookie,
   setSessionCookie,
 } from "../_cookies";
+import { forwardedClientHeaders, SERVER_API_URL } from "../_client-ip";
 
 export async function POST(request: Request) {
   const body = await request.json();
 
-  const response = await fetch(`${API_URL}/auth/login`, {
+  const response = await fetch(`${SERVER_API_URL}/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...forwardedClientHeaders(request),
     },
     body: JSON.stringify(body),
   }).catch(() => null);

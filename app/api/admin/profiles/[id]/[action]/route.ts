@@ -19,6 +19,7 @@ export async function PATCH(
       "activate",
       "watch",
       "unwatch",
+      "watch-reviewed",
     ].includes(action)
   ) {
     return NextResponse.json({ message: "Ação inválida." }, { status: 400 });
@@ -28,10 +29,13 @@ export async function PATCH(
     ? await request.text()
     : undefined;
 
-  return forwardAdminRequest(`/admin/profiles/${encodeURIComponent(id)}/${action}`, {
-    method: "PATCH",
-    ...(body
-      ? { body, headers: { "Content-Type": "application/json" } }
-      : {}),
-  });
+  return forwardAdminRequest(
+    `/admin/profiles/${encodeURIComponent(id)}/${action}`,
+    {
+      method: "PATCH",
+      ...(body
+        ? { body, headers: { "Content-Type": "application/json" } }
+        : {}),
+    },
+  );
 }
