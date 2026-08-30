@@ -1,5 +1,7 @@
 export const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
 export const MAX_PHOTO_SIZE_LABEL = "15 MB";
+export const MAX_TOTAL_PHOTO_BYTES = 45 * 1024 * 1024;
+export const MAX_TOTAL_PHOTO_SIZE_LABEL = "45 MB";
 
 export const ALLOWED_PHOTO_TYPES = new Set([
   "image/jpeg",

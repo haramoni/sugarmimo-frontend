@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import NavBarMenu from "./components/ui/NavBarMenu";
 import { SiteFooter } from "./components/ui/SiteFooter";
-import { CustomCursor } from "./components/CustomCursor";
 import { LandingMotion } from "./components/LandingMotion";
 import WhatsappBubble from "@/components/whatsapp-bubble";
 import { absoluteUrl, site } from "@/lib/site";
@@ -247,7 +246,6 @@ export default function Home() {
         }}
       />
       <LandingMotion />
-      <CustomCursor />
       <NavBarMenu />
 
       <section

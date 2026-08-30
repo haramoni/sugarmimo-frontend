@@ -22,6 +22,7 @@ import {
   Search,
   Star,
   Trash2,
+  TriangleAlert,
   X,
   Zap,
 } from "lucide-react";
@@ -60,9 +61,22 @@ type PendingProfile = {
   reapplicationCount: number;
   reapplicationPin: string | null;
   reappliedAt: string | null;
+  reapplicationModerationAction: string | null;
+  reapplicationModerationReason: string | null;
   isApprovalPriority: boolean;
   approvalPriorityPaidAt: string | null;
   createdAt: string | null;
+  profileWatchMatches: Array<{
+    id: string;
+    ipAddress: string;
+    createdAt: string;
+    reviewedAt: string | null;
+    watch: {
+      reason: string;
+      active: boolean;
+      watchedUser: { id: string; username: string };
+    };
+  }>;
   photos: PendingPhoto[];
 };
 
@@ -77,11 +91,7 @@ type Pagination = {
 
 const PAGE_SIZE = 6;
 
-function AdminReviewQueue({
-  queue,
-}: {
-  queue: "pending" | "waiting";
-}) {
+function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
   const router = useRouter();
   const isWaitingQueue = queue === "waiting";
   const [profiles, setProfiles] = useState<PendingProfile[]>([]);
@@ -424,9 +434,7 @@ function AdminReviewQueue({
                   ? "Voltar para perfis pendentes"
                   : "Ver perfis aguardando"
               }
-              title={
-                isWaitingQueue ? "Perfis pendentes" : "Perfis aguardando"
-              }
+              title={isWaitingQueue ? "Perfis pendentes" : "Perfis aguardando"}
               onClick={() =>
                 router.push(
                   isWaitingQueue ? "/admin/approvals" : "/admin/waiting",
@@ -558,8 +566,10 @@ function AdminReviewQueue({
               <article
                 key={profile.id}
                 className={`grid gap-5 border bg-white p-4 shadow-[0_12px_32px_rgba(20,17,14,0.08)] lg:grid-cols-[1fr_1.2fr] ${
-                  profile.isApprovalPriority
-                    ? "border-gold ring-2 ring-gold/15"
+                  profile.profileWatchMatches.length > 0
+                    ? "border-amber-500 ring-2 ring-amber-400/20"
+                    : profile.isApprovalPriority
+                      ? "border-gold ring-2 ring-gold/15"
                     : "border-[var(--platinum)]"
                 }`}
               >
@@ -619,6 +629,11 @@ function AdminReviewQueue({
                           Fila normal
                         </span>
                       )}
+                      {profile.profileWatchMatches.length > 0 ? (
+                        <span className="inline-flex w-fit items-center gap-2 rounded-full bg-amber-100 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.1em] text-amber-900">
+                          <TriangleAlert className="h-4 w-4" /> Alerta Watch
+                        </span>
+                      ) : null}
                     </div>
                     <Button
                       type="button"
@@ -636,6 +651,19 @@ function AdminReviewQueue({
                         : "Confirmar PIX de R$ 30"}
                     </Button>
                   </div>
+
+                  {profile.profileWatchMatches.length > 0 ? (
+                    <div className="rounded-sm border border-amber-400 bg-amber-50 p-3 text-sm text-amber-950" role="alert">
+                      <div className="flex items-center gap-2 font-extrabold">
+                        <TriangleAlert className="h-4 w-4" /> Este cadastro utilizou o mesmo IP de perfil monitorado
+                      </div>
+                      {profile.profileWatchMatches.map((match) => (
+                        <p key={match.id} className="mt-2 leading-5">
+                          Relacionado a <strong>@{match.watch.watchedUser.username}</strong>. Motivo: {match.watch.reason}. IP: {match.ipAddress}.
+                        </p>
+                      ))}
+                    </div>
+                  ) : null}
 
                   <div className="grid gap-3 text-sm sm:grid-cols-2">
                     <ProfileField label="Usuário" value={profile.username} />
@@ -683,6 +711,35 @@ function AdminReviewQueue({
                       />
                     ) : null}
                   </div>
+
+                  {profile.reapplicationCount > 0 &&
+                  profile.reapplicationModerationReason ? (
+                    <section
+                      aria-label="Histórico da reaplicação"
+                      className="rounded-md border border-ruby/25 bg-ruby/6 p-4"
+                    >
+                      <div className="flex items-start gap-3">
+                        <RotateCcw
+                          aria-hidden="true"
+                          className="mt-0.5 h-5 w-5 shrink-0 text-ruby"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-ruby">
+                            Motivo do retorno para correção
+                          </p>
+                          <p className="mt-1 text-sm font-semibold leading-6 text-black-jewel">
+                            {profile.reapplicationModerationReason}
+                          </p>
+                          <p className="mt-2 text-xs font-bold text-black/55">
+                            Ação anterior:{" "}
+                            {formatModerationAction(
+                              profile.reapplicationModerationAction,
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </section>
+                  ) : null}
 
                   <div
                     className={`grid gap-3 ${
@@ -806,4 +863,16 @@ function formatDate(value?: string | null) {
     month: "2-digit",
     year: "numeric",
   }).format(new Date(value));
+}
+
+function formatModerationAction(value?: string | null) {
+  const labels: Record<string, string> = {
+    PROFILE_REJECTED: "Perfil rejeitado",
+    PHOTO_REJECTED: "Foto rejeitada",
+    CONTENT_REMOVED: "Conteúdo removido",
+    BANNED: "Conta excluída ou bloqueada",
+    SUSPENDED: "Conta suspensa",
+  };
+
+  return value ? (labels[value] ?? value) : "Perfil rejeitado";
 }

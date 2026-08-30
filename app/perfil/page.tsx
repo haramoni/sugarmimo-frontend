@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertTriangle,
   Camera,
   Check,
   ChevronDown,
@@ -38,6 +39,8 @@ import {
   ALLOWED_PHOTO_TYPES,
   MAX_PHOTO_BYTES,
   MAX_PHOTO_SIZE_LABEL,
+  MAX_TOTAL_PHOTO_BYTES,
+  MAX_TOTAL_PHOTO_SIZE_LABEL,
   normalizeMobilePhoto,
   PHOTO_INPUT_ACCEPT,
 } from "@/app/lib/photo-upload";
@@ -166,6 +169,8 @@ type ProfileUser = {
   telegram?: string | null;
   instagram?: string | null;
   approvalStatus?: string;
+  moderationAction?: string | null;
+  moderationReason?: string | null;
   isPremiere?: boolean;
   boostCredits?: number;
   boostedUntil?: string | null;
@@ -314,8 +319,7 @@ export function ProfilePageContent({
   }, [reapplication, savedUser]);
 
   const user = remoteProfile ?? storedUser;
-  const isApprovalPending =
-    !reapplication && shouldShowPendingApproval(user);
+  const isApprovalPending = !reapplication && shouldShowPendingApproval(user);
 
   function hydrateProfile(profile: ProfileUser) {
     setForm(formFromUser(profile));
@@ -323,11 +327,7 @@ export function ProfilePageContent({
   }
 
   useEffect(() => {
-    fetch(
-      reapplication
-        ? "/api/auth/reapplication-profile"
-        : "/api/auth/me",
-    )
+    fetch(reapplication ? "/api/auth/reapplication-profile" : "/api/auth/me")
       .then(async (response) => {
         if (!response.ok) {
           throw new Error("Sessão expirada.");
@@ -792,6 +792,22 @@ export function ProfilePageContent({
         return;
       }
 
+      const currentPhotoBytes = editablePhotos.reduce(
+        (total, photo) => total + getDataUrlByteLength(photo.dataUrl),
+        0,
+      );
+      const selectedPhotoBytes = normalizedFiles.reduce(
+        (total, file) => total + file.size,
+        0,
+      );
+
+      if (currentPhotoBytes + selectedPhotoBytes > MAX_TOTAL_PHOTO_BYTES) {
+        setError(
+          `O conjunto de fotos ultrapassa ${MAX_TOTAL_PHOTO_SIZE_LABEL}. Remova uma foto ou escolha arquivos menores.`,
+        );
+        return;
+      }
+
       const newPhotos = await Promise.all(
         normalizedFiles.map(async (file, index) => ({
           dataUrl: await fileToDataUrl(file),
@@ -924,9 +940,7 @@ export function ProfilePageContent({
 
   async function patchProfile(payload: Record<string, unknown>) {
     return fetch(
-      reapplication
-        ? "/api/auth/reapplication-profile"
-        : "/api/auth/profile",
+      reapplication ? "/api/auth/reapplication-profile" : "/api/auth/profile",
       {
         method: "PATCH",
         headers: {
@@ -939,13 +953,15 @@ export function ProfilePageContent({
 
   return (
     <ProfileApprovalGuard
-      user={
-        reapplication ? { ...user, approvalStatus: "APPROVED" } : user
-      }
+      user={reapplication ? { ...user, approvalStatus: "APPROVED" } : user}
     >
-      <main className="min-h-screen bg-[radial-gradient(circle_at_18%_12%,color-mix(in_srgb,var(--emerald)_13%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--gold-soft)_22%,transparent),transparent_30%),url('/wallpaper-marble.webp')] bg-cover bg-center text-black-jewel md:bg-fixed">
+      <main
+        className={`min-h-screen bg-[radial-gradient(circle_at_18%_12%,color-mix(in_srgb,var(--emerald)_13%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--gold-soft)_22%,transparent),transparent_30%),url('/wallpaper-marble.webp')] bg-cover bg-center text-black-jewel md:bg-fixed ${
+          reapplication ? "reapplication-page" : ""
+        }`}
+      >
         {reapplication ? (
-          <header className="border-b border-gold/25 bg-espresso px-5 py-4 text-white">
+          <header className="reapplication-hero border-b border-gold/25 bg-espresso px-5 py-5 text-white">
             <div className="mx-auto max-w-7xl">
               <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-gold-soft">
                 Nova tentativa
@@ -954,8 +970,28 @@ export function ProfilePageContent({
                 Corrija seu cadastro e entre novamente na fila
               </h1>
               <p className="mt-1 text-sm text-white/70">
-                Revise as informações e fotos. Ao reenviar, a equipe receberá um PIN que identifica seu retorno.
+                Revise as informações e fotos. Ao reenviar, a equipe receberá um
+                PIN que identifica seu retorno.
               </p>
+              {user.moderationReason ? (
+                <div
+                  role="status"
+                  className="reapplication-reason mt-4 flex max-w-full items-start gap-3 rounded-xl border border-ruby/40 bg-ruby/12 p-4"
+                >
+                  <AlertTriangle
+                    aria-hidden="true"
+                    className="mt-0.5 h-5 w-5 shrink-0 text-[#ffb0bb]"
+                  />
+                  <div>
+                    <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#ffb0bb]">
+                      Motivo informado pela moderação
+                    </p>
+                    <p className="mt-1 text-sm font-semibold leading-6 text-white">
+                      {user.moderationReason}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </header>
         ) : (
@@ -963,10 +999,35 @@ export function ProfilePageContent({
         )}
 
         <section className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8 lg:px-8">
+          {reapplication ? (
+            <aside
+              id="reapplication-photo-guidance"
+              aria-label="Regras para escolher fotos"
+              className="reapplication-photo-guidance mb-5 grid gap-3 rounded-xl border border-gold/30 bg-gold/8 p-4 sm:grid-cols-[auto_1fr] sm:items-start"
+            >
+              <ImagePlus
+                aria-hidden="true"
+                className="h-6 w-6 text-gold-soft"
+              />
+              <div>
+                <h2 className="text-sm font-extrabold text-white">
+                  Antes de escolher as fotos
+                </h2>
+                <p className="mt-1 text-sm font-medium leading-6 text-white/80">
+                  Cada imagem pode ter no máximo {MAX_PHOTO_SIZE_LABEL}; o
+                  conjunto enviado pode ter até {MAX_TOTAL_PHOTO_SIZE_LABEL}.
+                  Formatos aceitos: JPEG, PNG, WebP, AVIF, HEIC e HEIF.
+                </p>
+              </div>
+            </aside>
+          ) : null}
           <input
             ref={fileInputRef}
             type="file"
             accept={PHOTO_INPUT_ACCEPT}
+            aria-describedby={
+              reapplication ? "reapplication-photo-guidance" : undefined
+            }
             multiple
             disabled={isProcessingPhotos}
             className="sr-only"
@@ -976,6 +1037,9 @@ export function ProfilePageContent({
             ref={privateFileInputRef}
             type="file"
             accept={PHOTO_INPUT_ACCEPT}
+            aria-describedby={
+              reapplication ? "reapplication-photo-guidance" : undefined
+            }
             multiple
             disabled={isProcessingPhotos}
             className="sr-only"
@@ -984,8 +1048,10 @@ export function ProfilePageContent({
 
           {error || feedback ? (
             <div
+              role={error ? "alert" : "status"}
+              aria-live="polite"
               className={[
-                "mb-4 rounded-md border px-4 py-3 text-sm font-bold",
+                "reapplication-feedback mb-4 rounded-md border px-4 py-3 text-sm font-bold",
                 error
                   ? "border-ruby/35 bg-[color-mix(in_srgb,var(--ruby)_10%,white)] text-ruby"
                   : "border-emerald/35 bg-[color-mix(in_srgb,var(--emerald)_10%,white)] text-emerald",
@@ -995,9 +1061,9 @@ export function ProfilePageContent({
             </div>
           ) : null}
 
-          <div className="overflow-hidden rounded-lg border border-emerald/30 bg-[color-mix(in_srgb,var(--surface)_88%,white)] shadow-[0_28px_70px_rgba(0,55,44,0.16)] ring-1 ring-white/70 backdrop-blur-sm">
+          <div className="reapplication-editor-card overflow-hidden rounded-lg border border-emerald/30 bg-[color-mix(in_srgb,var(--surface)_88%,white)] shadow-[0_28px_70px_rgba(0,55,44,0.16)] ring-1 ring-white/70 backdrop-blur-sm">
             <div className="grid min-w-0 xl:grid-cols-[minmax(250px,310px)_minmax(0,1fr)_minmax(240px,290px)]">
-              <aside className="min-w-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_8%,white),color-mix(in_srgb,var(--surface)_94%,white)_42%,color-mix(in_srgb,var(--gold-soft)_12%,white))] p-4 sm:p-6 xl:p-7">
+              <aside className="reapplication-profile-pane min-w-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_8%,white),color-mix(in_srgb,var(--surface)_94%,white)_42%,color-mix(in_srgb,var(--gold-soft)_12%,white))] p-4 sm:p-6 xl:p-7">
                 <div className="relative mx-auto w-full max-w-72">
                   {isPremiereDaddy ? (
                     <div className={premiereStyles.premiereCard}>
@@ -1031,7 +1097,12 @@ export function ProfilePageContent({
                               className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white/80 px-4 text-center text-sm font-bold text-black-jewel"
                             >
                               <Camera className="h-10 w-10 text-[#b78945]" />
-                              Adicionar foto
+                              <span>Adicionar foto</span>
+                              {reapplication ? (
+                                <span className="text-xs font-semibold opacity-75">
+                                  Até {MAX_PHOTO_SIZE_LABEL}
+                                </span>
+                              ) : null}
                             </button>
                           )}
                           <span
@@ -1068,7 +1139,12 @@ export function ProfilePageContent({
                             className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white/74 px-4 text-center text-sm font-bold text-black-jewel"
                           >
                             <Camera className="h-10 w-10 text-emerald" />
-                            Adicionar foto
+                            <span>Adicionar foto</span>
+                            {reapplication ? (
+                              <span className="text-xs font-semibold opacity-75">
+                                Até {MAX_PHOTO_SIZE_LABEL}
+                              </span>
+                            ) : null}
                           </button>
                         )}
                       </div>
@@ -1084,10 +1160,6 @@ export function ProfilePageContent({
                     <p className="mt-1 text-sm font-semibold leading-5 text-black-jewel/72 wrap-anywhere">
                       {form.introductionPhrase}
                     </p>
-                    <span className="mt-3 inline-flex rounded-full border border-ruby/25 bg-[color-mix(in_srgb,var(--ruby)_8%,white)] px-3 py-1 text-xs font-extrabold text-ruby">
-                      Busca:{" "}
-                      {getRelationshipIntentLabel(form.relationshipIntent)}
-                    </span>
                   </div>
                   <div className="mx-auto h-px max-w-56 bg-[linear-gradient(90deg,transparent,var(--emerald),transparent)] opacity-45" />
                   <dl className="mx-auto grid max-w-64 grid-cols-[minmax(70px,0.8fr)_minmax(0,1fr)] gap-x-4 gap-y-2 text-left text-sm sm:text-base">
@@ -1105,7 +1177,7 @@ export function ProfilePageContent({
                 </div>
               </aside>
 
-              <section className="min-w-0 border-y border-emerald/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.48),rgba(255,255,255,0.16))] p-4 sm:p-6 xl:border-x xl:border-y-0 xl:p-7">
+              <section className="reapplication-form-pane min-w-0 border-y border-emerald/20 bg-[linear-gradient(180deg,rgba(255,255,255,0.48),rgba(255,255,255,0.16))] p-4 sm:p-6 xl:border-x xl:border-y-0 xl:p-7">
                 <div className="min-w-0 space-y-5">
                   <div className="space-y-3">
                     <h2 className="font-serif text-xl font-semibold text-black-jewel sm:text-2xl">
@@ -1261,7 +1333,9 @@ export function ProfilePageContent({
                       Gallery
                     </h2>
                     <p className="rounded-sm border border-gold/25 bg-gold/8 px-3 py-2 text-xs font-semibold leading-5 text-black-jewel/68">
-                      Fotos novas, públicas ou privadas, ficam visíveis somente para você e para a equipe de moderação até serem aprovadas.
+                      Fotos novas, públicas ou privadas, ficam visíveis somente
+                      para você e para a equipe de moderação até serem
+                      aprovadas.
                     </p>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                       {publicPhotos.slice(1, 6).map((photo, index) => (
@@ -1276,10 +1350,14 @@ export function ProfilePageContent({
                       {publicPhotos.length < MAX_PUBLIC_PHOTOS ? (
                         <button
                           type="button"
+                          aria-label={`Adicionar fotos públicas. Máximo de ${MAX_PHOTO_SIZE_LABEL} por imagem.`}
                           onClick={() => fileInputRef.current?.click()}
-                          className="flex aspect-[1.18/1] min-h-24 items-center justify-center rounded-sm border-2 border-dashed border-emerald/45 bg-[color-mix(in_srgb,var(--emerald)_5%,white)] text-emerald transition hover:bg-[color-mix(in_srgb,var(--emerald)_11%,white)]"
+                          className="flex aspect-[1.18/1] min-h-24 flex-col items-center justify-center gap-2 rounded-sm border-2 border-dashed border-emerald/45 bg-[color-mix(in_srgb,var(--emerald)_5%,white)] px-2 text-center text-emerald transition hover:bg-[color-mix(in_srgb,var(--emerald)_11%,white)]"
                         >
                           <ImagePlus className="h-7 w-7" />
+                          <span className="text-xs font-extrabold">
+                            Adicionar · até {MAX_PHOTO_SIZE_LABEL}
+                          </span>
                         </button>
                       ) : null}
                     </div>
@@ -1303,7 +1381,7 @@ export function ProfilePageContent({
                 </div>
               </section>
 
-              <aside className="min-w-0 bg-[radial-gradient(circle_at_12%_0%,rgba(255,255,255,0.14),transparent_28%),linear-gradient(145deg,#05251f,#083e34_50%,#111512)] p-4 text-white sm:p-6">
+              <aside className="reapplication-actions-pane min-w-0 bg-[radial-gradient(circle_at_12%_0%,rgba(255,255,255,0.14),transparent_28%),linear-gradient(145deg,#05251f,#083e34_50%,#111512)] p-4 text-white sm:p-6">
                 <div className="flex h-full flex-col justify-between gap-7">
                   <div className="space-y-4">
                     {/* <Button className="h-auto min-h-12 w-full rounded-full border border-white/20 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_78%,white),var(--emerald))] px-4 py-2 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(0,108,88,0.34)] hover:bg-emerald/85 sm:text-base">
@@ -1346,9 +1424,7 @@ export function ProfilePageContent({
                         <Button
                           type="button"
                           onClick={
-                            isEditing
-                              ? cancelEditing
-                              : () => setIsEditing(true)
+                            isEditing ? cancelEditing : () => setIsEditing(true)
                           }
                           className="h-auto min-h-12 w-full rounded-full border border-white/55 bg-white/5 px-4 py-2 text-sm font-extrabold text-white hover:bg-white hover:text-emerald sm:text-base"
                         >
@@ -1361,27 +1437,74 @@ export function ProfilePageContent({
                         </Button>
                       </>
                     ) : null}
-                    {isEditing && (
-                      <Button
-                        type="button"
-                        onClick={saveProfile}
-                        disabled={!isEditing || isProcessingPhotos || isSaving}
-                        className="h-auto min-h-12 w-full rounded-full border border-emerald/60 bg-[color-mix(in_srgb,var(--emerald)_28%,transparent)] px-4 py-2 text-sm font-extrabold text-white hover:bg-white hover:text-emerald disabled:cursor-not-allowed disabled:opacity-45 sm:text-base"
-                      >
-                        {isProcessingPhotos || isSaving ? (
-                          <Loader2 className="h-4 w-4" />
-                        ) : (
-                          <Save className="h-4 w-4" />
-                        )}
-                        {isProcessingPhotos
-                          ? "Preparando fotos..."
-                          : isSaving
-                            ? "Salvando..."
-                            : reapplication
-                              ? "Corrigir e reenviar"
+                    {isEditing &&
+                      (reapplication ? (
+                        <div className="rounded-2xl border border-gold-soft/55 bg-[linear-gradient(145deg,rgba(255,255,255,0.16),rgba(234,210,154,0.08))] p-3 shadow-[0_18px_42px_rgba(0,0,0,0.28)] ring-1 ring-white/10 sm:p-4">
+                          <div className="px-1 pb-3">
+                            <p className="text-sm font-extrabold text-white sm:text-base">
+                              Terminou as correções?
+                            </p>
+                            <p
+                              id="reapplication-submit-hint"
+                              className="mt-1 text-xs leading-5 text-white/75"
+                            >
+                              Envie o cadastro atualizado para uma nova análise.
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={saveProfile}
+                            disabled={
+                              !isEditing || isProcessingPhotos || isSaving
+                            }
+                            aria-describedby="reapplication-submit-hint"
+                            aria-busy={isProcessingPhotos || isSaving}
+                            className="group h-auto min-h-16 w-full whitespace-normal rounded-xl border border-[#ffe2a7] bg-[linear-gradient(135deg,#f4d28f,#c9922f)] px-4 py-3 text-left text-espresso shadow-[0_12px_30px_rgba(185,138,56,0.4)] ring-2 ring-gold-soft/20 hover:-translate-y-0.5 hover:bg-[linear-gradient(135deg,#ffe4aa,#d9a33d)] hover:shadow-[0_16px_36px_rgba(185,138,56,0.5)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
+                          >
+                            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-espresso text-gold-soft shadow-sm">
+                              {isProcessingPhotos || isSaving ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                              ) : (
+                                <Send className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+                              )}
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-sm text-black font-black leading-tight sm:text-base">
+                                {isProcessingPhotos
+                                  ? "Preparando fotos..."
+                                  : isSaving
+                                    ? "Enviando cadastro..."
+                                    : "Corrigir e reenviar cadastro"}
+                              </span>
+                              {!isProcessingPhotos && !isSaving ? (
+                                <span className="mt-1 block text-[11px] font-light text-black leading-4">
+                                  Clique aqui para finalizar
+                                </span>
+                              ) : null}
+                            </span>
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          type="button"
+                          onClick={saveProfile}
+                          disabled={
+                            !isEditing || isProcessingPhotos || isSaving
+                          }
+                          className="h-auto min-h-12 w-full rounded-full border border-emerald/60 bg-[color-mix(in_srgb,var(--emerald)_28%,transparent)] px-4 py-2 text-sm font-extrabold text-white hover:bg-white hover:text-emerald disabled:cursor-not-allowed disabled:opacity-45 sm:text-base"
+                        >
+                          {isProcessingPhotos || isSaving ? (
+                            <Loader2 className="h-4 w-4" />
+                          ) : (
+                            <Save className="h-4 w-4" />
+                          )}
+                          {isProcessingPhotos
+                            ? "Preparando fotos..."
+                            : isSaving
+                              ? "Salvando..."
                               : "Salvar"}
-                      </Button>
-                    )}
+                        </Button>
+                      ))}
                   </div>
 
                   <div className="space-y-4 border-t border-white/20 pt-6">
@@ -1459,7 +1582,7 @@ function PrivatePhotosSection({
     <section className="space-y-3 rounded-md border border-gold/30 bg-[color-mix(in_srgb,var(--gold-soft)_12%,white)] p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="flex items-center gap-2 font-serif text-xl font-semibold text-black-jewel sm:text-2xl">
+          <h2 className="flex items-center gap-2 font-serif text-xl font-semibold text-gold! sm:text-2xl">
             <Lock className="h-5 w-5 text-gold" />
             Fotos privadas
           </h2>
@@ -1471,10 +1594,16 @@ function PrivatePhotosSection({
           <Button
             type="button"
             onClick={onAddPhotos}
-            className="h-10 rounded-full bg-gold px-4 font-extrabold text-white hover:bg-gold/85"
+            aria-label={`Adicionar fotos privadas. Máximo de ${MAX_PHOTO_SIZE_LABEL} por imagem.`}
+            className="h-auto min-h-10 rounded-full bg-gold px-4 py-2 font-extrabold text-white hover:bg-gold/85"
           >
             <ImagePlus className="h-4 w-4" />
-            Adicionar
+            <span className="grid text-left leading-tight">
+              <span>Adicionar</span>
+              <span className="text-[10px] font-bold opacity-80">
+                Até {MAX_PHOTO_SIZE_LABEL}
+              </span>
+            </span>
           </Button>
         ) : null}
       </div>
@@ -1496,10 +1625,16 @@ function PrivatePhotosSection({
           type="button"
           onClick={onAddPhotos}
           disabled={!isEditing}
-          className="flex min-h-24 w-full items-center justify-center gap-2 rounded-sm border-2 border-dashed border-gold/40 bg-white/55 text-sm font-bold text-gold disabled:cursor-default"
+          aria-label={`Adicionar fotos privadas. Máximo de ${MAX_PHOTO_SIZE_LABEL} por imagem.`}
+          className="flex min-h-24 w-full flex-col items-center justify-center gap-2 rounded-sm border-2 border-dashed border-gold/40 bg-white/55 px-3 text-center text-sm font-bold text-gold disabled:cursor-default"
         >
           <Lock className="h-5 w-5" />
-          Nenhuma foto privada
+          <span>Nenhuma foto privada</span>
+          {isEditing ? (
+            <span className="text-xs font-semibold opacity-75">
+              Adicionar · até {MAX_PHOTO_SIZE_LABEL}
+            </span>
+          ) : null}
         </button>
       )}
 
@@ -1575,7 +1710,8 @@ function PrivatePhotosSection({
         </div>
       ) : !canManageViewers && viewerUsernames.length > 0 ? (
         <p className="border-t border-gold/20 pt-3 text-xs font-semibold text-black-jewel/60">
-          As permissões atuais das fotos privadas serão preservadas nesta correção.
+          As permissões atuais das fotos privadas serão preservadas nesta
+          correção.
         </p>
       ) : null}
     </section>
@@ -1775,11 +1911,11 @@ function ContactSection({
             </Label>
             <p className="mt-1 text-xs font-medium text-black-jewel/62">
               Escolha separadamente quais contatos podem aparecer aos Sugar
-              Daddies autorizados. Estes dados não alteram o celular privado
-              da conta; se preferir, deixe todos ocultos.
+              Daddies autorizados. Estes dados não alteram o celular privado da
+              conta; se preferir, deixe todos ocultos.
             </p>
             <details className="group relative mt-2">
-              <summary className="flex h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-sm border border-emerald/30 bg-white px-3 text-sm font-semibold text-black-jewel shadow-[0_8px_18px_rgba(0,55,44,0.06)] [&::-webkit-details-marker]:hidden">
+              <summary className="flex h-11 cursor-pointer w-fit list-none items-center justify-between gap-3 rounded-lg border border-emerald/30 bg-white px-3 text-sm font-semibold text-black-jewel shadow-[0_8px_18px_rgba(0,55,44,0.06)] [&::-webkit-details-marker]:hidden">
                 <span className="min-w-0 truncate">
                   {visibleContactChannels.length > 0
                     ? contactChannelOptions
@@ -2287,6 +2423,25 @@ function fileToDataUrl(file: File) {
     reader.onerror = () => reject(new Error("Não foi possível ler a foto."));
     reader.readAsDataURL(file);
   });
+}
+
+function getDataUrlByteLength(dataUrl: string) {
+  const separatorIndex = dataUrl.indexOf(",");
+  if (separatorIndex < 0) return 0;
+
+  const metadata = dataUrl.slice(0, separatorIndex);
+  const payload = dataUrl.slice(separatorIndex + 1);
+
+  if (!metadata.includes(";base64")) {
+    try {
+      return new TextEncoder().encode(decodeURIComponent(payload)).byteLength;
+    } catch {
+      return new TextEncoder().encode(payload).byteLength;
+    }
+  }
+
+  const padding = payload.endsWith("==") ? 2 : payload.endsWith("=") ? 1 : 0;
+  return Math.max(0, Math.floor((payload.length * 3) / 4) - padding);
 }
 
 function sortPhotos(first: ProfilePhoto, second: ProfilePhoto) {

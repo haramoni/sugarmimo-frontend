@@ -435,8 +435,7 @@ html {
   color: #090806 !important;
 }
 
-.sm-age-confirmation
-  [data-slot="checkbox"][data-state="checked"] {
+.sm-age-confirmation [data-slot="checkbox"][data-state="checked"] {
   border-color: #e1bd8a !important;
   background: #e1bd8a !important;
 }
@@ -1924,7 +1923,12 @@ body:has([data-slot="dialog-content"].registration-dialog)
   height: 2.8rem;
   border: 1px solid rgba(255, 255, 255, 0.14) !important;
   border-radius: 9999px !important;
-  background: linear-gradient(135deg, #f2d4a4 0%, #e1bd8a 54%, #b88648 120%) !important;
+  background: linear-gradient(
+    135deg,
+    #f2d4a4 0%,
+    #e1bd8a 54%,
+    #b88648 120%
+  ) !important;
   color: #0b0a09 !important;
   font-size: 0.72rem;
   font-weight: 900;
@@ -1964,7 +1968,8 @@ body:has([data-slot="dialog-content"].registration-dialog)
   box-shadow: 0 0 0 8px rgba(225, 189, 138, 0.035);
 }
 
-.registration-privacy-dialog [data-slot="dialog-title"].registration-privacy-title {
+.registration-privacy-dialog
+  [data-slot="dialog-title"].registration-privacy-title {
   color: #f7eee2 !important;
   font-size: clamp(1.45rem, 5vw, 1.8rem);
   font-weight: 700;
@@ -2023,7 +2028,8 @@ body:has([data-slot="dialog-content"].registration-dialog)
   background: rgba(255, 255, 255, 0.012);
 }
 
-.registration-review-dialog [data-slot="dialog-title"].registration-review-title {
+.registration-review-dialog
+  [data-slot="dialog-title"].registration-review-title {
   color: #f7eee2 !important;
   font-size: clamp(1.2rem, 4vw, 1.5rem);
   font-weight: 700;
@@ -2202,8 +2208,7 @@ body:has([data-slot="dialog-content"].registration-dialog)
   color: #17130e !important;
 }
 
-.registration-review-confirm
-  [data-slot="checkbox"][data-state="checked"] {
+.registration-review-confirm [data-slot="checkbox"][data-state="checked"] {
   border-color: #e1bd8a !important;
   background: #e1bd8a !important;
 }
@@ -2378,7 +2383,11 @@ body:has([data-slot="dialog-content"].registration-dialog)
   justify-content: center;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 48%, rgba(62, 43, 23, 0.2), transparent 31rem),
+    radial-gradient(
+      circle at 50% 48%,
+      rgba(62, 43, 23, 0.2),
+      transparent 31rem
+    ),
     linear-gradient(145deg, #090806 0%, #050505 52%, #0a0806 100%);
   opacity: 1;
   transition:
@@ -2687,5 +2696,182 @@ html.sm-intro-active body {
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* Profile reapplication: accessible SugarMimo dark treatment. */
+.registration-theme .reapplication-page {
+  background:
+    radial-gradient(
+      circle at 10% 8%,
+      rgba(225, 189, 138, 0.13),
+      transparent 28rem
+    ),
+    radial-gradient(
+      circle at 92% 18%,
+      rgba(0, 108, 88, 0.15),
+      transparent 30rem
+    ),
+    linear-gradient(145deg, #090806 0%, #12100d 52%, #080706 100%) !important;
+  color: #f4ecdf !important;
+}
+
+.registration-theme .reapplication-hero {
+  border-color: rgba(225, 189, 138, 0.25) !important;
+  background:
+    radial-gradient(
+      circle at 88% 20%,
+      rgba(0, 108, 88, 0.18),
+      transparent 23rem
+    ),
+    linear-gradient(135deg, rgba(8, 8, 7, 0.98), rgba(24, 20, 15, 0.98)) !important;
+  box-shadow: 0 14px 42px rgba(0, 0, 0, 0.26);
+}
+
+.registration-theme .reapplication-hero > div > p:last-of-type {
+  color: #c8bfb2 !important;
+}
+
+.registration-theme .reapplication-reason {
+  border-color: rgba(255, 150, 165, 0.48) !important;
+  background: rgba(117, 22, 48, 0.28) !important;
+}
+
+.registration-theme .reapplication-photo-guidance {
+  border-color: rgba(225, 189, 138, 0.34) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(225, 189, 138, 0.1),
+    rgba(9, 8, 6, 0.72)
+  ) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.registration-theme .reapplication-editor-card {
+  border-color: rgba(225, 189, 138, 0.26) !important;
+  background: rgba(15, 13, 11, 0.97) !important;
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+.registration-theme .reapplication-profile-pane {
+  background:
+    radial-gradient(
+      circle at 50% 8%,
+      rgba(225, 189, 138, 0.1),
+      transparent 22rem
+    ),
+    linear-gradient(180deg, #191610, #11100d) !important;
+}
+
+.registration-theme .reapplication-form-pane {
+  border-color: rgba(225, 189, 138, 0.15) !important;
+  background: linear-gradient(180deg, #15130f, #100f0d) !important;
+}
+
+.registration-theme .reapplication-actions-pane {
+  border-color: rgba(225, 189, 138, 0.15) !important;
+  background:
+    radial-gradient(
+      circle at 10% 0%,
+      rgba(225, 189, 138, 0.11),
+      transparent 18rem
+    ),
+    linear-gradient(155deg, #071b17, #0b2d26 52%, #11100d) !important;
+}
+
+.registration-theme .reapplication-page :is(h1, h2, h3, label, dt) {
+  color: #f4ecdf !important;
+}
+
+.registration-theme .reapplication-page [class*="text-black-jewel/"] {
+  color: #c8bfb2 !important;
+}
+
+.registration-theme
+  .reapplication-page
+  :is(
+    input:not([type="checkbox"]):not([type="radio"]),
+    textarea,
+    [data-slot="select-trigger"]
+  ) {
+  min-height: 2.85rem;
+  border: 1px solid rgba(225, 189, 138, 0.3) !important;
+  border-radius: 0.75rem !important;
+  background: rgba(5, 5, 4, 0.72) !important;
+  color: #f6eee2 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025) !important;
+}
+
+.registration-theme .reapplication-page :is(input, textarea)::placeholder {
+  color: #aaa196 !important;
+  opacity: 1;
+}
+
+.registration-theme
+  .reapplication-page
+  :is(
+    input:not([type="checkbox"]):not([type="radio"]),
+    textarea,
+    [data-slot="select-trigger"]
+  ):focus-visible {
+  border-color: #e1bd8a !important;
+  outline: 2px solid rgba(225, 189, 138, 0.35) !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(225, 189, 138, 0.09) !important;
+}
+
+.registration-theme .reapplication-page details > summary,
+.registration-theme .reapplication-page details > div,
+.registration-theme .reapplication-page [role="listbox"] {
+  border-color: rgba(225, 189, 138, 0.28) !important;
+  background: #11100e !important;
+  color: #f4ecdf !important;
+}
+
+.registration-theme .reapplication-page button:focus-visible {
+  outline: 2px solid #f2d4a4 !important;
+  outline-offset: 3px;
+}
+
+.registration-theme .reapplication-page button[class*="border-dashed"] {
+  border-color: rgba(225, 189, 138, 0.52) !important;
+  background: rgba(225, 189, 138, 0.055) !important;
+  color: #e8c896 !important;
+}
+
+.registration-theme .reapplication-feedback[role="alert"] {
+  border-color: rgba(255, 150, 165, 0.45) !important;
+  background: rgba(117, 22, 48, 0.28) !important;
+  color: #ffbdc6 !important;
+}
+
+.registration-theme .reapplication-feedback[role="status"] {
+  border-color: rgba(104, 224, 193, 0.36) !important;
+  background: rgba(0, 108, 88, 0.2) !important;
+  color: #9ce8d5 !important;
+}
+
+body:has(.reapplication-page) [data-slot="select-content"] {
+  border: 1px solid rgba(225, 189, 138, 0.3) !important;
+  border-radius: 0.8rem !important;
+  background: #11100e !important;
+  color: #f4ecdf !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.48) !important;
+}
+
+body:has(.reapplication-page) [data-slot="select-item"]:focus {
+  background: rgba(225, 189, 138, 0.14) !important;
+  color: #fff8ed !important;
+}
+
+@media (max-width: 767px) {
+  .registration-theme .reapplication-hero {
+    padding-inline: 1rem;
+  }
+
+  .registration-theme .reapplication-editor-card {
+    border-radius: 1rem;
   }
 }

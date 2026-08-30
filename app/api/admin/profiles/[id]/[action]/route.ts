@@ -17,12 +17,14 @@ export async function PATCH(
       "standard-priority",
       "ban",
       "activate",
+      "watch",
+      "unwatch",
     ].includes(action)
   ) {
     return NextResponse.json({ message: "Ação inválida." }, { status: 400 });
   }
 
-  const body = ["ban", "reject"].includes(action)
+  const body = ["ban", "reject", "watch"].includes(action)
     ? await request.text()
     : undefined;
 

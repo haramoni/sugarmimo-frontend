@@ -11,6 +11,7 @@ export async function GET(request: Request) {
     "role",
     "approvalStatus",
     "accountStatus",
+    "watchStatus",
   ]) {
     const value = searchParams.get(key);
     if (value) backendParams.set(key, value);
