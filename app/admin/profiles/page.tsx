@@ -452,6 +452,56 @@ export default function AdminProfilesPage() {
     }
   }
 
+  async function rescanWatch(profile: AdminProfile) {
+    const confirmation = await Swal.fire({
+      title: "Reanalisar este IP?",
+      text: "Os alertas anteriores deste Watch serão substituídos pelos cadastros ou acessos recentes no mesmo IP. Alertas removidos poderão ser recriados por esta ação.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sim, reanalisar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#7c3aed",
+    });
+    if (!confirmation.isConfirmed) return;
+
+    setBusyId(profile.id);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/admin/profiles/${encodeURIComponent(profile.id)}/watch`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: profile.profileWatch?.reason }),
+        },
+      );
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(
+          result?.message ?? "Não foi possível reanalisar o Watch.",
+        );
+      }
+
+      await loadProfiles();
+      await Swal.fire({
+        title: "Reanálise concluída",
+        text:
+          result?.existingMatches > 0
+            ? `${result.existingMatches} perfil(is) com o mesmo IP foram sinalizados.`
+            : "Nenhum outro perfil foi encontrado usando este IP.",
+        icon: "success",
+      });
+    } catch (actionError) {
+      setError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Não foi possível reanalisar o Watch.",
+      );
+    } finally {
+      setBusyId("");
+    }
+  }
+
   async function removeAllWatchAlerts() {
     const confirmation = await Swal.fire({
       title: "Remover todos os alertas Watch?",
@@ -1026,6 +1076,20 @@ export default function AdminProfilesPage() {
                       <p className="mt-2 text-xs font-bold text-violet-800/75">
                         IP monitorado: {profile.profileWatch.ipAddress}
                       </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={busyId === profile.id}
+                        onClick={() => void rescanWatch(profile)}
+                        className="mt-3 h-8 rounded-lg border-violet-400 bg-white text-xs font-bold text-violet-900 hover:bg-violet-100"
+                      >
+                        {busyId === profile.id ? (
+                          <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        )}
+                        Reanalisar IP
+                      </Button>
                     </div>
                   ) : null}
 
