@@ -453,6 +453,48 @@ export default function AdminProfilesPage() {
     }
   }
 
+  async function reviewAllWatchAlerts() {
+    const confirmation = await Swal.fire({
+      title: "Remover todos os alertas Watch?",
+      text: `${stats.watchAlerts} alerta(s) serão retirados do painel e mantidos no histórico como revisados.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sim, remover todos",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "var(--ruby)",
+    });
+    if (!confirmation.isConfirmed) return;
+
+    setBusyId("all-watch-alerts");
+    setError("");
+    try {
+      const response = await fetch("/api/admin/watch-alerts/review-all", {
+        method: "PATCH",
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(
+          result?.message ?? "Não foi possível remover os alertas Watch.",
+        );
+      }
+
+      await loadProfiles();
+      await Swal.fire({
+        title: "Alertas removidos",
+        text: `${result?.reviewedAlerts ?? 0} alerta(s) foram marcados como revisados.`,
+        icon: "success",
+      });
+    } catch (actionError) {
+      setError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Não foi possível remover os alertas Watch.",
+      );
+    } finally {
+      setBusyId("");
+    }
+  }
+
   async function approveProfile(profile: AdminProfile) {
     setBusyId(profile.id);
     setError("");
@@ -674,6 +716,22 @@ export default function AdminProfilesPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 self-start xl:self-auto">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void reviewAllWatchAlerts()}
+              disabled={
+                stats.watchAlerts === 0 || busyId === "all-watch-alerts"
+              }
+              className="h-11 rounded-lg border-amber-400 bg-amber-50 font-bold text-amber-900 hover:bg-amber-100 disabled:border-black/10 disabled:bg-white disabled:text-black/35"
+            >
+              {busyId === "all-watch-alerts" ? (
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+              ) : (
+                <EyeOff className="h-4 w-4" />
+              )}
+              Remover alertas Watch
+            </Button>
             <Button
               type="button"
               onClick={() => void exportCsv()}
