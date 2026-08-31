@@ -1089,6 +1089,44 @@ html {
   line-height: 1.45;
 }
 
+.registration-role-guidance {
+  border: 1px solid rgba(225, 189, 138, 0.3);
+  border-radius: 0.8rem;
+  background: rgba(225, 189, 138, 0.07);
+  padding: 0.85rem 0.95rem;
+}
+
+.registration-role-guidance strong {
+  display: block;
+  color: #e1bd8a;
+  font-size: 0.78rem;
+}
+
+.registration-role-guidance p {
+  margin-top: 0.25rem;
+  color: #b8afa2;
+  font-size: 0.7rem;
+  line-height: 1.55;
+}
+
+.registration-role-confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  border: 1px solid rgba(225, 189, 138, 0.24);
+  border-radius: 0.8rem;
+  background: rgba(5, 5, 4, 0.48);
+  padding: 0.8rem 0.9rem;
+}
+
+.registration-role-confirmation label {
+  cursor: pointer;
+  color: #d5ccbf;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
 .registration-control {
   position: relative;
   overflow: hidden;
@@ -1485,79 +1523,160 @@ html {
   box-shadow: 0 0 0 3px rgba(225, 189, 138, 0.08);
 }
 
-.registration-choice-content {
+.registration-choice-fieldset {
   display: grid;
-  gap: 1.3rem;
+  min-width: 0;
+  gap: 0.45rem;
 }
 
-.registration-profile-choice-grid {
+.registration-identity-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.registration-identity-option {
+  display: flex;
+  min-width: 0;
+  min-height: 7rem;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.65rem;
+  border: 1px solid rgba(225, 189, 138, 0.15);
+  border-radius: 1rem;
+  background: rgba(5, 5, 4, 0.42);
+  padding: 0.85rem 0.55rem;
+  color: #cfc5b7;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-align: center;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.registration-identity-option:hover,
+.registration-identity-option.is-selected {
+  transform: translateY(-2px);
+  border-color: rgba(225, 189, 138, 0.58);
+  background: rgba(225, 189, 138, 0.09);
+  color: #f4ecdf;
+}
+
+.registration-identity-option:focus-visible,
+.registration-profile-option:focus-visible {
+  outline: 2px solid #e1bd8a;
+  outline-offset: 2px;
+}
+
+.registration-identity-icon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: 1px solid rgba(225, 189, 138, 0.3);
+  border-radius: 9999px;
+  background: rgba(225, 189, 138, 0.05);
+  color: #e1bd8a;
+}
+
+.registration-identity-option.is-selected .registration-identity-icon {
+  border-color: #e1bd8a;
+  background: #e1bd8a;
+  color: #15110c;
+}
+
+.registration-profile-option-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.registration-profile-card {
-  position: relative;
-  min-height: 20rem;
-  overflow: hidden;
-  border: 1px solid rgba(225, 189, 138, 0.2);
-  border-radius: 1.25rem;
-  background-position: center;
-  background-size: cover;
-  padding: 1.5rem;
-  color: #fff;
-  text-align: left;
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
-  transition:
-    transform 350ms ease,
-    border-color 350ms ease,
-    box-shadow 350ms ease;
-}
-
-.registration-profile-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(225, 189, 138, 0.62);
-  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.4);
-}
-
-.registration-profile-card-icon {
-  display: grid;
-  width: 3rem;
-  height: 3rem;
-  margin-bottom: 9rem;
-  place-items: center;
-  border: 1px solid rgba(225, 189, 138, 0.4);
-  border-radius: 9999px;
-  background: rgba(0, 0, 0, 0.36);
-  color: #e1bd8a;
-  backdrop-filter: blur(8px);
-}
-
-.registration-profile-card-title {
-  display: block;
-  font-family: var(--font-playfair), Georgia, serif;
-  font-size: 2rem;
-  font-weight: 500;
-}
-
-.registration-profile-card-copy {
-  display: block;
+  gap: 0.65rem;
   margin-top: 0.35rem;
-  color: rgba(226, 222, 215, 0.8);
-  font-size: 0.8rem;
 }
 
-.registration-profile-card-arrow {
-  position: absolute;
-  right: 1.25rem;
-  bottom: 1.45rem;
-  width: 1.2rem;
+.registration-profile-option {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 0.7rem;
+  border: 1px solid rgba(225, 189, 138, 0.14);
+  border-radius: 0.9rem;
+  background: rgba(5, 5, 4, 0.42);
+  padding: 0.8rem;
+  color: #d4cabe;
+  text-align: left;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.registration-profile-option:hover,
+.registration-profile-option.is-selected {
+  transform: translateY(-1px);
+  border-color: rgba(225, 189, 138, 0.52);
+  background: rgba(225, 189, 138, 0.08);
+}
+
+.registration-profile-option-icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 9999px;
+  background: rgba(225, 189, 138, 0.1);
   color: #e1bd8a;
-  transition: transform 200ms ease;
 }
 
-.registration-profile-card:hover .registration-profile-card-arrow {
-  transform: translateX(4px);
+.registration-profile-option.is-selected .registration-profile-option-icon {
+  background: #e1bd8a;
+  color: #15110c;
+}
+
+.registration-profile-option strong,
+.registration-profile-option small {
+  display: block;
+}
+
+.registration-profile-option strong {
+  color: #f1e7d8;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.registration-profile-option small {
+  margin-top: 0.2rem;
+  color: #827b72;
+  font-size: 0.62rem;
+  line-height: 1.45;
+}
+
+.registration-next-step-hint {
+  border: 1px dashed rgba(225, 189, 138, 0.18);
+  border-radius: 0.8rem;
+  padding: 0.85rem;
+  color: #7f786f;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.registration-reveal-section {
+  animation: registration-reveal 220ms ease-out both;
+}
+
+@keyframes registration-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .registration-login-note {
@@ -2340,16 +2459,8 @@ body:has([data-slot="dialog-content"].registration-dialog)
     padding-top: 1.25rem;
   }
 
-  .registration-profile-choice-grid {
+  .registration-profile-option-grid {
     grid-template-columns: 1fr;
-  }
-
-  .registration-profile-card {
-    min-height: 17rem;
-  }
-
-  .registration-profile-card-icon {
-    margin-bottom: 6.5rem;
   }
 
   .registration-form-actions {
@@ -2364,6 +2475,18 @@ body:has([data-slot="dialog-content"].registration-dialog)
 }
 
 @media (max-width: 520px) {
+  .registration-identity-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .registration-identity-option {
+    min-height: 4.25rem;
+    justify-content: flex-start;
+    flex-direction: row;
+    padding-inline: 1rem;
+    text-align: left;
+  }
+
   .registration-photo-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

@@ -35,6 +35,7 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 import { PhotoZoom } from "@/app/components/ui/PhotoZoom";
+import { profileIdentityLabel } from "@/app/lib/profileIdentity";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -105,6 +106,8 @@ type Stats = {
   total: number;
   babies: number;
   daddies: number;
+  mommies: number;
+  providersLgbtqia: number;
   restricted: number;
   watched: number;
   watchAlerts: number;
@@ -120,6 +123,8 @@ export default function AdminProfilesPage() {
     total: 0,
     babies: 0,
     daddies: 0,
+    mommies: 0,
+    providersLgbtqia: 0,
     restricted: 0,
     watched: 0,
     watchAlerts: 0,
@@ -180,6 +185,8 @@ export default function AdminProfilesPage() {
           total: 0,
           babies: 0,
           daddies: 0,
+          mommies: 0,
+          providersLgbtqia: 0,
           restricted: 0,
           watched: 0,
           watchAlerts: 0,
@@ -810,7 +817,7 @@ export default function AdminProfilesPage() {
         </div>
 
         <section
-          className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6"
+          className="grid gap-3 sm:grid-cols-2 xl:grid-cols-8"
           aria-label="Resumo dos perfis"
         >
           <StatCard
@@ -830,6 +837,18 @@ export default function AdminProfilesPage() {
             value={stats.daddies}
             icon={Crown}
             tone="emerald"
+          />
+          <StatCard
+            label="Sugar Mommies"
+            value={stats.mommies}
+            icon={Crown}
+            tone="violet"
+          />
+          <StatCard
+            label="Daddy / Mommy LGBTQIA+"
+            value={stats.providersLgbtqia}
+            icon={Crown}
+            tone="amber"
           />
           <StatCard
             label="Acesso restrito"
@@ -875,6 +894,10 @@ export default function AdminProfilesPage() {
             <option value="">Todos os tipos</option>
             <option value="SUGAR_BABY">Sugar Baby</option>
             <option value="SUGAR_DADDY">Sugar Daddy</option>
+            <option value="SUGAR_MOMMY">Sugar Mommy</option>
+            <option value="SUGAR_PROVIDER_LGBTQIA">
+              Sugar Daddy / Mommy LGBTQIA+
+            </option>
           </FilterSelect>
           <FilterSelect
             label="Status de aprovação"
@@ -1021,7 +1044,10 @@ export default function AdminProfilesPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 rounded-lg bg-[#faf7f1] p-3 text-xs sm:grid-cols-4">
-                    <Info label="Perfil" value={roleLabel(profile.role)} />
+                    <Info
+                      label="Perfil"
+                      value={profileIdentityLabel(profile.role, profile.gender)}
+                    />
                     <Info label="Gênero" value={genderLabel(profile.gender)} />
                     <Info
                       label="Idade"
@@ -1521,14 +1547,6 @@ function Info({ label, value }: { label: string; value: string }) {
   );
 }
 
-function roleLabel(role: string | null) {
-  return role === "SUGAR_BABY"
-    ? "Sugar Baby"
-    : role === "SUGAR_DADDY"
-      ? "Sugar Daddy"
-      : "—";
-}
-
 function genderLabel(value: string | null) {
   const labels: Record<string, string> = {
     "sugar-daddy": "Homem",
@@ -1537,6 +1555,8 @@ function genderLabel(value: string | null) {
     "sugar-baby-trans-woman": "Mulher trans",
     "sugar-baby-man": "Homem",
     "sugar-baby-trans-man": "Homem trans",
+    "sugar-baby-lgbtqia": "LGBTQIA+",
+    "sugar-provider-lgbtqia": "LGBTQIA+",
   };
 
   if (!value?.trim()) return "Não informado";

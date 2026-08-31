@@ -418,7 +418,7 @@ export default function ProfilePhotosPage() {
 
           <div className="registration-photo-grid">
             {photos.map((photo, index) => (
-                <div key={photo.previewUrl} className="registration-photo-item">
+              <div key={photo.previewUrl} className="registration-photo-item">
                 <div className="registration-photo-preview">
                   {/* Blob previews come from local files and should not use Next image optimization. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -467,10 +467,7 @@ export default function ProfilePhotosPage() {
 
             {canAddPhotos &&
               Array.from({ length: remainingSlots }, (_, index) => (
-                <label
-                  key={index}
-                  className="registration-photo-upload"
-                >
+                <label key={index} className="registration-photo-upload">
                   <ImagePlus className="h-7 w-7 text-gold" />
                   <span className="px-2 text-xs font-bold text-[#d8cfc2]">
                     Adicionar foto
@@ -504,7 +501,7 @@ export default function ProfilePhotosPage() {
           </div>
 
           {error && (
-              <p className="registration-status-message registration-status-error">
+            <p className="registration-status-message registration-status-error">
               {error}
             </p>
           )}
@@ -589,9 +586,7 @@ export default function ProfilePhotosPage() {
                   className="registration-review-section"
                   aria-labelledby="registration-summary-title"
                 >
-                  <h3 id="registration-summary-title">
-                    Resumo do cadastro
-                  </h3>
+                  <h3 id="registration-summary-title">Resumo do cadastro</h3>
                   <dl className="registration-review-summary-grid">
                     <ReceiptItem
                       label="Usuário"
@@ -673,9 +668,7 @@ export default function ProfilePhotosPage() {
               </label>
 
               {receiptError ? (
-                <p className="registration-review-error">
-                  {receiptError}
-                </p>
+                <p className="registration-review-error">{receiptError}</p>
               ) : null}
             </div>
           ) : null}
@@ -792,6 +785,8 @@ function getProfileTypeLabel(profileType: string) {
     "sugar-baby-trans-woman": "Sugar Baby (Mulher trans)",
     "sugar-baby-man": "Sugar Baby (Homem)",
     "sugar-baby-trans-man": "Sugar Baby (Homem trans)",
+    "sugar-baby-lgbtqia": "Sugar Baby (LGBTQIA+)",
+    "sugar-provider-lgbtqia": "Sugar Daddy / Mommy (LGBTQIA+)",
   };
 
   return labels[profileType] ?? profileType;
@@ -839,17 +834,10 @@ function PolicyReceiptRow({
   return (
     <div className="registration-policy-row">
       <CheckCircle2 className="h-4 w-4 shrink-0" />
-      <Link
-        href={href}
-        target="_blank"
-        rel="noreferrer"
-        className="min-w-0"
-      >
+      <Link href={href} target="_blank" rel="noreferrer" className="min-w-0">
         {label}
       </Link>
-      <span className="registration-policy-version">
-        Versão {version}
-      </span>
+      <span className="registration-policy-version">Versão {version}</span>
     </div>
   );
 }

@@ -181,6 +181,43 @@ const canonicalDescriptions: Record<string, string> = {
   secretaria: "Secretária",
 };
 
+const inclusiveDescriptions: Record<string, string> = {
+  magra: "Magro(a)",
+  musculosa: "Musculoso(a)",
+  "grande e amorosa": "Grande e amoroso(a)",
+  "branca/caucasiano": "Pessoa branca/caucasiana",
+  parda: "Pessoa parda",
+  "negra/afrodescendente": "Pessoa negra/afrodescendente",
+  "latina/hispanico": "Pessoa latina/hispânica",
+  "asiatica japonesa": "Pessoa asiática japonesa",
+  "asiatica chinesa": "Pessoa asiática chinesa",
+  "asiatica coreana": "Pessoa asiática coreana",
+  "asiatica outras": "Pessoa asiática — outras",
+  indiana: "Pessoa indiana",
+  solteira: "Solteiro(a)",
+  separada: "Separado(a)",
+  divorciada: "Divorciado(a)",
+  viuva: "Viúvo(a)",
+  "casada, mas procurando": "Casado(a), mas procurando",
+  "administradora de empresas": "Administração de Empresas",
+  advogada: "Advocacia",
+  arquiteta: "Arquitetura",
+  autonoma: "Profissional autônomo(a)",
+  cabeleireira: "Cabeleireiro(a)",
+  consultora: "Consultoria",
+  "diretora de empresas": "Direção de Empresas",
+  educadora: "Educação",
+  empresaria: "Pessoa empresária",
+  enfermeira: "Enfermagem",
+  engenheira: "Engenharia",
+  estagiaria: "Estagiário(a)",
+  "funcionaria publica": "Pessoa funcionária pública",
+  medica: "Medicina",
+  secretaria: "Secretariado",
+  vendedora: "Vendas",
+  outras: "Outras",
+};
+
 export function isMasculineProfile(profileType?: string | null) {
   const normalized = profileType?.trim().toLowerCase();
   return (
@@ -190,15 +227,24 @@ export function isMasculineProfile(profileType?: string | null) {
   );
 }
 
-export function describeForProfile(
-  value: string,
-  profileType?: string | null,
-) {
+export function isInclusiveProfile(profileType?: string | null) {
+  return profileType?.trim().toLowerCase().endsWith("lgbtqia") === true;
+}
+
+export function describeForProfile(value: string, profileType?: string | null) {
   if (!value) {
     return value;
   }
 
   const normalizedValue = normalizeDescription(value);
+
+  if (isInclusiveProfile(profileType)) {
+    return (
+      inclusiveDescriptions[normalizedValue] ??
+      canonicalDescriptions[normalizedValue] ??
+      value
+    );
+  }
 
   if (isMasculineProfile(profileType)) {
     return (

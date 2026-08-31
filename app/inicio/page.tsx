@@ -51,10 +51,16 @@ export default function InicioPage() {
   const canView = ["SUGAR_BABY", "SUGAR_DADDY"].includes(
     user?.role?.trim().toUpperCase() ?? "",
   );
+  const providerTargetLabel =
+    user?.lookingFor?.trim().toLowerCase() === "women"
+      ? "Sugar Mommies mais ativas"
+      : user?.lookingFor?.trim().toLowerCase() === "men"
+        ? "Sugar Daddies mais ativos"
+        : "Sugar Daddies e Mommies mais ativos";
   const targetLabel =
     user?.role?.trim().toUpperCase() === "SUGAR_DADDY"
       ? "Sugar Babies mais ativas"
-      : "Sugar Daddies mais ativos";
+      : providerTargetLabel;
 
   useEffect(() => {
     const savedState = readSavedHomeState();

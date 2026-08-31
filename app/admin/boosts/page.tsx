@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { profileIdentityLabel } from "@/app/lib/profileIdentity";
 
 const PAGE_SIZE = 12;
 
@@ -30,6 +31,7 @@ type BoostUser = {
   username: string;
   email: string;
   role: string | null;
+  gender: string | null;
   approvalStatus: string;
   accountStatus: string;
   boostCredits: number;
@@ -215,8 +217,9 @@ export default function AdminBoostsPage() {
               Gerenciar Boosts
             </h1>
             <p className="max-w-2xl text-sm text-black/60">
-              Forneça Boosts para Sugar Babies e Sugar Daddies. Cada ativação
-              consome uma unidade e mantém o perfil em destaque por 24 horas.
+              Forneça Boosts para Sugar Babies, Sugar Daddies e Sugar Mommies.
+              Cada ativação consome uma unidade e mantém o perfil em destaque
+              por 24 horas.
             </p>
           </div>
           <span className="text-sm font-bold text-[var(--gold)]">
@@ -269,6 +272,10 @@ export default function AdminBoostsPage() {
               <option value="">Todos</option>
               <option value="SUGAR_BABY">Sugar Babies</option>
               <option value="SUGAR_DADDY">Sugar Daddies</option>
+              <option value="SUGAR_MOMMY">Sugar Mommies</option>
+              <option value="SUGAR_PROVIDER_LGBTQIA">
+                Sugar Daddy / Mommy LGBTQIA+
+              </option>
             </select>
           </label>
         </div>
@@ -320,9 +327,7 @@ export default function AdminBoostsPage() {
                         {profile.email}
                       </p>
                       <p className="mt-1 text-xs font-bold text-[var(--emerald)]">
-                        {profile.role === "SUGAR_BABY"
-                          ? "Sugar Baby"
-                          : "Sugar Daddy"}
+                        {profileIdentityLabel(profile.role, profile.gender)}
                       </p>
                     </div>
                     <span className="rounded-full bg-[color:color-mix(in_srgb,var(--gold)_15%,white)] px-2.5 py-1 text-xs font-extrabold text-[var(--gold)]">

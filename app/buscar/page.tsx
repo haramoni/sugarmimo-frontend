@@ -98,13 +98,19 @@ export default function BuscarPage() {
   const canSearch = ["SUGAR_BABY", "SUGAR_DADDY"].includes(
     normalizedRole ?? "",
   );
+  const providerTargetLabel =
+    user?.lookingFor?.trim().toLowerCase() === "women"
+      ? "Sugar Mommies ativas"
+      : user?.lookingFor?.trim().toLowerCase() === "men"
+        ? "Sugar Daddies ativos"
+        : "Sugar Daddies e Mommies ativos";
   const targetLabel =
     relationshipMode === "TRADITIONAL"
       ? "Conexões tradicionais"
       : relationshipMode === "SUGAR"
         ? isDaddy
           ? "Sugar Babies aprovadas"
-          : "Sugar Daddies ativos"
+          : providerTargetLabel
         : "Conexões compatíveis";
   const isApprovalPending = shouldShowPendingApproval(user);
 
@@ -598,7 +604,7 @@ export default function BuscarPage() {
                     </label>
                     <select
                       id="gender-filter"
-                      value="sugar-baby-woman"
+                      value={genderDraft}
                       onChange={(event) => setGenderDraft(event.target.value)}
                       className="h-11 w-full rounded-sm border border-emerald/28 bg-white/88 px-3 text-sm font-semibold text-black-jewel outline-none transition focus:border-emerald focus:ring-2 focus:ring-emerald/20"
                     >
@@ -607,6 +613,9 @@ export default function BuscarPage() {
                       <option value="sugar-baby-trans-woman">
                         Mulheres trans
                       </option>
+                      <option value="sugar-baby-man">Homens</option>
+                      <option value="sugar-baby-trans-man">Homens trans</option>
+                      <option value="sugar-baby-lgbtqia">LGBTQIA+</option>
                     </select>
                   </div>
                 ) : null}

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { profileIdentityLabel } from "@/app/lib/profileIdentity";
 import {
   getAge,
   getCustomInterests,
@@ -82,8 +83,7 @@ export default function ProfileCard({
     : Boolean(interaction.babyLiked);
   const canFavorite =
     favoriteAction === "baby-like" ||
-    (favoriteAction === "daddy-like" &&
-      (viewerIsPremium || viewerIsPremiere));
+    (favoriteAction === "daddy-like" && (viewerIsPremium || viewerIsPremiere));
 
   async function favoriteProfile() {
     if (!favoriteAction || !canFavorite || isFavorited || isFavoriting) {
@@ -102,7 +102,9 @@ export default function ProfileCard({
       const result = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(result?.message ?? "Não foi possível favoritar o perfil.");
+        throw new Error(
+          result?.message ?? "Não foi possível favoritar o perfil.",
+        );
       }
 
       setInteraction((current) => ({ ...current, ...result }));
@@ -253,6 +255,10 @@ export default function ProfileCard({
           >
             <h2 className={styles.profileName}>{profile.username}</h2>
 
+            <span className="inline-flex w-fit rounded-full border border-white/45 bg-black/35 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-white backdrop-blur-sm">
+              {profileIdentityLabel(profile.role, profile.gender)}
+            </span>
+
             <div className={styles.profileMeta}>
               <span className={styles.profileMetaItem}>
                 <HeartHandshake aria-hidden="true" />
@@ -280,83 +286,86 @@ export default function ProfileCard({
           </div>
 
           <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => void togglePin()}
-                disabled={isUpdatingPin}
-                aria-pressed={isPinned}
-                aria-label={isPinned ? "Remover dos Pins" : "Pinar perfil"}
-                title={isPinned ? "Remover dos Pins" : "Pinar perfil"}
-                className={[
-                  "inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border bg-white/88 shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-wait disabled:opacity-60",
-                  isPinned
-                    ? "border-gold/60 text-gold"
-                    : "border-white/70 text-black-jewel/72",
-                ].join(" ")}
-              >
-                {isUpdatingPin ? (
-                  <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Pin
-                    aria-hidden="true"
-                    className="h-4 w-4"
-                    fill={isPinned ? "currentColor" : "none"}
-                  />
-                )}
-              </button>
+            <button
+              type="button"
+              onClick={() => void togglePin()}
+              disabled={isUpdatingPin}
+              aria-pressed={isPinned}
+              aria-label={isPinned ? "Remover dos Pins" : "Pinar perfil"}
+              title={isPinned ? "Remover dos Pins" : "Pinar perfil"}
+              className={[
+                "inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border bg-white/88 shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-wait disabled:opacity-60",
+                isPinned
+                  ? "border-gold/60 text-gold"
+                  : "border-white/70 text-black-jewel/72",
+              ].join(" ")}
+            >
+              {isUpdatingPin ? (
+                <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+              ) : (
+                <Pin
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  fill={isPinned ? "currentColor" : "none"}
+                />
+              )}
+            </button>
 
-              {canMessage ? (
-                <>
-              {favoriteAction ? (
-                <button
-                  type="button"
-                  onClick={() => void favoriteProfile()}
-                  disabled={!canFavorite || isFavorited || isFavoriting}
-                  aria-label={
-                    isFavorited
-                      ? "Perfil favoritado"
-                      : canFavorite
-                        ? "Favoritar perfil"
-                        : "Favoritar disponível para assinantes"
-                  }
-                  title={
-                    isFavorited
-                      ? "Perfil favoritado"
-                      : canFavorite
-                        ? "Favoritar"
-                        : "Disponível para perfis Premium e Premiere"
-                  }
-                  className={[
-                    "inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border bg-white/88 shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ruby disabled:cursor-not-allowed disabled:opacity-60",
-                    isFavorited
-                      ? "border-ruby/45 text-ruby"
-                      : "border-white/70 text-black-jewel/72",
-                  ].join(" ")}
+            {canMessage ? (
+              <>
+                {favoriteAction ? (
+                  <button
+                    type="button"
+                    onClick={() => void favoriteProfile()}
+                    disabled={!canFavorite || isFavorited || isFavoriting}
+                    aria-label={
+                      isFavorited
+                        ? "Perfil favoritado"
+                        : canFavorite
+                          ? "Favoritar perfil"
+                          : "Favoritar disponível para assinantes"
+                    }
+                    title={
+                      isFavorited
+                        ? "Perfil favoritado"
+                        : canFavorite
+                          ? "Favoritar"
+                          : "Disponível para perfis Premium e Premiere"
+                    }
+                    className={[
+                      "inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border bg-white/88 shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ruby disabled:cursor-not-allowed disabled:opacity-60",
+                      isFavorited
+                        ? "border-ruby/45 text-ruby"
+                        : "border-white/70 text-black-jewel/72",
+                    ].join(" ")}
+                  >
+                    {isFavoriting ? (
+                      <Loader2
+                        aria-hidden="true"
+                        className="h-4 w-4 animate-spin"
+                      />
+                    ) : (
+                      <Heart
+                        aria-hidden="true"
+                        className="h-4 w-4"
+                        fill={isFavorited ? "currentColor" : "none"}
+                      />
+                    )}
+                  </button>
+                ) : null}
+
+                <Link
+                  href={`/chat?with=${encodeURIComponent(profile.id)}`}
+                  onClick={onNavigate}
+                  aria-label={`Enviar mensagem para ${profile.username ?? "este perfil"}`}
+                  title="Enviar mensagem"
+                  className="inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border border-white/70 bg-white/88 text-emerald shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald"
                 >
-                  {isFavoriting ? (
-                    <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Heart
-                      aria-hidden="true"
-                      className="h-4 w-4"
-                      fill={isFavorited ? "currentColor" : "none"}
-                    />
-                  )}
-                </button>
-              ) : null}
-
-              <Link
-                href={`/chat?with=${encodeURIComponent(profile.id)}`}
-                onClick={onNavigate}
-                aria-label={`Enviar mensagem para ${profile.username ?? "este perfil"}`}
-                title="Enviar mensagem"
-                className="inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border border-white/70 bg-white/88 text-emerald shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald"
-              >
-                <MessageCircle aria-hidden="true" className="h-4 w-4" />
-              </Link>
-                </>
-              ) : null}
-            </div>
+                  <MessageCircle aria-hidden="true" className="h-4 w-4" />
+                </Link>
+              </>
+            ) : null}
+          </div>
 
           {favoriteError || pinError ? (
             <span className="sr-only" role="status">

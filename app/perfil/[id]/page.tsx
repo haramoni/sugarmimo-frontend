@@ -32,6 +32,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { profileIdentityLabel } from "@/app/lib/profileIdentity";
 import { Navbar } from "../../components/ui/Navbar";
 import { PhotoZoom } from "../../components/ui/PhotoZoom";
 import { useAuth } from "../../components/AuthProvider";
@@ -403,6 +404,9 @@ function ProfileView({
             <h1 className="wrap-anywhere text-3xl font-extrabold tracking-tight text-black-jewel">
               {profile.username}
             </h1>
+            <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald">
+              {profileIdentityLabel(profile.role, profile.gender)}
+            </p>
             <div className="grid gap-2">
               <Button
                 type="button"

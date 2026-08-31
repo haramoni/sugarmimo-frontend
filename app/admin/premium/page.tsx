@@ -13,11 +13,13 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { profileIdentityLabel } from "@/app/lib/profileIdentity";
 
 type DaddyProfile = {
   id: string;
   username: string;
   email: string;
+  gender: string | null;
   city: string | null;
   state: string | null;
   isPremium: boolean;
@@ -190,11 +192,11 @@ export default function AdminPremiumPage() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <Crown className="h-6 w-6 text-[var(--gold)]" />
-            Sugar Daddies Premium e Premiere
+            Sugar Daddies e Mommies Premium e Premiere
           </h1>
           <p className="text-sm text-[color:color-mix(in_srgb,var(--black)_62%,transparent)]">
             Premium controla os benefícios do plano; Premiere identifica os
-            Sugar Daddies que se cadastraram antes do lançamento.
+            perfis provedores que se cadastraram antes do lançamento.
           </p>
         </div>
 
@@ -210,7 +212,7 @@ export default function AdminPremiumPage() {
           </div>
         ) : profiles?.length === 0 ? (
           <div className="border border-[var(--platinum)] bg-white p-6 text-sm font-bold">
-            Nenhum Sugar Daddy ativo no momento.
+            Nenhum Sugar Daddy ou Sugar Mommy ativo no momento.
           </div>
         ) : (
           <div className="grid gap-3">
@@ -222,6 +224,9 @@ export default function AdminPremiumPage() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="truncate font-bold">{profile.username}</h2>
+                    <span className="rounded-full bg-violet-100 px-2.5 py-1 text-xs font-extrabold text-violet-800">
+                      {profileIdentityLabel("SUGAR_DADDY", profile.gender)}
+                    </span>
                     <span
                       className={
                         profile.isPremium

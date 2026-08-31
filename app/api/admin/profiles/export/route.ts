@@ -1,22 +1,19 @@
 import { NextResponse } from "next/server";
 
+import { profileIdentityLabel } from "@/app/lib/profileIdentity";
 import { API_URL } from "../../../auth/_cookies";
 import { clearAdminSessionCookie, getAdminSessionToken } from "../../_session";
 
 type ExportProfile = {
   username: string;
   role: string | null;
+  gender: string | null;
   lookingFor: string | null;
   age: number | null;
   city: string | null;
   state: string | null;
   approvalStatus: string;
   accountStatus: string;
-};
-
-const ROLE_LABELS: Record<string, string> = {
-  SUGAR_BABY: "Sugar Baby",
-  SUGAR_DADDY: "Sugar Daddy",
 };
 
 const LOOKING_FOR_LABELS: Record<string, string> = {
@@ -149,7 +146,7 @@ export async function GET(request: Request) {
     ],
     ...profiles.map((profile) => [
       profile.username,
-      label(ROLE_LABELS, profile.role),
+      profileIdentityLabel(profile.role, profile.gender),
       label(LOOKING_FOR_LABELS, profile.lookingFor),
       regionFromState(profile.state),
       profile.role === "SUGAR_BABY"
