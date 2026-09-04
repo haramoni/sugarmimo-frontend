@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   title: "Planos | SugarMimo",
   description:
     "Conheça os planos Básico, Premium e Elite da SugarMimo e escolha a experiência ideal para o seu perfil.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function PlanosPage() {

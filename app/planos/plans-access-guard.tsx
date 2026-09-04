@@ -10,18 +10,23 @@ export function PlansAccessGuard({ children }: { children: ReactNode }) {
   const { user, isAuthLoading } = useAuth();
   const router = useRouter();
   const isLoggedSugarDaddy = user?.role?.trim().toUpperCase() === "SUGAR_DADDY";
+  const needsLogin = !isAuthLoading && !user;
   const isBlocked = Boolean(user && !isLoggedSugarDaddy);
 
   useEffect(() => {
-    if (!isAuthLoading && isBlocked) {
+    if (needsLogin) {
+      router.replace("/login");
+    } else if (!isAuthLoading && isBlocked) {
       router.replace("/inicio");
     }
-  }, [isAuthLoading, isBlocked, router]);
+  }, [isAuthLoading, isBlocked, needsLogin, router]);
 
-  if (isAuthLoading || isBlocked) {
+  if (isAuthLoading || needsLogin || isBlocked) {
     return (
       <PremiumLoadingScreen
-        label={isBlocked ? "Redirecionando..." : "Carregando planos..."}
+        label={
+          needsLogin || isBlocked ? "Redirecionando..." : "Carregando planos..."
+        }
       />
     );
   }

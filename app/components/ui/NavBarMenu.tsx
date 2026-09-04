@@ -13,7 +13,6 @@ const menuItems = [
   { label: "Como funciona", href: "/#como-funciona" },
   { label: "Perfis", href: "/#perfis" },
   { label: "Experiências", href: "/#experiencias" },
-  { label: "Planos", href: "/planos" },
   { label: "FAQ", href: "/#faq" },
   { label: "Blog", href: "/blog" },
 ];
