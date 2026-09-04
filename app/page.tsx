@@ -29,10 +29,10 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     images: [
       {
-        url: "/og.jpg",
-        width: 1200,
-        height: 630,
-        type: "image/jpeg",
+        url: "/brand/hero-trio-hq-4k.webp",
+        width: 3548,
+        height: 1774,
+        type: "image/webp",
         alt: "SugarMimo — Elegância, segurança e liberdade de escolha",
       },
     ],
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     title: "SugarMimo | Relacionamento Sugar com Segurança e Privacidade",
     description:
       "Conexões e relacionamentos sugar entre adultos com elegância, segurança e liberdade de escolha.",
-    images: ["/og.jpg"],
+    images: ["/brand/hero-trio-hq-4k.webp"],
   },
 };
 
@@ -183,7 +183,7 @@ export default function Home() {
         legalName: site.legalName,
         taxID: site.taxId,
         url: site.url,
-        logo: absoluteUrl("/sm-icon.png"),
+        logo: absoluteUrl("/brand/monogram-dark.webp"),
         description: site.description,
         email: site.email,
         telephone: site.telephone,

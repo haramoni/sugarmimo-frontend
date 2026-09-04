@@ -48,40 +48,45 @@ export default function PendingApprovalPage() {
     "idle",
   );
 
-  const loadPayment = useCallback(async (includeQr: boolean) => {
-    const response = await fetch(
-      `/api/payments/approval-priority?includeQr=${includeQr}`,
-      { cache: "no-store" },
-    ).catch(() => null);
+  const loadPayment = useCallback(
+    async (includeQr: boolean) => {
+      const response = await fetch(
+        `/api/payments/approval-priority?includeQr=${includeQr}`,
+        { cache: "no-store" },
+      ).catch(() => null);
 
-    if (!response) {
-      setError("Não foi possível consultar o pagamento agora.");
-      return;
-    }
+      if (!response) {
+        setError("Não foi possível consultar o pagamento agora.");
+        return;
+      }
 
-    const result = (await response.json().catch(() => null)) as
-      | PaymentState
-      | { message?: string | string[] }
-      | null;
+      const result = (await response.json().catch(() => null)) as
+        | PaymentState
+        | { message?: string | string[] }
+        | null;
 
-    if (!response.ok) {
-      setError(errorMessage(result, "Não foi possível consultar o pagamento."));
-      return;
-    }
+      if (!response.ok) {
+        setError(
+          errorMessage(result, "Não foi possível consultar o pagamento."),
+        );
+        return;
+      }
 
-    const nextPayment = result as PaymentState;
-    setPayment((current) => ({
-      ...current,
-      ...nextPayment,
-      qrCodeImage: nextPayment.qrCodeImage ?? current?.qrCodeImage,
-      pixCopyPaste: nextPayment.pixCopyPaste ?? current?.pixCopyPaste,
-    }));
+      const nextPayment = result as PaymentState;
+      setPayment((current) => ({
+        ...current,
+        ...nextPayment,
+        qrCodeImage: nextPayment.qrCodeImage ?? current?.qrCodeImage,
+        pixCopyPaste: nextPayment.pixCopyPaste ?? current?.pixCopyPaste,
+      }));
 
-    if (nextPayment.priorityActive) {
-      setError("");
-      await refreshUser();
-    }
-  }, [refreshUser]);
+      if (nextPayment.priorityActive) {
+        setError("");
+        await refreshUser();
+      }
+    },
+    [refreshUser],
+  );
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -194,7 +199,6 @@ export default function PendingApprovalPage() {
       aside={null}
     >
       <div className="registration-pending-content">
-
         <div className="registration-pending-status">
           <Clock className="h-4 w-4 text-gold" />
           Aprovação manual pendente
@@ -294,34 +298,44 @@ export default function PendingApprovalPage() {
           {!isLoadingPayment && canGenerate && !paymentReceived ? (
             <form onSubmit={generatePix} className="mt-3 space-y-3">
               <div className="registration-field">
-                <Label htmlFor="payment-full-name" className="registration-label">Nome completo</Label>
+                <Label
+                  htmlFor="payment-full-name"
+                  className="registration-label"
+                >
+                  Nome completo
+                </Label>
                 <div className="registration-control">
                   <Input
-                  id="payment-full-name"
-                  value={fullName}
-                  onChange={(event) => setFullName(event.target.value)}
-                  autoComplete="name"
-                  maxLength={120}
-                  placeholder="Seu nome completo"
-                  disabled={isGenerating}
+                    id="payment-full-name"
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value)}
+                    autoComplete="name"
+                    maxLength={120}
+                    placeholder="Seu nome completo"
+                    disabled={isGenerating}
                     className="registration-input"
                   />
                 </div>
               </div>
               <div className="registration-field">
-                <Label htmlFor="payment-document" className="registration-label">CPF ou CNPJ</Label>
+                <Label
+                  htmlFor="payment-document"
+                  className="registration-label"
+                >
+                  CPF ou CNPJ
+                </Label>
                 <div className="registration-control">
                   <Input
-                  id="payment-document"
-                  value={cpfCnpj}
-                  onChange={(event) =>
-                    setCpfCnpj(formatCpfCnpj(event.target.value))
-                  }
-                  inputMode="numeric"
-                  autoComplete="off"
-                  maxLength={18}
-                  placeholder="000.000.000-00"
-                  disabled={isGenerating}
+                    id="payment-document"
+                    value={cpfCnpj}
+                    onChange={(event) =>
+                      setCpfCnpj(formatCpfCnpj(event.target.value))
+                    }
+                    inputMode="numeric"
+                    autoComplete="off"
+                    maxLength={18}
+                    placeholder="000.000.000-00"
+                    disabled={isGenerating}
                     className="registration-input"
                   />
                 </div>
@@ -330,18 +344,20 @@ export default function PendingApprovalPage() {
                   armazenado pela SugarMimo.
                 </p>
               </div>
-              <Button
-                type="submit"
-                disabled={isGenerating}
-                className="registration-submit h-11 w-full"
-              >
-                {isGenerating ? (
-                  <LoaderCircle className="h-4 w-4 animate-spin" />
-                ) : (
-                  <QrCode className="h-4 w-4" />
-                )}
-                {isGenerating ? "Gerando PIX..." : "Gerar PIX de R$ 30"}
-              </Button>
+              <div className="flex justify-center">
+                <Button
+                  type="submit"
+                  disabled={isGenerating}
+                  className="registration-submit h-11 w-full"
+                >
+                  {isGenerating ? (
+                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <QrCode className="h-4 w-4" />
+                  )}
+                  {isGenerating ? "Gerando PIX..." : "Gerar PIX de R$ 30"}
+                </Button>
+              </div>
             </form>
           ) : null}
 
@@ -360,19 +376,20 @@ export default function PendingApprovalPage() {
 
           <p className="mt-3 border-t border-gold/25 pt-2 text-xs font-semibold leading-5 text-black-jewel/65">
             O pagamento antecipa a análise, mas não garante a aprovação do
-            perfil. Todos continuam sujeitos aos mesmos critérios de segurança
-            e verificação.
+            perfil. Todos continuam sujeitos aos mesmos critérios de segurança e
+            verificação.
           </p>
         </div>
-
-        <Button
-          type="button"
-          disabled={isClearingSession}
-          onClick={() => void goToLogin()}
-          className="registration-submit mt-4 h-11 w-full"
-        >
-          {isClearingSession ? "Limpando acesso..." : "Ir para o login"}
-        </Button>
+        <div className="flex justify-center">
+          <Button
+            type="button"
+            disabled={isClearingSession}
+            onClick={() => void goToLogin()}
+            className="registration-submit mt-4 h-11 w-full"
+          >
+            {isClearingSession ? "Limpando acesso..." : "Ir para o login"}
+          </Button>
+        </div>
       </div>
     </RegistrationFormShell>
   );

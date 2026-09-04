@@ -63,7 +63,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     publisher: {
       "@type": "Organization",
       name: "SugarMimo",
-      logo: { "@type": "ImageObject", url: `${site.url}/sm-icon.png` },
+      logo: {
+        "@type": "ImageObject",
+        url: `${site.url}/brand/monogram-dark.webp`,
+      },
     },
     mainEntityOfPage: `${site.url}/blog/${post.slug}`,
   };
@@ -99,7 +102,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               {post.excerpt}
             </p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-5 text-sm font-semibold text-black-jewel/55">
-              <time dateTime={post.date} className="inline-flex items-center gap-2">
+              <time
+                dateTime={post.date}
+                className="inline-flex items-center gap-2"
+              >
                 <CalendarDays className="h-4 w-4 text-gold" />
                 {formatBlogDate(post.date)}
               </time>

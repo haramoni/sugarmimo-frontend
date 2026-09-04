@@ -16,6 +16,13 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   captureReferralFromUrl,
   getSavedRegisterStep,
   setRegisterStep,
@@ -246,20 +253,23 @@ export default function Register() {
                     <label htmlFor="interest" className="registration-label">
                       Quero conhecer
                     </label>
-                    <select
-                      id="interest"
+                    <Select
                       name="interest"
                       defaultValue=""
                       required
-                      className="registration-native-select"
                     >
-                      <option value="" disabled>
-                        Escolha uma preferência
-                      </option>
-                      <option value="women">Mulheres</option>
-                      <option value="men">Homens</option>
-                      <option value="both">Todos</option>
-                    </select>
+                      <SelectTrigger
+                        id="interest"
+                        className="registration-select-trigger"
+                      >
+                        <SelectValue placeholder="Escolha uma preferência" />
+                      </SelectTrigger>
+                      <SelectContent className="premium-select-content registration-select-content">
+                        <SelectItem value="women">Mulheres</SelectItem>
+                        <SelectItem value="men">Homens</SelectItem>
+                        <SelectItem value="both">Todos</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <p className="registration-helper">
                       Essa preferência não altera o tipo do seu perfil.
                     </p>

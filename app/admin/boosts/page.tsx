@@ -168,7 +168,7 @@ export default function AdminBoostsPage() {
       <header className="border-b border-[var(--platinum)] bg-white px-5 py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Image
-            src="/sm-image.png"
+            src="/brand/logo-primary.webp"
             alt="SugarMimo"
             width={190}
             height={64}

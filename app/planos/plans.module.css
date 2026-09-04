@@ -1,0 +1,1537 @@
+.pageShell {
+  --member: #cf8b5d;
+  --member-soft: #ffd6bb;
+  --premium: #e5b84f;
+  --premium-soft: #ffe4a0;
+  --elite: #bdeff5;
+  --elite-soft: #effdff;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 10% 12%,
+      rgb(174 102 62 / 12%),
+      transparent 26rem
+    ),
+    radial-gradient(
+      circle at 88% 22%,
+      rgb(120 210 226 / 11%),
+      transparent 30rem
+    ),
+    linear-gradient(180deg, #070706 0%, #0e0c0a 54%, #070706 100%);
+}
+
+.pageShell::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 1.4%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 1.4%) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, black, transparent 44%);
+  pointer-events: none;
+  content: "";
+}
+
+.hero,
+.pricingSection,
+.benefitsSection {
+  position: relative;
+  z-index: 1;
+}
+
+.hero {
+  min-height: 390px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.heroGlow {
+  position: absolute;
+  top: 5rem;
+  left: 50%;
+  width: min(90vw, 760px);
+  height: 300px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgb(217 171 91 / 15%), transparent 68%);
+  filter: blur(14px);
+  pointer-events: none;
+}
+
+.heroContent {
+  position: relative;
+  width: min(100%, 850px);
+  animation: plansReveal 700ms ease-out both;
+}
+
+.kicker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  color: #d8b16c;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.kicker svg {
+  width: 0.85rem;
+}
+
+.kicker span {
+  width: 2.4rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #b88a42);
+}
+
+.kicker span:last-child {
+  background: linear-gradient(90deg, #b88a42, transparent);
+}
+
+.hero h1 {
+  margin-top: 1.1rem;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: clamp(3rem, 7vw, 5.4rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.hero h1 em {
+  background: linear-gradient(100deg, #f5dba2 15%, #bd8737 55%, #f3d8a0 88%);
+  background-clip: text;
+  color: transparent;
+  font-weight: 400;
+}
+
+.heroText {
+  max-width: 650px;
+  margin: 1.35rem auto 0;
+  color: #a49d93;
+  font-size: clamp(0.92rem, 2vw, 1.05rem);
+  line-height: 1.75;
+}
+
+.pricingSection {
+  width: min(100% - 2rem, 1280px);
+  margin: 0 auto;
+  padding-bottom: 7rem;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 1.3rem;
+}
+
+.sectionHeading > div > p,
+.benefitsHeading > p {
+  color: #c99a4c;
+  font-size: 0.61rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.sectionHeading h2 {
+  margin-top: 0.35rem;
+  color: #f0e6d7;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 500;
+}
+
+.sectionHeading > span {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  max-width: 13rem;
+  padding-bottom: 0.45rem;
+  color: #777169;
+  font-size: 0.7rem;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.sectionHeading > span svg {
+  width: 0.9rem;
+  color: #c99a4c;
+}
+
+.mobilePlans {
+  display: none;
+}
+
+.mobilePlanCard {
+  --plan-color: var(--member);
+  --plan-soft: var(--member-soft);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--plan-color) 45%, transparent);
+  border-radius: 1.45rem;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--plan-color) 9%, transparent),
+      transparent 42%
+    ),
+    #11100e;
+  padding: 1.15rem;
+  box-shadow: 0 22px 58px rgb(0 0 0 / 28%);
+}
+
+.mobilePlanCard.premium {
+  --plan-color: var(--premium);
+  --plan-soft: var(--premium-soft);
+}
+
+.mobilePlanCard.elite {
+  --plan-color: var(--elite);
+  --plan-soft: var(--elite-soft);
+  background:
+    linear-gradient(
+      118deg,
+      transparent 20%,
+      rgb(255 255 255 / 5%) 38%,
+      transparent 54%
+    ),
+    radial-gradient(circle at 100% 0%, rgb(189 239 245 / 15%), transparent 42%),
+    #0c1113;
+}
+
+.mobilePlanGlow {
+  position: absolute;
+  z-index: -1;
+  top: -5rem;
+  right: -4rem;
+  width: 12rem;
+  height: 12rem;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--plan-color) 18%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.mobilePlanHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mobilePlanHeader > div {
+  min-width: 0;
+}
+
+.mobilePlanHeader small {
+  display: block;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--plan-color) 78%, #877f76);
+  font-size: 0.48rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mobilePlanHeader h3 {
+  color: var(--plan-soft);
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.75rem;
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+.mobilePopular {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffe5a1, #c58d29);
+  padding: 0.32rem 0.52rem;
+  color: #171006;
+  font-size: 0.46rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mobilePopular svg {
+  width: 0.58rem;
+  height: 0.58rem;
+  fill: currentColor;
+}
+
+.mobilePlanDescription {
+  margin-top: 0.8rem;
+  color: #8e887f;
+  font-size: 0.7rem;
+  line-height: 1.55;
+}
+
+.mobilePriceList {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.mobilePriceOption {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(5.3rem, 0.75fr) minmax(0, 1.25fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 5.15rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--plan-color) 22%, #29241e);
+  border-radius: 1rem;
+  background: rgb(4 4 3 / 55%);
+  padding: 0.72rem;
+  color: var(--plan-soft);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%);
+  transition:
+    border-color 220ms ease,
+    background 220ms ease,
+    transform 220ms ease;
+}
+
+.mobilePriceOption::before {
+  position: absolute;
+  inset-block: 0.8rem;
+  left: 0;
+  width: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--plan-color) 50%, transparent);
+  content: "";
+}
+
+.mobilePriceOption:hover,
+.mobilePriceOption:focus-visible,
+.mobileSelected {
+  border-color: color-mix(in srgb, var(--plan-color) 75%, transparent);
+  background: color-mix(in srgb, var(--plan-color) 9%, #080706);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.mobileSelected {
+  box-shadow:
+    inset 0 0 0 1px var(--plan-color),
+    0 8px 24px color-mix(in srgb, var(--plan-color) 10%, transparent);
+}
+
+.mobileRecommended {
+  border-color: color-mix(in srgb, var(--plan-color) 47%, transparent);
+  background:
+    radial-gradient(
+      circle at 90% 0%,
+      color-mix(in srgb, var(--plan-color) 15%, transparent),
+      transparent 48%
+    ),
+    rgb(9 8 6 / 76%);
+}
+
+.mobileCycle {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.mobileCycle strong {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.mobileCycle > small:not(.mobileBestLabel) {
+  margin-top: 0.1rem;
+  color: #6f6961;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mobileBestLabel {
+  width: fit-content;
+  margin-bottom: 0.25rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--plan-color) 18%, transparent);
+  padding: 0.18rem 0.32rem;
+  color: var(--plan-color);
+  font-size: 0.38rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.mobilePrice {
+  min-width: 0;
+  text-align: right;
+}
+
+.mobilePrice > span {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.2rem;
+}
+
+.mobilePrice > span small {
+  font-size: 0.56rem;
+  font-weight: 900;
+}
+
+.mobilePrice strong {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: clamp(1.38rem, 7vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.mobilePrice > small {
+  display: block;
+  overflow: hidden;
+  margin-top: 0.22rem;
+  color: #716b63;
+  font-size: 0.43rem;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mobileSelectIcon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--plan-color) 46%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--plan-color) 10%, transparent);
+  color: var(--plan-color);
+}
+
+.mobileSelected .mobileSelectIcon {
+  background: var(--plan-color);
+  color: #13100b;
+}
+
+.mobileSelectIcon svg {
+  width: 0.85rem;
+}
+
+.pricingViewport {
+  overflow: hidden;
+  border: 1px solid rgb(219 177 98 / 27%);
+  border-radius: 1.6rem;
+  background: #252019;
+  box-shadow: 0 38px 100px rgb(0 0 0 / 38%);
+}
+
+.pricingTable {
+  display: grid;
+  grid-template-columns: clamp(118px, 12vw, 148px) repeat(3, minmax(0, 1fr));
+  width: 100%;
+  min-width: 0;
+  gap: 1px;
+  background: #302820;
+}
+
+.tableRow {
+  display: contents;
+}
+
+.priceCellWrapper {
+  display: contents;
+}
+
+.periodHeader,
+.periodCell,
+.planHeader,
+.priceCell {
+  min-width: 0;
+  background: #100e0c;
+}
+
+.periodHeader {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  min-height: 118px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.35rem;
+  color: #8c857b;
+}
+
+.periodHeader small {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.periodHeader strong {
+  margin-top: 0.2rem;
+  color: #d8c9b3;
+  font-family: var(--font-playfair), serif;
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+
+.planHeader,
+.benefitCard,
+.priceCell {
+  --plan-color: var(--member);
+  --plan-soft: var(--member-soft);
+}
+
+.premium {
+  --plan-color: var(--premium);
+  --plan-soft: var(--premium-soft);
+}
+
+.elite {
+  --plan-color: var(--elite);
+  --plan-soft: var(--elite-soft);
+}
+
+.planHeader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  min-height: 118px;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 85% -20%,
+      color-mix(in srgb, var(--plan-color) 25%, transparent),
+      transparent 48%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--plan-color) 9%, #100e0c),
+      #100e0c
+    );
+  padding: 1.45rem 1rem 1.1rem;
+  color: var(--plan-soft);
+}
+
+.elite.planHeader {
+  background:
+    linear-gradient(
+      115deg,
+      transparent 20%,
+      rgb(255 255 255 / 8%) 38%,
+      transparent 52%
+    ),
+    radial-gradient(
+      circle at 85% -20%,
+      rgb(189 239 245 / 25%),
+      transparent 48%
+    ),
+    linear-gradient(145deg, #122126, #0d1113);
+}
+
+.planIcon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--plan-color) 52%, transparent);
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, var(--plan-color) 10%, transparent);
+  color: var(--plan-color);
+}
+
+.elite .planIcon {
+  box-shadow: 0 0 22px rgb(189 239 245 / 16%);
+}
+
+.planIcon svg {
+  width: 1.25rem;
+}
+
+.planHeader small {
+  display: block;
+  color: color-mix(in srgb, var(--plan-color) 70%, #8e877f);
+  font-size: 0.54rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.planHeader strong {
+  display: block;
+  margin-top: 0.05rem;
+  font-family: var(--font-playfair), serif;
+  font-size: 1.75rem;
+  font-weight: 500;
+}
+
+.popularFlag {
+  position: absolute;
+  top: 0;
+  right: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 0 0 0.55rem 0.55rem;
+  background: linear-gradient(135deg, #ffe39a, #c58d29);
+  padding: 0.35rem 0.55rem;
+  color: #171006;
+  font-size: 0.48rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.popularFlag svg {
+  width: 0.6rem;
+  height: 0.6rem;
+  fill: currentColor;
+}
+
+.periodCell {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-height: 148px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.25rem;
+  background: #0c0b09;
+}
+
+.periodCell strong {
+  color: #eee2d1;
+  font-family: var(--font-playfair), serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.periodCell small {
+  margin-top: 0.2rem;
+  color: #716b63;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rowFlag {
+  width: fit-content;
+  margin-bottom: 0.65rem;
+  border: 1px solid rgb(255 231 174 / 62%);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f3d7a0, #bb8030);
+  padding: 0.38rem 0.62rem;
+  color: #171006;
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  box-shadow: 0 5px 18px rgb(215 165 78 / 24%);
+  text-transform: uppercase;
+}
+
+.priceCell {
+  position: relative;
+  display: flex;
+  min-height: 148px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in srgb, var(--plan-color) 9%, transparent),
+      transparent 44%
+    ),
+    #12100e;
+  padding: 1rem;
+  color: var(--plan-soft);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+.recommendedRow .priceCell {
+  border-block: 2px solid color-mix(in srgb, var(--plan-color) 72%, #d7a54e);
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in srgb, var(--plan-color) 24%, transparent),
+      transparent 50%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--plan-color) 11%, #17130f),
+      #15120f
+    );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 8%),
+    0 0 28px color-mix(in srgb, var(--plan-color) 7%, transparent);
+}
+
+.recommendedRow .periodCell {
+  border-block: 2px solid #d6a64f;
+  border-left: 2px solid #d6a64f;
+  border-radius: 1rem 0 0 1rem;
+  background:
+    radial-gradient(circle at 0% 50%, rgb(218 173 88 / 21%), transparent 72%),
+    #100d09;
+}
+
+.recommendedRow .priceCellWrapper:last-child .priceCell {
+  border-right: 2px solid var(--elite);
+  border-radius: 0 1rem 1rem 0;
+}
+
+.recommendedRow .priceMain strong {
+  font-size: clamp(2.15rem, 3.4vw, 2.85rem);
+}
+
+.recommendedRow .savingLabel {
+  letter-spacing: 0.14em;
+}
+
+.elite.priceCell {
+  background:
+    linear-gradient(
+      120deg,
+      transparent 25%,
+      rgb(255 255 255 / 4%) 42%,
+      transparent 58%
+    ),
+    radial-gradient(circle at 100% 0%, rgb(189 239 245 / 12%), transparent 46%),
+    #0d1113;
+}
+
+.priceCell:hover,
+.priceCell:focus-visible,
+.priceCell.selected {
+  z-index: 4;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in srgb, var(--plan-color) 30%, transparent),
+      transparent 52%
+    ),
+    color-mix(in srgb, var(--plan-color) 9%, #15120f);
+  box-shadow: inset 0 0 0 2px var(--plan-color);
+  outline: none;
+}
+
+.priceCell:hover {
+  transform: scale(1.015);
+}
+
+.savingLabel {
+  color: color-mix(in srgb, var(--plan-color) 82%, #7a746c);
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.priceMain {
+  display: flex;
+  align-items: baseline;
+  gap: 0.28rem;
+  margin-top: 0.32rem;
+}
+
+.priceMain small {
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.priceMain strong {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: clamp(1.85rem, 3vw, 2.45rem);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.priceSuffix {
+  margin-top: 0.15rem;
+  color: #827c73;
+  font-size: 0.58rem;
+  font-weight: 700;
+}
+
+.priceEquivalent {
+  margin-top: 0.26rem;
+  color: #6e6962;
+  font-size: 0.54rem;
+  text-transform: uppercase;
+}
+
+.selectLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--plan-color) 48%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--plan-color) 9%, transparent);
+  padding: 0.28rem 0.6rem;
+  color: var(--plan-color);
+  font-size: 0.49rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.selectLabel svg {
+  width: 0.65rem;
+  height: 0.65rem;
+}
+
+.checkoutNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 2rem;
+  margin: 1.15rem auto 0;
+  color: #837d74;
+  font-size: 0.74rem;
+  text-align: center;
+}
+
+.checkoutNote svg {
+  width: 0.95rem;
+  color: #d9ad5a;
+}
+
+.checkoutNote strong {
+  color: #dfc79f;
+}
+
+.checkoutReady {
+  display: block;
+  width: min(100%, 700px);
+  margin-top: 1.35rem;
+}
+
+.checkoutAction {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgb(255 88 96 / 42%);
+  border-radius: 1.35rem;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(238 48 65 / 18%), transparent 45%),
+    linear-gradient(145deg, #17100f, #0e0c0b);
+  padding: 0.9rem;
+  box-shadow:
+    0 20px 55px rgb(0 0 0 / 34%),
+    0 0 35px rgb(224 45 59 / 9%);
+  animation: checkoutReveal 280ms ease-out both;
+}
+
+.checkoutSummary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.25rem 0.25rem 0.85rem;
+  text-align: left;
+}
+
+.checkoutSummary > span:nth-child(2) {
+  min-width: 0;
+}
+
+.checkoutSummary small,
+.checkoutSummary strong {
+  display: block;
+}
+
+.checkoutSummary small {
+  color: #8b8078;
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.checkoutSummary strong {
+  margin-top: 0.12rem;
+  color: #f1e5d8;
+  font-size: 0.76rem;
+}
+
+.checkoutSummary b {
+  color: #f4c7c9;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.checkoutCheck {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid rgb(255 112 119 / 45%);
+  border-radius: 50%;
+  background: rgb(226 48 62 / 13%);
+  color: #ff6b73;
+}
+
+.checkoutCheck svg {
+  width: 0.95rem;
+  stroke-width: 3;
+}
+
+.checkoutButton {
+  display: flex;
+  min-height: 4.65rem;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  border: 1px solid #ff8a91;
+  border-radius: 1rem;
+  background: linear-gradient(110deg, #c91f32, #ef3f4f 48%, #bd182b);
+  color: white;
+  text-decoration: none;
+  box-shadow:
+    0 14px 32px rgb(209 30 49 / 31%),
+    inset 0 1px 0 rgb(255 255 255 / 34%);
+  transition:
+    filter 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.checkoutButton:hover,
+.checkoutButton:focus-visible {
+  filter: brightness(1.1);
+  outline: 3px solid rgb(255 120 128 / 28%);
+  outline-offset: 3px;
+  transform: translateY(-2px);
+  box-shadow:
+    0 18px 38px rgb(209 30 49 / 42%),
+    inset 0 1px 0 rgb(255 255 255 / 42%);
+}
+
+.checkoutButton > span {
+  display: grid;
+  font-size: 1rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.checkoutButton small {
+  margin-bottom: 0.12rem;
+  color: #ffd7d9;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.checkoutButton > svg {
+  width: 1.4rem;
+  height: 1.4rem;
+  stroke-width: 2.3;
+}
+
+.paymentMethods {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 0.9rem;
+  padding: 0.75rem 0.25rem 0.05rem;
+  color: #90867e;
+  font-size: 0.58rem;
+  font-weight: 700;
+}
+
+.paymentMethods span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.paymentMethods svg {
+  width: 0.78rem;
+  height: 0.78rem;
+  color: #d8a1a4;
+}
+
+.paymentMethods .secureCheckout {
+  color: #a9a29a;
+}
+
+.paymentMethods .secureCheckout svg {
+  color: #8fc3a2;
+}
+
+.scrollHint {
+  display: none;
+  margin-top: 0.65rem;
+  color: #6e6962;
+  font-size: 0.6rem;
+  text-align: center;
+}
+
+.benefitsSection {
+  width: min(100% - 2rem, 1180px);
+  margin: 0 auto 7rem;
+}
+
+.benefitsHeading {
+  max-width: 690px;
+  margin: auto;
+  text-align: center;
+}
+
+.benefitsHeading h2 {
+  margin-top: 0.7rem;
+  color: #f0e5d4;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.benefitsHeading > span {
+  display: block;
+  margin-top: 1rem;
+  color: #8e887f;
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+.benefitsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2.8rem;
+}
+
+.benefitCard {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  border: 1px solid color-mix(in srgb, var(--plan-color) 38%, transparent);
+  border-radius: 1.5rem;
+  background:
+    radial-gradient(
+      circle at 90% 0%,
+      color-mix(in srgb, var(--plan-color) 13%, transparent),
+      transparent 38%
+    ),
+    #12100e;
+  padding: 1.5rem;
+  box-shadow: 0 26px 70px rgb(0 0 0 / 24%);
+}
+
+.elite.benefitCard {
+  background:
+    linear-gradient(
+      125deg,
+      transparent 20%,
+      rgb(255 255 255 / 4%) 40%,
+      transparent 58%
+    ),
+    radial-gradient(circle at 90% 0%, rgb(189 239 245 / 18%), transparent 40%),
+    #0d1113;
+}
+
+.benefitCard header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.benefitCard header small {
+  color: color-mix(in srgb, var(--plan-color) 74%, #817a72);
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.benefitCard h3 {
+  color: var(--plan-soft);
+  font-family: var(--font-playfair), serif;
+  font-size: 1.7rem;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.profilePreview {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 7.2rem;
+  margin-top: 1.2rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--plan-color) 25%, #28241f);
+  border-radius: 1.15rem;
+  background:
+    radial-gradient(
+      circle at 12% 20%,
+      color-mix(in srgb, var(--plan-color) 14%, transparent),
+      transparent 42%
+    ),
+    rgb(5 5 4 / 72%);
+  padding: 1rem;
+}
+
+.profilePreview::after {
+  position: absolute;
+  right: -1.4rem;
+  bottom: -2.2rem;
+  color: color-mix(in srgb, var(--plan-color) 6%, transparent);
+  content: "SM";
+  font-family: var(--font-playfair), serif;
+  font-size: 5.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.previewFrame {
+  position: relative;
+  z-index: 1;
+  padding: 0.2rem;
+  border: 1px solid transparent;
+  border-radius: 50%;
+}
+
+.premium .previewFrame,
+.elite .previewFrame {
+  border-color: var(--plan-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--plan-color) 12%, transparent);
+}
+
+.elite .previewFrame {
+  padding: 0.34rem;
+  border-style: double;
+  border-width: 3px;
+  box-shadow:
+    0 0 0 2px #101719,
+    0 0 0 4px color-mix(in srgb, var(--plan-color) 65%, transparent),
+    0 0 24px rgb(189 239 245 / 28%);
+}
+
+.frameCornerTop,
+.frameCornerBottom {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  color: var(--plan-soft);
+  font-size: 0.7rem;
+  line-height: 1;
+  transform: translateX(-50%);
+}
+
+.frameCornerTop {
+  top: -0.57rem;
+}
+
+.frameCornerBottom {
+  bottom: -0.57rem;
+}
+
+.previewAvatar {
+  display: grid;
+  width: 3.3rem;
+  height: 3.3rem;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--plan-color) 38%, #332c25),
+    #14110e
+  );
+  color: var(--plan-soft);
+  font-family: var(--font-playfair), serif;
+  font-size: 0.82rem;
+}
+
+.previewIdentity {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.previewIdentity span,
+.previewIdentity small {
+  display: block;
+}
+
+.previewIdentity span {
+  color: #eee5d7;
+  font-family: var(--font-playfair), serif;
+  font-size: 0.95rem;
+}
+
+.previewIdentity small {
+  margin-top: 0.2rem;
+  color: #746f68;
+  font-size: 0.62rem;
+}
+
+.previewBadge {
+  position: absolute;
+  z-index: 2;
+  right: 0.75rem;
+  bottom: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid color-mix(in srgb, var(--plan-color) 45%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--plan-color) 12%, #090807);
+  padding: 0.28rem 0.48rem;
+  color: var(--plan-color);
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.previewBadge svg {
+  width: 0.68rem;
+  height: 0.68rem;
+}
+
+.benefitDescription {
+  min-height: 4.25rem;
+  margin-top: 1.1rem;
+  color: #8e887f;
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.benefitCard ul {
+  flex: 1;
+  margin-top: 0.6rem;
+  border-top: 1px solid rgb(255 255 255 / 7%);
+  padding-top: 0.75rem;
+  list-style: none;
+}
+
+.benefitCard li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  color: #d1c8bb;
+  font-size: 0.76rem;
+}
+
+.benefitCard li span {
+  display: grid;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--plan-color) 14%, transparent);
+  color: var(--plan-color);
+}
+
+.benefitCard li svg {
+  width: 0.66rem;
+  stroke-width: 3;
+}
+
+.temporaryNotice {
+  margin-top: 1.2rem;
+  color: #66615a;
+  font-size: 0.65rem;
+  text-align: center;
+}
+
+@keyframes plansReveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes checkoutReveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 900px) {
+  .sectionHeading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .sectionHeading > span {
+    padding-bottom: 0;
+  }
+
+  .pricingViewport {
+    border-radius: 1.2rem;
+  }
+
+  .benefitsGrid {
+    grid-template-columns: 1fr;
+    width: min(100%, 620px);
+    margin-inline: auto;
+  }
+
+  .benefitDescription {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .pageShell,
+  .pricingSection,
+  .mobilePlans,
+  .mobilePlanCard,
+  .mobilePriceList,
+  .mobilePriceOption {
+    max-width: 100%;
+  }
+
+  .pageShell {
+    overflow-x: clip;
+  }
+
+  .pricingViewport {
+    display: none;
+  }
+
+  .mobilePlans {
+    display: grid;
+    width: 100%;
+    gap: 0.9rem;
+  }
+
+  .mobilePlanCard,
+  .mobilePriceList,
+  .mobilePriceOption {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .mobileRecommended {
+    min-height: 6rem;
+    border: 2px solid color-mix(in srgb, var(--plan-color) 72%, transparent);
+    background:
+      radial-gradient(
+        circle at 88% 0%,
+        color-mix(in srgb, var(--plan-color) 24%, transparent),
+        transparent 52%
+      ),
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--plan-color) 12%, #090806),
+        #080706
+      );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 9%),
+      0 10px 30px color-mix(in srgb, var(--plan-color) 12%, transparent);
+  }
+
+  .mobileRecommended::before {
+    inset-block: 0.65rem;
+    width: 3px;
+    background: var(--plan-color);
+    box-shadow: 0 0 12px var(--plan-color);
+  }
+
+  .mobileRecommended .mobileCycle strong {
+    color: var(--plan-soft);
+    font-size: 1.04rem;
+  }
+
+  .mobileRecommended .mobilePrice strong {
+    color: var(--plan-soft);
+    font-size: clamp(1.72rem, 8vw, 2.05rem);
+    text-shadow: 0 0 20px color-mix(in srgb, var(--plan-color) 24%, transparent);
+  }
+
+  .mobileRecommended .mobileSelectIcon {
+    width: 2.2rem;
+    height: 2.2rem;
+    border-color: color-mix(in srgb, var(--plan-color) 72%, transparent);
+  }
+
+  .mobileRecommended .mobileBestLabel {
+    border: 1px solid color-mix(in srgb, var(--plan-color) 45%, transparent);
+    background: color-mix(in srgb, var(--plan-color) 18%, #090806);
+    padding: 0.3rem 0.46rem;
+    font-size: 0.47rem;
+    letter-spacing: 0.07em;
+    box-shadow: 0 4px 14px
+      color-mix(in srgb, var(--plan-color) 12%, transparent);
+  }
+
+  .scrollHint {
+    display: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .hero {
+    min-height: 350px;
+    padding-top: 7.7rem;
+    padding-bottom: 2.8rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.75rem, 14vw, 4rem);
+  }
+
+  .hero h1 em {
+    display: block;
+  }
+
+  .heroText {
+    font-size: 0.88rem;
+    line-height: 1.65;
+  }
+
+  .kicker {
+    gap: 0.4rem;
+    font-size: 0.54rem;
+    letter-spacing: 0.17em;
+  }
+
+  .kicker span {
+    width: 1rem;
+  }
+
+  .pricingSection {
+    padding-bottom: 5rem;
+  }
+
+  .pricingTable {
+    grid-template-columns: 105px repeat(3, 215px);
+    min-width: 750px;
+  }
+
+  .periodHeader,
+  .periodCell {
+    padding: 0.85rem;
+  }
+
+  .periodHeader strong,
+  .periodCell strong {
+    font-size: 0.95rem;
+  }
+
+  .periodHeader small,
+  .periodCell small {
+    font-size: 0.48rem;
+  }
+
+  .rowFlag {
+    font-size: 0.4rem;
+  }
+
+  .checkoutNote {
+    align-items: flex-start;
+    padding-inline: 0.4rem;
+    line-height: 1.5;
+  }
+
+  .checkoutReady {
+    padding-inline: 0;
+  }
+
+  .checkoutAction {
+    border-radius: 1.1rem;
+    padding: 0.72rem;
+  }
+
+  .checkoutSummary {
+    gap: 0.55rem;
+  }
+
+  .checkoutSummary strong {
+    overflow: hidden;
+    font-size: 0.68rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .checkoutSummary b {
+    font-size: 0.95rem;
+  }
+
+  .checkoutButton {
+    min-height: 4.35rem;
+  }
+
+  .paymentMethods {
+    gap: 0.45rem 0.7rem;
+    font-size: 0.53rem;
+  }
+
+  .benefitsSection {
+    margin-bottom: 4.5rem;
+  }
+
+  .benefitsGrid {
+    margin-top: 2rem;
+  }
+
+  .benefitCard {
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroContent {
+    animation: none;
+  }
+
+  .priceCell,
+  .checkoutAction,
+  .checkoutButton {
+    animation: none;
+    transition: none;
+  }
+}

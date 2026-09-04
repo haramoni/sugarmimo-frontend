@@ -13,6 +13,8 @@ export type PublicProfile = {
   role?: string | null;
   isPremium?: boolean;
   isPremiere?: boolean;
+  membershipTier?: string | null;
+  profileFrame?: string | null;
   boostedUntil?: string | null;
   gender?: string | null;
   lookingFor?: string | null;

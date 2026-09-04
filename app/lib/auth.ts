@@ -50,6 +50,9 @@ export type AuthUser = {
   isPremium?: boolean;
   premiumUntil?: string | null;
   isPremiere?: boolean;
+  membershipTier?: string | null;
+  membershipUntil?: string | null;
+  profileFrame?: string | null;
   boostCredits?: number;
   boostedUntil?: string | null;
   privacyPolicyVersion?: string | null;

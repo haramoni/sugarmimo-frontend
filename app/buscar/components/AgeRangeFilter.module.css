@@ -1,7 +1,7 @@
 .wrapper {
-  border: 1px solid color-mix(in srgb, var(--emerald) 28%, transparent);
-  border-radius: 0.35rem;
-  background: color-mix(in srgb, white 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--luxury-gold) 38%, transparent);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, var(--luxury-surface-raised) 88%, transparent);
   padding: 0.75rem 0.8rem 0.65rem;
 }
 
@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--emerald);
+  color: var(--luxury-champagne);
   font-size: 0.78rem;
   font-weight: 800;
 }
@@ -32,11 +32,16 @@
 .track {
   right: 0;
   left: 0;
-  background: color-mix(in srgb, var(--silver) 58%, white);
+  background: color-mix(in srgb, var(--luxury-muted) 26%, transparent);
 }
 
 .selectedRange {
-  background: var(--emerald);
+  background: linear-gradient(
+    90deg,
+    var(--luxury-gold-deep),
+    var(--luxury-champagne)
+  );
+  box-shadow: 0 0 10px color-mix(in srgb, var(--luxury-gold) 34%, transparent);
 }
 
 .rangeInput {
@@ -64,10 +69,10 @@
   width: 1.15rem;
   height: 1.15rem;
   appearance: none;
-  border: 3px solid white;
+  border: 2px solid var(--luxury-champagne);
   border-radius: 50%;
-  background: var(--emerald);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--emerald) 35%, transparent);
+  background: var(--luxury-gold-deep);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--luxury-gold) 55%, transparent);
   cursor: grab;
   pointer-events: auto;
 }
@@ -75,10 +80,10 @@
 .rangeInput::-moz-range-thumb {
   width: 0.85rem;
   height: 0.85rem;
-  border: 3px solid white;
+  border: 2px solid var(--luxury-champagne);
   border-radius: 50%;
-  background: var(--emerald);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--emerald) 35%, transparent);
+  background: var(--luxury-gold-deep);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--luxury-gold) 55%, transparent);
   cursor: grab;
   pointer-events: auto;
 }
@@ -96,9 +101,9 @@
 }
 
 .rangeInput:focus-visible::-webkit-slider-thumb {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--emerald) 24%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--luxury-gold) 28%, transparent);
 }
 
 .rangeInput:focus-visible::-moz-range-thumb {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--emerald) 24%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--luxury-gold) 28%, transparent);
 }

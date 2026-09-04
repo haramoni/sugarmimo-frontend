@@ -2,6 +2,7 @@
 
 import {
   Ban,
+  CalendarClock,
   ChevronLeft,
   ChevronRight,
   Crown,
@@ -36,6 +37,13 @@ import Swal from "sweetalert2";
 
 import { PhotoZoom } from "@/app/components/ui/PhotoZoom";
 import { profileIdentityLabel } from "@/app/lib/profileIdentity";
+import {
+  formatMembershipExpiry,
+  MEMBERSHIP_DETAILS,
+  membershipDaysRemaining,
+  membershipRemainingLabel,
+  resolveMembershipTier,
+} from "@/app/lib/membership";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -67,6 +75,14 @@ type AdminProfile = {
   suspendedUntil: string | null;
   isPremium: boolean;
   isPremiere: boolean;
+  membershipTier: string | null;
+  membershipUntil: string | null;
+  membershipActive: boolean;
+  membershipDaysRemaining: number | null;
+  membershipPurchasedAt: string | null;
+  membershipDurationMonths: number | null;
+  membershipPlan: string | null;
+  membershipBillingCycle: string | null;
   isAdminFeatured: boolean;
   boostCredits: number;
   lastActiveAt: string | null;
@@ -149,6 +165,7 @@ export default function AdminProfilesPage() {
   const [busyId, setBusyId] = useState("");
   const [deletingPhotoId, setDeletingPhotoId] = useState("");
   const [error, setError] = useState("");
+  const [canManageWatch, setCanManageWatch] = useState(false);
 
   const loadProfiles = useCallback(async () => {
     const requestId = ++latestRequestId.current;
@@ -180,6 +197,7 @@ export default function AdminProfilesPage() {
       if (requestId !== latestRequestId.current) return;
 
       setProfiles(result.items ?? []);
+      setCanManageWatch(result.permissions?.canManageWatch === true);
       setStats(
         result.stats ?? {
           total: 0,
@@ -772,22 +790,24 @@ export default function AdminProfilesPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 self-start xl:self-auto">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => void removeAllWatchAlerts()}
-              disabled={
-                stats.watchAlerts === 0 || busyId === "all-watch-alerts"
-              }
-              className="h-11 rounded-lg border-amber-400 bg-amber-50 font-bold text-amber-900 hover:bg-amber-100 disabled:border-black/10 disabled:bg-white disabled:text-black/35"
-            >
-              {busyId === "all-watch-alerts" ? (
-                <LoaderCircle className="h-4 w-4 animate-spin" />
-              ) : (
-                <EyeOff className="h-4 w-4" />
-              )}
-              Remover alertas Watch
-            </Button>
+            {canManageWatch ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void removeAllWatchAlerts()}
+                disabled={
+                  stats.watchAlerts === 0 || busyId === "all-watch-alerts"
+                }
+                className="h-11 rounded-lg border-amber-400 bg-amber-50 font-bold text-amber-900 hover:bg-amber-100 disabled:border-black/10 disabled:bg-white disabled:text-black/35"
+              >
+                {busyId === "all-watch-alerts" ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <EyeOff className="h-4 w-4" />
+                )}
+                Remover alertas Watch
+              </Button>
+            ) : null}
             <Button
               type="button"
               onClick={() => void exportCsv()}
@@ -1009,8 +1029,15 @@ export default function AdminProfilesPage() {
                         {profile.isPremiere ? (
                           <Badge label="Premiere" tone="gold" />
                         ) : null}
-                        {profile.isPremium ? (
+                        {profile.isPremium &&
+                        resolveMembershipTier(profile) !== "ELITE" ? (
                           <Badge label="Premium" tone="emerald" />
+                        ) : null}
+                        {resolveMembershipTier(profile) === "BASIC" ? (
+                          <Badge label="Plano Básico" tone="violet" />
+                        ) : null}
+                        {resolveMembershipTier(profile) === "ELITE" ? (
+                          <Badge label="Plano Elite" tone="gold" />
                         ) : null}
                         {profile.isAdminFeatured ? (
                           <Badge label="Destaque" tone="ruby" />
@@ -1078,6 +1105,10 @@ export default function AdminProfilesPage() {
                     ) : null}
                   </div>
 
+                  {profile.membershipUntil ? (
+                    <AdminMembershipValidity profile={profile} />
+                  ) : null}
+
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-black/48">
                     <span className="flex items-center gap-1.5">
                       <MapPin className="h-3.5 w-3.5" />{" "}
@@ -1102,20 +1133,22 @@ export default function AdminProfilesPage() {
                       <p className="mt-2 text-xs font-bold text-violet-800/75">
                         IP monitorado: {profile.profileWatch.ipAddress}
                       </p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={busyId === profile.id}
-                        onClick={() => void rescanWatch(profile)}
-                        className="mt-3 h-8 rounded-lg border-violet-400 bg-white text-xs font-bold text-violet-900 hover:bg-violet-100"
-                      >
-                        {busyId === profile.id ? (
-                          <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <RefreshCw className="h-3.5 w-3.5" />
-                        )}
-                        Reanalisar IP
-                      </Button>
+                      {canManageWatch ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={busyId === profile.id}
+                          onClick={() => void rescanWatch(profile)}
+                          className="mt-3 h-8 rounded-lg border-violet-400 bg-white text-xs font-bold text-violet-900 hover:bg-violet-100"
+                        >
+                          {busyId === profile.id ? (
+                            <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-3.5 w-3.5" />
+                          )}
+                          Reanalisar IP
+                        </Button>
+                      ) : null}
                     </div>
                   ) : null}
 
@@ -1148,15 +1181,17 @@ export default function AdminProfilesPage() {
                         </div>
                       ))}
                       <div className="mt-3 border-t border-amber-900/10 pt-3">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          disabled={busyId === profile.id}
-                          onClick={() => void removeWatchAlerts(profile)}
-                          className="h-8 rounded-lg border-amber-500 bg-white text-xs font-bold text-amber-900 hover:bg-amber-100"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" /> Remover alerta
-                        </Button>
+                        {canManageWatch ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={busyId === profile.id}
+                            onClick={() => void removeWatchAlerts(profile)}
+                            className="h-8 rounded-lg border-amber-500 bg-white text-xs font-bold text-amber-900 hover:bg-amber-100"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" /> Remover alerta
+                          </Button>
+                        ) : null}
                         <p className="mt-2 text-xs text-amber-900/70">
                           IP igual é apenas um sinal técnico e não comprova que
                           seja a mesma pessoa.
@@ -1192,22 +1227,26 @@ export default function AdminProfilesPage() {
                         <XCircle className="h-4 w-4" /> Rejeitar
                       </Button>
                     ) : null}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={busyId === profile.id}
-                      onClick={() => void toggleWatch(profile)}
-                      className={`h-9 rounded-lg text-xs font-bold ${profile.profileWatch?.active ? "border-violet-300 text-violet-800 hover:bg-violet-50" : "border-amber-400/60 text-amber-800 hover:bg-amber-50"}`}
-                    >
-                      {busyId === profile.id ? (
-                        <LoaderCircle className="h-4 w-4 animate-spin" />
-                      ) : profile.profileWatch?.active ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                      {profile.profileWatch?.active ? "Remover Watch" : "Watch"}
-                    </Button>
+                    {canManageWatch ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={busyId === profile.id}
+                        onClick={() => void toggleWatch(profile)}
+                        className={`h-9 rounded-lg text-xs font-bold ${profile.profileWatch?.active ? "border-violet-300 text-violet-800 hover:bg-violet-50" : "border-amber-400/60 text-amber-800 hover:bg-amber-50"}`}
+                      >
+                        {busyId === profile.id ? (
+                          <LoaderCircle className="h-4 w-4 animate-spin" />
+                        ) : profile.profileWatch?.active ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                        {profile.profileWatch?.active
+                          ? "Remover Watch"
+                          : "Watch"}
+                      </Button>
+                    ) : null}
                     <Button
                       type="button"
                       variant="outline"
@@ -1543,6 +1582,40 @@ function Info({ label, value }: { label: string; value: string }) {
       >
         {value}
       </span>
+    </div>
+  );
+}
+
+function AdminMembershipValidity({ profile }: { profile: AdminProfile }) {
+  const days =
+    profile.membershipDaysRemaining ??
+    membershipDaysRemaining(profile.membershipUntil);
+  const active = profile.membershipActive && Boolean(days && days > 0);
+  const tier = resolveMembershipTier(profile);
+
+  return (
+    <div
+      className={`flex items-start gap-3 rounded-lg border p-3 text-sm ${active ? (days !== null && days <= 7 ? "border-amber-300 bg-amber-50 text-amber-950" : "border-emerald-200 bg-emerald-50 text-emerald-950") : "border-red-200 bg-red-50 text-red-900"}`}
+    >
+      <CalendarClock className="mt-0.5 h-5 w-5 shrink-0" />
+      <div className="min-w-0">
+        <p className="font-extrabold">
+          {tier ? `Plano ${MEMBERSHIP_DETAILS[tier].label}` : "Assinatura"} ·{" "}
+          {membershipRemainingLabel(days)}
+        </p>
+        <p className="mt-0.5 text-xs opacity-75">
+          Válido até {formatMembershipExpiry(profile.membershipUntil)}
+        </p>
+        {profile.membershipDurationMonths ? (
+          <p className="mt-1 text-xs opacity-65">
+            Última contratação: {profile.membershipDurationMonths}{" "}
+            {profile.membershipDurationMonths === 1 ? "mês" : "meses"}
+            {profile.membershipPurchasedAt
+              ? ` · pagamento em ${formatDate(profile.membershipPurchasedAt)}`
+              : ""}
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 }

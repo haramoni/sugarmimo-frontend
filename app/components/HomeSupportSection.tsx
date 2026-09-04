@@ -99,28 +99,28 @@ export function HomeSupportSection() {
   return (
     <section
       id="atendimento"
-      className="scroll-mt-24 border-b border-gold/35 bg-[#fffaf2] px-6 py-20 sm:px-10 lg:px-16"
+      className="scroll-mt-24 border-b border-luxury-gold/22 bg-transparent px-6 py-20 sm:px-10 lg:px-16"
     >
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-end">
           <div>
-            <p className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-wider text-gold">
+            <p className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-wider text-luxury-champagne">
               <Headphones className="size-5" aria-hidden="true" />
               Atendimento SugarMimo
             </p>
             <h2 className="mt-3 max-w-3xl font-serif text-4xl font-semibold leading-tight sm:text-5xl">
               Canais claros para cada tipo de solicitação.
             </h2>
-            <p className="mt-4 max-w-3xl text-base font-medium leading-8 text-black-jewel/68">
+            <p className="mt-4 max-w-3xl text-base font-medium leading-8 text-luxury-muted">
               Escolha o canal adequado ou abra uma solicitação para receber um
               protocolo e acompanhar o histórico do atendimento.
             </p>
           </div>
-          <div className="flex items-start gap-3 rounded-2xl border border-emerald/20 bg-white p-5 shadow-sm">
-            <Clock3 className="mt-0.5 size-6 shrink-0 text-emerald" />
+          <div className="premium-surface-card flex items-start gap-3 rounded-2xl p-5">
+            <Clock3 className="mt-0.5 size-6 shrink-0 text-luxury-champagne" />
             <div>
               <p className="font-extrabold">Horário de atendimento</p>
-              <p className="mt-1 text-sm leading-6 text-black-jewel/62">
+              <p className="mt-1 text-sm leading-6 text-luxury-muted">
                 Canais disponíveis 24 horas para envio. As solicitações são
                 analisadas e respondidas em dias úteis.
               </p>
@@ -133,13 +133,13 @@ export function HomeSupportSection() {
             <a
               key={title}
               href={href}
-              className="group rounded-2xl border border-gold/25 bg-white p-5 shadow-[0_12px_32px_rgba(20,17,14,0.06)] transition hover:-translate-y-1 hover:border-gold/55 hover:shadow-md"
+              className="premium-surface-card group rounded-2xl p-5 transition hover:-translate-y-1 hover:border-luxury-champagne"
             >
-              <span className="grid size-11 place-items-center rounded-xl bg-emerald/10 text-emerald transition group-hover:bg-emerald group-hover:text-white">
+              <span className="premium-icon-medallion size-11 rounded-xl transition group-hover:bg-luxury-champagne group-hover:text-luxury-ink">
                 <Icon className="size-5" aria-hidden="true" />
               </span>
               <h3 className="mt-4 font-bold">{title}</h3>
-              <p className="mt-2 break-all text-sm font-semibold text-black-jewel/58">
+              <p className="mt-2 break-all text-sm font-semibold text-luxury-muted">
                 {value}
               </p>
             </a>
@@ -167,15 +167,15 @@ export function HomeSupportSection() {
           />
         </div>
 
-        <div className="mt-10 grid gap-6 rounded-2xl border border-gold/25 bg-white p-5 shadow-[0_18px_48px_rgba(20,17,14,0.07)] lg:grid-cols-[0.8fr_1.2fr] sm:p-8">
+        <div className="premium-surface-card mt-10 grid gap-6 rounded-2xl p-5 lg:grid-cols-[0.8fr_1.2fr] sm:p-8">
           <div>
-            <p className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-emerald">
+            <p className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-luxury-champagne">
               <FileSearch className="size-5" /> Consultar atendimento
             </p>
             <h3 className="mt-2 font-serif text-2xl font-semibold">
               Acompanhe seu protocolo
             </h3>
-            <p className="mt-2 text-sm leading-6 text-black-jewel/60">
+            <p className="mt-2 text-sm leading-6 text-luxury-muted">
               Informe o protocolo e o mesmo e-mail usado ao abrir a solicitação.
             </p>
             <form onSubmit={findTicket} className="mt-5 grid gap-3">
@@ -184,7 +184,7 @@ export function HomeSupportSection() {
                 required
                 placeholder="SM-AAAAMMDD-XXXXXXXX"
                 aria-label="Protocolo do atendimento"
-                className="h-12 rounded-xl border border-black/12 px-4 text-sm font-semibold uppercase outline-none focus:border-emerald focus:ring-2 focus:ring-emerald/15"
+                className="premium-field h-12 rounded-xl px-4 text-sm font-semibold uppercase outline-none"
               />
               <input
                 name="email"
@@ -192,11 +192,11 @@ export function HomeSupportSection() {
                 required
                 placeholder="E-mail usado no atendimento"
                 aria-label="E-mail do atendimento"
-                className="h-12 rounded-xl border border-black/12 px-4 text-sm font-semibold outline-none focus:border-emerald focus:ring-2 focus:ring-emerald/15"
+                className="premium-field h-12 rounded-xl px-4 text-sm font-semibold outline-none"
               />
               <button
                 disabled={isSearching}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-emerald px-5 text-sm font-extrabold text-white transition hover:bg-gold disabled:opacity-60"
+                className="premium-primary-action inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-extrabold transition disabled:opacity-60"
               >
                 {isSearching ? (
                   <LoaderCircle className="size-4 animate-spin" />
@@ -213,30 +213,30 @@ export function HomeSupportSection() {
             ) : null}
           </div>
 
-          <div className="rounded-xl bg-black/[0.025] p-5">
+          <div className="rounded-xl border border-luxury-gold/16 bg-luxury-black/55 p-5">
             {ticket ? (
               <div>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <p className="text-xs font-extrabold uppercase tracking-wide text-black-jewel/45">
+                    <p className="text-xs font-extrabold uppercase tracking-wide text-luxury-muted/75">
                       {ticket.protocol}
                     </p>
                     <p className="mt-1 font-bold">{ticket.subject}</p>
                   </div>
-                  <span className="rounded-full bg-emerald/10 px-3 py-1 text-xs font-extrabold uppercase text-emerald">
+                  <span className="rounded-full border border-emerald/35 bg-emerald/12 px-3 py-1 text-xs font-extrabold uppercase text-[#78d6c0]">
                     {statusLabels[ticket.status] ?? ticket.status}
                   </span>
                 </div>
                 <div className="mt-5 space-y-3">
                   {ticket.events.map((item) => (
                     <div key={`${item.status}-${item.createdAt}`} className="flex gap-3">
-                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald" />
+                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#78d6c0]" />
                       <div>
                         <p className="text-sm font-bold">
                           {statusLabels[item.status] ?? item.status}
                         </p>
-                        <p className="text-sm text-black-jewel/60">{item.note}</p>
-                        <p className="mt-1 text-xs text-black-jewel/40">
+                        <p className="text-sm text-luxury-muted">{item.note}</p>
+                        <p className="mt-1 text-xs text-luxury-muted/65">
                           {formatDate(item.createdAt)}
                         </p>
                       </div>
@@ -249,7 +249,7 @@ export function HomeSupportSection() {
                 <div>
                   <FileSearch className="mx-auto size-10 text-gold/60" />
                   <p className="mt-3 font-bold">Histórico do atendimento</p>
-                  <p className="mt-1 max-w-sm text-sm leading-6 text-black-jewel/50">
+                  <p className="mt-1 max-w-sm text-sm leading-6 text-luxury-muted/80">
                     O andamento e as atualizações aparecerão aqui após a consulta.
                   </p>
                 </div>
@@ -264,10 +264,10 @@ export function HomeSupportSection() {
 
 function SupportLink({ href, icon: Icon, title, description }: { href: string; icon: typeof Mail; title: string; description: string }) {
   return (
-    <Link href={href} className="group flex items-center gap-4 rounded-2xl border border-black/8 bg-white p-4 transition hover:border-emerald/35 hover:shadow-sm">
-      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gold/10 text-gold"><Icon className="size-5" /></span>
-      <span className="min-w-0 flex-1"><strong className="block">{title}</strong><span className="text-xs font-semibold text-black-jewel/50">{description}</span></span>
-      <ArrowRight className="size-4 text-emerald transition group-hover:translate-x-1" />
+    <Link href={href} className="premium-surface-card group flex items-center gap-4 rounded-2xl p-4 transition hover:border-luxury-champagne">
+      <span className="premium-icon-medallion size-10 shrink-0 rounded-xl"><Icon className="size-5" /></span>
+      <span className="min-w-0 flex-1"><strong className="block text-luxury-ivory">{title}</strong><span className="text-xs font-semibold text-luxury-muted">{description}</span></span>
+      <ArrowRight className="size-4 text-luxury-champagne transition group-hover:translate-x-1" />
     </Link>
   );
 }

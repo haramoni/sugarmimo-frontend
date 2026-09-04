@@ -12,7 +12,15 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Navbar } from "../components/ui/Navbar";
+import { PremiumLoadingScreen } from "../components/ui/PremiumLoadingScreen";
 import { useAuth } from "../components/AuthProvider";
 import {
   ProfileApprovalGuard,
@@ -30,6 +38,34 @@ import {
 
 const PAGE_SIZE = 6;
 const SEARCH_STATE_KEY = "sugarmimo:buscar-state";
+
+const BABY_GENDER_FILTER_OPTIONS = [
+  { value: "sugar-baby-woman", label: "Mulheres", group: "women" },
+  {
+    value: "sugar-baby-trans-woman",
+    label: "Mulheres trans",
+    group: "women",
+  },
+  { value: "sugar-baby-man", label: "Homens", group: "men" },
+  {
+    value: "sugar-baby-trans-man",
+    label: "Homens trans",
+    group: "men",
+  },
+  { value: "sugar-baby-lgbtqia", label: "LGBTQIA+", group: "both" },
+] as const;
+
+function genderFilterOptionsFor(lookingFor?: string | null) {
+  const preference = lookingFor?.trim().toLowerCase();
+
+  if (preference === "women" || preference === "men") {
+    return BABY_GENDER_FILTER_OPTIONS.filter(
+      (option) => option.group === preference,
+    );
+  }
+
+  return [...BABY_GENDER_FILTER_OPTIONS];
+}
 
 type SavedSearchState = {
   searchDraft: string;
@@ -98,6 +134,20 @@ export default function BuscarPage() {
   const canSearch = ["SUGAR_BABY", "SUGAR_DADDY"].includes(
     normalizedRole ?? "",
   );
+  const genderFilterOptions = genderFilterOptionsFor(user?.lookingFor);
+  const validGenderFilters = new Set(
+    genderFilterOptions.map((option) => option.value),
+  );
+  const compatibleGenderDraft = validGenderFilters.has(
+    genderDraft as (typeof BABY_GENDER_FILTER_OPTIONS)[number]["value"],
+  )
+    ? genderDraft
+    : "";
+  const compatibleGender = validGenderFilters.has(
+    gender as (typeof BABY_GENDER_FILTER_OPTIONS)[number]["value"],
+  )
+    ? gender
+    : "";
   const providerTargetLabel =
     user?.lookingFor?.trim().toLowerCase() === "women"
       ? "Sugar Mommies ativas"
@@ -157,10 +207,10 @@ export default function BuscarPage() {
         search,
         minAgeDraft,
         maxAgeDraft,
-        genderDraft,
+        genderDraft: compatibleGenderDraft,
         minAge,
         maxAge,
-        gender,
+        gender: compatibleGender,
         relationshipMode,
         page,
         scrollY: window.scrollY,
@@ -179,6 +229,8 @@ export default function BuscarPage() {
   }, [
     gender,
     genderDraft,
+    compatibleGender,
+    compatibleGenderDraft,
     relationshipMode,
     hasRestoredState,
     isScrollRestored,
@@ -251,7 +303,7 @@ export default function BuscarPage() {
     if (
       minAgeDraft === minAge &&
       maxAgeDraft === maxAge &&
-      genderDraft === gender
+      compatibleGenderDraft === compatibleGender
     ) {
       return;
     }
@@ -264,12 +316,14 @@ export default function BuscarPage() {
       restoredPageRef.current = 1;
       setMinAge(minAgeDraft);
       setMaxAge(maxAgeDraft);
-      setGender(genderDraft);
+      setGender(compatibleGenderDraft);
     }, 250);
 
     return () => window.clearTimeout(timeout);
   }, [
     canSearch,
+    compatibleGender,
+    compatibleGenderDraft,
     gender,
     genderDraft,
     hasRestoredState,
@@ -300,7 +354,7 @@ export default function BuscarPage() {
             search,
             minAge,
             maxAge,
-            gender: isDaddy ? gender : "",
+            gender: isDaddy ? compatibleGender : "",
             relationshipMode,
             coordinates,
           },
@@ -352,6 +406,7 @@ export default function BuscarPage() {
     return () => controller.abort();
   }, [
     canSearch,
+    compatibleGender,
     coordinates,
     gender,
     hasRestoredState,
@@ -405,7 +460,7 @@ export default function BuscarPage() {
       nextSearch === search &&
       nextMinAge === minAge &&
       nextMaxAge === maxAge &&
-      genderDraft === gender
+      compatibleGenderDraft === compatibleGender
     ) {
       return;
     }
@@ -418,7 +473,7 @@ export default function BuscarPage() {
     setSearch(nextSearch);
     setMinAge(nextMinAge);
     setMaxAge(nextMaxAge);
-    setGender(genderDraft);
+    setGender(compatibleGenderDraft);
   }
 
   const loadMore = useCallback(async () => {
@@ -435,7 +490,7 @@ export default function BuscarPage() {
         search,
         minAge,
         maxAge,
-        gender: isDaddy ? gender : "",
+        gender: isDaddy ? compatibleGender : "",
         relationshipMode,
         coordinates,
       });
@@ -460,7 +515,7 @@ export default function BuscarPage() {
       setIsLoadingMore(false);
     }
   }, [
-    gender,
+    compatibleGender,
     coordinates,
     hasMore,
     isLoading,
@@ -501,27 +556,36 @@ export default function BuscarPage() {
     return () => observer.disconnect();
   }, [error, hasMore, isLoading, isLoadingMore, isScrollRestored, loadMore]);
 
-  if (isAuthLoading || !user || isApprovalPending) {
+  if (isAuthLoading) {
+    return <PremiumLoadingScreen label="Carregando a busca..." />;
+  }
+
+  if (!user || isApprovalPending) {
     return <ProfileApprovalGuard user={user} />;
   }
 
   return (
     <ProfileApprovalGuard user={user}>
-      <main className="min-h-screen bg-[radial-gradient(circle_at_12%_12%,color-mix(in_srgb,var(--emerald)_12%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--ruby)_10%,transparent),transparent_26%),url('/wallpaper-marble.webp')] bg-cover bg-center text-black-jewel md:bg-fixed">
+      <main className="relative min-h-screen overflow-hidden bg-luxury-black text-luxury-ivory">
         <Navbar />
 
-        <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
-          <div className="grid gap-5 lg:grid-cols-[minmax(260px,330px)_minmax(0,1fr)]">
-            <aside className="h-fit rounded-lg border border-emerald/26 bg-[color-mix(in_srgb,var(--surface)_90%,white)] p-4 shadow-[0_22px_58px_rgba(20,17,14,0.12)] ring-1 ring-white/70 backdrop-blur sm:p-5">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_18%_10%,color-mix(in_srgb,var(--luxury-gold)_11%,transparent),transparent_25%),radial-gradient(circle_at_92%_46%,color-mix(in_srgb,var(--luxury-gold-deep)_10%,transparent),transparent_24%),radial-gradient(circle_at_4%_82%,color-mix(in_srgb,var(--luxury-gold)_7%,transparent),transparent_22%)]"
+        />
+
+        <section className="relative z-10 mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
+          <div className="grid items-start gap-5 min-[900px]:grid-cols-[15.25rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
+            <aside className="h-fit rounded-xl border border-luxury-gold/55 bg-[linear-gradient(145deg,var(--luxury-surface-raised),var(--luxury-night))] p-4 text-luxury-ivory shadow-[0_0_22px_rgba(213,166,78,0.11),0_22px_58px_rgba(0,0,0,0.3)] backdrop-blur sm:p-5 min-[900px]:sticky min-[900px]:top-40 xl:top-24">
               <div className="flex items-center gap-3">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-emerald text-white shadow-[0_12px_28px_rgba(0,108,88,0.22)]">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-luxury-champagne/75 bg-luxury-black text-luxury-champagne shadow-[0_0_18px_rgba(213,166,78,0.28)]">
                   <Crown className="h-5 w-5" />
                 </span>
                 <div className="min-w-0">
-                  <h1 className="text-2xl font-extrabold tracking-tight text-black-jewel">
+                  <h1 className="font-serif text-2xl font-semibold tracking-tight text-luxury-ivory">
                     Buscar
                   </h1>
-                  <p className="text-sm font-semibold text-black-jewel/64">
+                  <p className="text-xs font-semibold text-luxury-muted">
                     {targetLabel}
                   </p>
                 </div>
@@ -531,38 +595,61 @@ export default function BuscarPage() {
                 <div className="space-y-2">
                   <label
                     htmlFor="relationship-mode"
-                    className="block text-sm font-bold text-black-jewel"
+                    className="block text-sm font-bold text-luxury-ivory"
                   >
                     Tipo de conexão
                   </label>
                   {normalizeRelationshipIntent(user?.relationshipIntent) ===
                   "BOTH" ? (
-                    <select
-                      id="relationship-mode"
+                    <Select
                       value={relationshipMode}
-                      onChange={(event) => {
-                        setRelationshipMode(
-                          event.target.value as RelationshipMode,
-                        );
+                      onValueChange={(value) => {
+                        setRelationshipMode(value as RelationshipMode);
                         setIsLoading(true);
                         setProfiles([]);
                         setPage(1);
                         restoredPageRef.current = 1;
                       }}
-                      className="h-11 w-full rounded-sm border border-ruby/25 bg-white/88 px-3 text-sm font-semibold text-black-jewel outline-none transition focus:border-ruby focus:ring-2 focus:ring-ruby/15"
                     >
-                      <option value="COMPATIBLE">Sugar e tradicional</option>
-                      <option value="SUGAR">Somente Sugar</option>
-                      <option value="TRADITIONAL">Somente tradicional</option>
-                    </select>
+                      <SelectTrigger
+                        id="relationship-mode"
+                        className="h-11 w-full rounded-md border-luxury-gold/40 bg-luxury-black/72 px-3 text-sm font-semibold text-luxury-ivory focus-visible:border-luxury-champagne focus-visible:ring-luxury-gold/20 [&_svg]:text-luxury-champagne"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent
+                        position="popper"
+                        align="start"
+                        className="premium-select-content rounded-lg border border-luxury-gold/45 bg-luxury-surface-raised p-1 text-luxury-ivory shadow-[0_22px_48px_rgba(0,0,0,0.48)]"
+                      >
+                        <SelectItem
+                          value="COMPATIBLE"
+                          className="rounded-md text-luxury-ivory focus:bg-luxury-gold/18 focus:text-luxury-champagne data-[state=checked]:text-luxury-champagne"
+                        >
+                          Sugar e tradicional
+                        </SelectItem>
+                        <SelectItem
+                          value="SUGAR"
+                          className="rounded-md text-luxury-ivory focus:bg-luxury-gold/18 focus:text-luxury-champagne data-[state=checked]:text-luxury-champagne"
+                        >
+                          Somente Sugar
+                        </SelectItem>
+                        <SelectItem
+                          value="TRADITIONAL"
+                          className="rounded-md text-luxury-ivory focus:bg-luxury-gold/18 focus:text-luxury-champagne data-[state=checked]:text-luxury-champagne"
+                        >
+                          Somente tradicional
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   ) : (
-                    <div className="rounded-sm border border-ruby/20 bg-[color-mix(in_srgb,var(--ruby)_6%,white)] px-3 py-2.5 text-sm font-extrabold text-ruby">
+                    <div className="rounded-md border border-luxury-gold/40 bg-luxury-black/72 px-3 py-2.5 text-sm font-extrabold text-luxury-champagne">
                       {getRelationshipIntentLabel(user?.relationshipIntent)}
                     </div>
                   )}
                 </div>
 
-                <label className="block text-sm font-bold text-black-jewel">
+                <label className="block text-sm font-bold text-luxury-ivory">
                   Nome, cidade ou estado
                 </label>
                 <div className="flex min-w-0 gap-2">
@@ -570,20 +657,20 @@ export default function BuscarPage() {
                     value={searchDraft}
                     onChange={(event) => setSearchDraft(event.target.value)}
                     placeholder="Ex: Sao Paulo"
-                    className="h-11 min-w-0 rounded-sm border-emerald/28 bg-white/88 focus-visible:border-emerald"
+                    className="h-11 min-w-0 rounded-md border-luxury-gold/40 bg-luxury-black/72 text-luxury-ivory placeholder:text-luxury-muted/65 focus-visible:border-luxury-champagne focus-visible:ring-luxury-gold/20"
                   />
                   <Button
                     type="submit"
                     size="icon"
                     aria-label="Buscar perfis"
-                    className="h-11 w-11 shrink-0 rounded-sm bg-emerald text-white hover:bg-emerald/84"
+                    className="h-11 w-11 shrink-0 rounded-md border border-luxury-gold/60 bg-luxury-black text-luxury-champagne hover:bg-luxury-gold hover:text-luxury-ink"
                   >
                     <Search className="h-4 w-4" />
                   </Button>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-black-jewel">
+                  <label className="block text-sm font-bold text-luxury-ivory">
                     Faixa etária
                   </label>
                   <AgeRangeFilter
@@ -598,34 +685,48 @@ export default function BuscarPage() {
                   <div className="space-y-2">
                     <label
                       htmlFor="gender-filter"
-                      className="block text-sm font-bold text-black-jewel"
+                      className="block text-sm font-bold text-luxury-ivory"
                     >
                       Estou procurando
                     </label>
-                    <select
-                      id="gender-filter"
-                      value={genderDraft}
-                      onChange={(event) => setGenderDraft(event.target.value)}
-                      className="h-11 w-full rounded-sm border border-emerald/28 bg-white/88 px-3 text-sm font-semibold text-black-jewel outline-none transition focus:border-emerald focus:ring-2 focus:ring-emerald/20"
+                    <Select
+                      value={compatibleGenderDraft || "ALL"}
+                      onValueChange={(value) =>
+                        setGenderDraft(value === "ALL" ? "" : value)
+                      }
                     >
-                      <option value="">Todas</option>
-                      <option value="sugar-baby-woman">Mulheres</option>
-                      <option value="sugar-baby-trans-woman">
-                        Mulheres trans
-                      </option>
-                      <option value="sugar-baby-man">Homens</option>
-                      <option value="sugar-baby-trans-man">Homens trans</option>
-                      <option value="sugar-baby-lgbtqia">LGBTQIA+</option>
-                    </select>
+                      <SelectTrigger
+                        id="gender-filter"
+                        className="h-11 w-full rounded-md border-luxury-gold/40 bg-luxury-black/72 px-3 text-sm font-semibold text-luxury-ivory focus-visible:border-luxury-champagne focus-visible:ring-luxury-gold/20 [&_svg]:text-luxury-champagne"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent
+                        position="popper"
+                        align="start"
+                        className="premium-select-content rounded-lg border border-luxury-gold/45 bg-luxury-surface-raised p-1 text-luxury-ivory shadow-[0_22px_48px_rgba(0,0,0,0.48)]"
+                      >
+                        <SelectItem value="ALL">
+                          {user?.lookingFor?.trim().toLowerCase() === "men"
+                            ? "Todos"
+                            : "Todas"}
+                        </SelectItem>
+                        {genderFilterOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 ) : null}
               </form>
 
-              <div className="mt-4 flex items-start gap-2 rounded-sm border border-emerald/22 bg-white/72 p-3 text-xs font-semibold leading-5 text-black-jewel/66">
+              <div className="mt-4 flex items-start gap-2 rounded-md border border-luxury-gold/35 bg-luxury-black/55 p-3 text-xs font-semibold leading-5 text-luxury-muted">
                 {locationStatus === "checking" ? (
-                  <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-emerald" />
+                  <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-luxury-gold" />
                 ) : (
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-emerald" />
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-luxury-gold" />
                 )}
                 <div>
                   <p>
@@ -641,7 +742,7 @@ export default function BuscarPage() {
                     <button
                       type="button"
                       onClick={requestLocation}
-                      className="mt-1 font-extrabold text-emerald underline underline-offset-2"
+                      className="mt-1 font-extrabold text-luxury-champagne underline underline-offset-2"
                     >
                       Tentar novamente
                     </button>
@@ -658,6 +759,7 @@ export default function BuscarPage() {
                   icon={ShieldCheck}
                   title="Busca indisponível"
                   description={error}
+                  variant="luxuryDark"
                 />
               ) : isLoading ? (
                 <StatePanel
@@ -665,16 +767,18 @@ export default function BuscarPage() {
                   title="Carregando perfis"
                   description={`Estamos buscando ${targetLabel.toLocaleLowerCase("pt-BR")} para você.`}
                   spin
+                  variant="luxuryDark"
                 />
               ) : profiles?.length === 0 ? (
                 <StatePanel
                   icon={Search}
                   title="Nenhum perfil encontrado"
                   description="Tente buscar por outro nome, cidade ou estado."
+                  variant="luxuryDark"
                 />
               ) : (
                 <div className="space-y-5">
-                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {profiles.map((profile, index) => (
                       <ProfileCard
                         key={profile.id}
@@ -682,7 +786,7 @@ export default function BuscarPage() {
                         eager={index < 3}
                         viewerRole={user.role}
                         viewerIsPremium={Boolean(user.isPremium)}
-                        viewerIsPremiere={Boolean(user.isPremiere)}
+                        variant="searchDark"
                         onNavigate={() => {
                           navigationAnchorRef.current = getProfileAnchor(
                             profile.id,
@@ -692,10 +796,10 @@ export default function BuscarPage() {
                             search,
                             minAgeDraft,
                             maxAgeDraft,
-                            genderDraft,
+                            genderDraft: compatibleGenderDraft,
                             minAge,
                             maxAge,
-                            gender,
+                            gender: compatibleGender,
                             relationshipMode,
                             page,
                             scrollY: window.scrollY,
@@ -710,7 +814,7 @@ export default function BuscarPage() {
                   </div>
 
                   {error ? (
-                    <p className="text-center text-sm font-bold text-ruby">
+                    <p className="text-center text-sm font-bold text-[#ff9eae]">
                       {error}
                     </p>
                   ) : null}
@@ -721,8 +825,8 @@ export default function BuscarPage() {
                     aria-live="polite"
                   >
                     {isLoadingMore ? (
-                      <div className="flex items-center gap-2 text-sm font-bold text-black-jewel/62">
-                        <Loader2 className="h-4 w-4 animate-spin text-emerald" />
+                      <div className="flex items-center gap-2 text-sm font-bold text-luxury-muted">
+                        <Loader2 className="h-4 w-4 animate-spin text-luxury-gold" />
                         Carregando mais perfis
                       </div>
                     ) : error && hasMore ? (
@@ -730,7 +834,7 @@ export default function BuscarPage() {
                         type="button"
                         variant="outline"
                         onClick={() => void loadMore()}
-                        className="rounded-full border-emerald/30 bg-white/82 font-extrabold text-emerald hover:bg-emerald hover:text-white"
+                        className="rounded-full border-luxury-gold/60 bg-luxury-surface font-extrabold text-luxury-champagne hover:bg-luxury-gold hover:text-luxury-ink"
                       >
                         Tentar carregar novamente
                       </Button>
@@ -901,6 +1005,7 @@ function AccessNotice() {
       icon={ShieldCheck}
       title="Busca indisponível"
       description="Esta área está disponível para perfis Sugar Baby e Sugar Daddy."
+      variant="luxuryDark"
     />
   );
 }

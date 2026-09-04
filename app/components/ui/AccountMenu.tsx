@@ -10,7 +10,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { LogOut, Mail, Menu, Settings, UserRound } from "lucide-react";
+import {
+  ArrowRight,
+  CreditCard,
+  LogOut,
+  Mail,
+  Menu,
+  Settings,
+  UserRound,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -26,6 +34,11 @@ export function AccountMenu() {
     return null;
   }
 
+  const normalizedRole = user.role?.trim().toUpperCase();
+  const canPurchasePlan = ["SUGAR_DADDY", "SUGAR_MOMMY"].includes(
+    normalizedRole ?? "",
+  );
+
   async function handleLogout() {
     setOpen(false);
     await logout();
@@ -40,7 +53,7 @@ export function AccountMenu() {
           variant="outline"
           size="icon-lg"
           aria-label="Abrir menu da conta"
-          className="h-11 w-11 rounded-full border-[color:color-mix(in_srgb,var(--gold)_45%,var(--silver))] bg-white/75 text-[var(--black)] shadow-[0_8px_22px_rgba(20,17,14,0.08)] hover:border-[var(--emerald)] hover:bg-white hover:text-[var(--emerald)]"
+          className="h-11 w-11 rounded-full border-[#b98a38]/70 bg-[#050504] text-[#d6aa54] shadow-[0_0_12px_rgba(185,138,56,0.1)] hover:border-[#e1bd8a] hover:bg-[#120e08] hover:text-[#f1d28d]"
         >
           <Menu className="h-5 w-5" />
         </Button>
@@ -76,6 +89,28 @@ export function AccountMenu() {
               </div>
             </div>
           </div>
+
+          {canPurchasePlan ? (
+            <DialogClose asChild>
+              <Link
+                href="/planos"
+                className="group mt-5 flex min-h-20 items-center gap-3 rounded-3xl border border-[#ff8b9b] bg-[linear-gradient(135deg,#f34460_0%,#cf1538_52%,#920920_100%)] px-5 py-4 text-white shadow-[0_0_24px_rgba(239,42,76,0.42),0_16px_34px_rgba(92,9,31,0.24),inset_0_1px_0_rgba(255,225,230,0.42)] transition duration-300 hover:-translate-y-0.5 hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff6079]"
+              >
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/35 bg-white/15 shadow-inner">
+                  <CreditCard className="h-5 w-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-black uppercase tracking-[0.08em]">
+                    Assinar um plano
+                  </span>
+                  <span className="mt-1 block text-xs font-medium text-white/80">
+                    Escolha sua assinatura
+                  </span>
+                </span>
+                <ArrowRight className="h-5 w-5 shrink-0 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+            </DialogClose>
+          ) : null}
 
           <div className="mt-5 space-y-2">
             <DialogClose asChild>

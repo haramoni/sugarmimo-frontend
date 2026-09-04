@@ -10,6 +10,7 @@ import StatePanel from "../buscar/components/StatePanel";
 import type { PublicProfile, PublicProfilePage } from "../buscar/types";
 import { useAuth } from "../components/AuthProvider";
 import { Navbar } from "../components/ui/Navbar";
+import { PremiumLoadingScreen } from "../components/ui/PremiumLoadingScreen";
 import {
   ProfileApprovalGuard,
   shouldShowPendingApproval,
@@ -266,33 +267,52 @@ export default function InicioPage() {
     return () => observer.disconnect();
   }, [error, hasMore, isLoading, isLoadingMore, isScrollRestored, loadMore]);
 
-  if (isAuthLoading || !user || isApprovalPending) {
+  if (isAuthLoading) {
+    return <PremiumLoadingScreen label="Carregando os perfis em destaque..." />;
+  }
+
+  if (!user || isApprovalPending) {
     return <ProfileApprovalGuard user={user} />;
   }
 
   return (
     <ProfileApprovalGuard user={user}>
-      <main className="min-h-screen bg-[radial-gradient(circle_at_12%_12%,color-mix(in_srgb,var(--gold)_14%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--emerald)_12%,transparent),transparent_28%),url('/wallpaper-marble.webp')] bg-cover bg-center text-black-jewel md:bg-fixed">
+      <main className="relative min-h-screen overflow-hidden bg-luxury-black text-luxury-ivory">
         <Navbar />
 
-        <section className="mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:px-8">
-          <header className="mb-6 overflow-hidden rounded-lg border border-gold/35 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--gold-soft)_30%,white),color-mix(in_srgb,var(--surface)_92%,white),color-mix(in_srgb,var(--emerald)_10%,white))] p-5 shadow-[0_22px_58px_rgba(20,17,14,0.12)] sm:p-7">
-            <div className="flex items-start gap-4">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gold text-white shadow-[0_12px_28px_rgba(185,138,56,0.25)]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_-12%,color-mix(in_srgb,var(--luxury-gold)_15%,transparent),transparent_36%),radial-gradient(circle_at_94%_38%,color-mix(in_srgb,var(--luxury-gold)_8%,transparent),transparent_25%),radial-gradient(circle_at_8%_78%,color-mix(in_srgb,var(--luxury-gold-deep)_7%,transparent),transparent_28%)]"
+        />
+
+        <section className="relative z-10 mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-9 lg:px-8">
+          <header className="relative mb-7 overflow-hidden rounded-xl border border-luxury-gold/65 bg-[linear-gradient(135deg,var(--luxury-surface-raised)_0%,var(--luxury-night)_58%,var(--luxury-surface)_100%)] p-5 shadow-[0_0_24px_rgba(213,166,78,0.13),0_24px_64px_rgba(0,0,0,0.34)] sm:p-7">
+            <div
+              aria-hidden="true"
+              className="absolute -right-8 top-0 h-full w-52 bg-[radial-gradient(circle_at_center,color-mix(in_srgb,var(--luxury-gold)_18%,transparent),transparent_62%)] opacity-60"
+            />
+            <Sparkles
+              aria-hidden="true"
+              className="absolute right-12 top-8 h-8 w-8 text-luxury-gold/20"
+            />
+            <div className="relative flex items-start gap-4 sm:gap-5">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-luxury-champagne/80 bg-[linear-gradient(145deg,var(--luxury-gold),var(--luxury-gold-deep))] text-luxury-ivory shadow-[0_0_24px_rgba(213,166,78,0.38)] sm:h-14 sm:w-14">
                 <Activity className="h-6 w-6" />
               </span>
               <div>
-                <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-gold">
+                <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-luxury-gold">
                   Comunidade ativa
                 </p>
-                <h1 className="mt-1 font-serif text-3xl font-semibold text-black-jewel sm:text-4xl">
+                <h1 className="mt-1 font-serif text-3xl font-semibold text-luxury-champagne sm:text-4xl">
                   {targetLabel}
                 </h1>
-                <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-black-jewel/68">
-                  Até 20 perfis compatíveis que estiveram ativos nos últimos 7
-                  dias. A ordem muda regularmente para todos ganharem
-                  visibilidade.
-                </p>
+                <div className="mt-2 max-w-2xl text-sm font-medium leading-6 text-luxury-muted">
+                  <p>
+                    Até 20 perfis compatíveis que estiveram ativos nos últimos
+                    7 dias.
+                  </p>
+                  <p>A ordem muda regularmente para todos ganharem visibilidade.</p>
+                </div>
               </div>
             </div>
           </header>
@@ -302,6 +322,7 @@ export default function InicioPage() {
               icon={ShieldCheck}
               title="Perfis ativos indisponíveis"
               description="Esta área está disponível para perfis Sugar Baby e Sugar Daddy."
+              variant="luxuryDark"
             />
           ) : isLoading ? (
             <StatePanel
@@ -309,29 +330,34 @@ export default function InicioPage() {
               title="Carregando perfis ativos"
               description="Buscando as pessoas mais ativas para você."
               spin
+              variant="luxuryDark"
             />
           ) : error && profiles?.length === 0 ? (
             <StatePanel
               icon={ShieldCheck}
               title="Perfis ativos indisponíveis"
               description={error}
+              variant="luxuryDark"
             />
           ) : profiles?.length === 0 ? (
             <StatePanel
               icon={Sparkles}
               title="Novas pessoas em breve"
               description="Nenhum perfil compatível esteve ativo nos últimos 7 dias."
+              variant="luxuryDark"
             />
           ) : (
             <div className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                {profiles.map((profile) => (
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+                {profiles.map((profile, index) => (
                   <div
                     key={profile.id}
                     className="w-full max-w-72 justify-self-center"
                   >
                     <ProfileCard
                       profile={profile}
+                      variant="active"
+                      eager={index < 5}
                       onNavigate={() => {
                         navigationAnchorRef.current = getProfileAnchor(
                           profile.id,
@@ -351,7 +377,7 @@ export default function InicioPage() {
               </div>
 
               {error ? (
-                <p className="text-center text-sm font-bold text-ruby">
+                <p className="text-center text-sm font-bold text-[#ff9eae]">
                   {error}
                 </p>
               ) : null}
@@ -362,8 +388,8 @@ export default function InicioPage() {
                 aria-live="polite"
               >
                 {isLoadingMore ? (
-                  <div className="flex items-center gap-2 text-sm font-bold text-black-jewel/62">
-                    <Loader2 className="h-4 w-4 animate-spin text-emerald" />
+                  <div className="flex items-center gap-2 text-sm font-bold text-luxury-muted">
+                    <Loader2 className="h-4 w-4 animate-spin text-luxury-gold" />
                     Carregando mais perfis
                   </div>
                 ) : error && hasMore ? (
@@ -371,13 +397,21 @@ export default function InicioPage() {
                     type="button"
                     variant="outline"
                     onClick={() => void loadMore()}
-                    className="rounded-full border-emerald/30 bg-white/82 font-extrabold text-emerald hover:bg-emerald hover:text-white"
+                    className="rounded-full border-luxury-gold/60 bg-luxury-surface font-extrabold text-luxury-champagne hover:bg-luxury-gold hover:text-luxury-ink"
                   >
                     Tentar carregar novamente
                   </Button>
                 ) : !hasMore ? (
-                  <p className="text-center text-sm font-bold text-black-jewel/48">
+                  <p className="flex items-center gap-3 text-center text-sm font-medium text-luxury-muted">
+                    <Sparkles
+                      aria-hidden="true"
+                      className="h-3.5 w-3.5 text-luxury-gold"
+                    />
                     Todos os perfis ativos foram carregados.
+                    <Sparkles
+                      aria-hidden="true"
+                      className="h-3.5 w-3.5 text-luxury-gold"
+                    />
                   </p>
                 ) : null}
               </div>

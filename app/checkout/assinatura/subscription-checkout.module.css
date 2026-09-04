@@ -1,0 +1,922 @@
+.checkoutShell {
+  position: relative;
+  width: min(100% - 2rem, 1120px);
+  min-height: 780px;
+  margin: 0 auto;
+  padding: 9.5rem 0 6rem;
+}
+
+.glow {
+  position: absolute;
+  z-index: 0;
+  top: 7rem;
+  left: 50%;
+  width: min(88vw, 720px);
+  height: 280px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgb(218 53 70 / 12%), transparent 68%);
+  filter: blur(16px);
+  pointer-events: none;
+}
+
+.checkoutHeader,
+.checkoutGrid {
+  position: relative;
+  z-index: 1;
+}
+
+.checkoutHeader {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 2rem;
+  color: #9d958c;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  color: #f1e5d8;
+  outline: none;
+}
+
+.backLink svg {
+  width: 0.9rem;
+}
+
+.checkoutHeader > p {
+  color: #e55260;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.checkoutHeader h1 {
+  margin-top: 0.55rem;
+  color: #f5eadc;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: clamp(2.35rem, 6vw, 4rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.checkoutHeader > span {
+  display: block;
+  margin-top: 1rem;
+  color: #918980;
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.checkoutGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.75fr);
+  align-items: start;
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+.paymentPanel,
+.orderSummary {
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 1.5rem;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(224 49 66 / 7%), transparent 42%),
+    #100e0c;
+  box-shadow: 0 28px 75px rgb(0 0 0 / 30%);
+}
+
+.paymentPanel {
+  padding: 1.45rem;
+}
+
+.panelHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.panelHeading > span {
+  display: grid;
+  width: 2.3rem;
+  height: 2.3rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(239 73 88 / 36%);
+  border-radius: 50%;
+  background: rgb(224 49 66 / 11%);
+  color: #f26672;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.panelHeading small {
+  color: #a99f95;
+  font-size: 0.51rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.panelHeading h2 {
+  margin-top: 0.12rem;
+  color: #efe4d6;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.55rem;
+  font-weight: 500;
+}
+
+.methodList {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1.3rem;
+}
+
+.methodCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 6.3rem;
+  border: 1px solid #2f2924;
+  border-radius: 1rem;
+  background: #0a0908;
+  padding: 0.95rem;
+  color: #e9ded0;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.methodCard:hover,
+.methodCard:focus-visible,
+.methodSelected {
+  border-color: rgb(240 81 96 / 68%);
+  background:
+    radial-gradient(circle at 100% 0%, rgb(224 49 66 / 12%), transparent 46%),
+    #100b0b;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.methodSelected {
+  box-shadow: inset 0 0 0 1px rgb(240 81 96 / 30%);
+}
+
+.methodCard:disabled {
+  cursor: default;
+  opacity: 0.72;
+  transform: none;
+}
+
+.methodCard:disabled.methodSelected {
+  opacity: 1;
+}
+
+.methodIcon {
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 0.85rem;
+  background: rgb(255 255 255 / 4%);
+  color: #bdada3;
+}
+
+.methodSelected .methodIcon {
+  border-color: rgb(240 81 96 / 35%);
+  background: rgb(224 49 66 / 12%);
+  color: #ff7b85;
+}
+
+.methodIcon svg {
+  width: 1.2rem;
+}
+
+.methodCopy {
+  min-width: 0;
+}
+
+.methodCopy strong,
+.methodCopy small,
+.methodCopy em {
+  display: block;
+}
+
+.methodCopy strong {
+  font-size: 0.82rem;
+}
+
+.methodCopy small {
+  margin-top: 0.22rem;
+  color: #918980;
+  font-size: 0.68rem;
+}
+
+.methodCopy em {
+  margin-top: 0.35rem;
+  color: #68625d;
+  font-size: 0.58rem;
+  font-style: normal;
+}
+
+.radioMark {
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+  border: 1px solid #49413b;
+  border-radius: 50%;
+  color: white;
+}
+
+.methodSelected .radioMark {
+  border-color: #ff737e;
+  background: #df3042;
+}
+
+.radioMark svg {
+  width: 0.75rem;
+  stroke-width: 3;
+}
+
+.integrationNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin-top: 1rem;
+  border: 1px solid rgb(133 190 153 / 16%);
+  border-radius: 0.9rem;
+  background: rgb(89 151 111 / 6%);
+  padding: 0.8rem;
+  color: #77716a;
+  font-size: 0.63rem;
+  line-height: 1.5;
+}
+
+.integrationNotice svg {
+  width: 0.95rem;
+  flex: 0 0 auto;
+  color: #83b794;
+}
+
+.integrationNotice strong {
+  display: block;
+  color: #aeb9ae;
+  font-size: 0.66rem;
+}
+
+.paymentError {
+  margin-top: 1rem;
+  border: 1px solid rgb(236 74 89 / 28%);
+  border-radius: 0.85rem;
+  background: rgb(210 44 60 / 10%);
+  padding: 0.75rem 0.9rem;
+  color: #ff9aa2;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.paymentLoading {
+  display: flex;
+  min-height: 9rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  color: #8f8780;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.paymentLoading svg,
+.spinner {
+  width: 1rem;
+  animation: paymentSpin 800ms linear infinite;
+}
+
+.payerForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 2.5%);
+  padding: 1rem;
+}
+
+.formHeading {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.15rem;
+}
+
+.formHeading > span {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid rgb(239 73 88 / 32%);
+  border-radius: 50%;
+  color: #f26672;
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+
+.formHeading small {
+  display: block;
+  color: #8b837b;
+  font-size: 0.48rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.formHeading h3 {
+  margin-top: 0.1rem;
+  color: #e9ded0;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.payerForm label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.payerForm label > span {
+  color: #aea39a;
+  font-size: 0.6rem;
+  font-weight: 800;
+}
+
+.payerForm input {
+  width: 100%;
+  height: 2.75rem;
+  border: 1px solid #302a25;
+  border-radius: 0.75rem;
+  background: #090807;
+  padding: 0 0.8rem;
+  color: #f1e6d8;
+  font-size: 0.75rem;
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.payerForm input:focus {
+  border-color: rgb(240 81 96 / 65%);
+  box-shadow: 0 0 0 3px rgb(225 50 67 / 10%);
+}
+
+.payerForm input::placeholder {
+  color: #5e5853;
+}
+
+.generateButton,
+.primaryPaymentAction {
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid #ff818a;
+  border-radius: 0.85rem;
+  background: linear-gradient(110deg, #c91f32, #ed3b4c 52%, #bd182b);
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  box-shadow:
+    0 12px 28px rgb(209 30 49 / 26%),
+    inset 0 1px 0 rgb(255 255 255 / 30%);
+  cursor: pointer;
+  transition:
+    filter 160ms ease,
+    transform 160ms ease;
+}
+
+.generateButton {
+  grid-column: 1 / -1;
+}
+
+.generateButton:hover,
+.generateButton:focus-visible,
+.primaryPaymentAction:hover,
+.primaryPaymentAction:focus-visible {
+  filter: brightness(1.09);
+  outline: 3px solid rgb(255 120 128 / 20%);
+  outline-offset: 2px;
+  transform: translateY(-1px);
+}
+
+.generateButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+  transform: none;
+}
+
+.generateButton svg,
+.primaryPaymentAction svg {
+  width: 1rem;
+}
+
+.loginHint {
+  grid-column: 1 / -1;
+  color: #7e7770;
+  font-size: 0.61rem;
+  text-align: center;
+}
+
+.loginHint a {
+  color: #ef7a84;
+  font-weight: 800;
+}
+
+.paymentResult,
+.paymentSuccess {
+  margin-top: 1rem;
+  border: 1px solid rgb(240 81 96 / 24%);
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(224 49 66 / 10%), transparent 48%),
+    #0b0908;
+  padding: 1.1rem;
+}
+
+.paymentResult > h3 {
+  color: #f0e3d6;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.paymentResult > p {
+  margin-top: 0.4rem;
+  color: #8d857e;
+  font-size: 0.66rem;
+  line-height: 1.5;
+}
+
+.pixGrid {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.75fr) minmax(0, 1.25fr);
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.qrCodeWrap {
+  display: grid;
+  place-items: center;
+  border-radius: 0.85rem;
+  background: white;
+  padding: 0.65rem;
+}
+
+.qrCodeWrap img {
+  width: min(100%, 190px);
+  height: auto;
+}
+
+.pixGrid > div:last-child {
+  display: grid;
+  justify-items: start;
+  color: #de5663;
+}
+
+.pixGrid > div:last-child > svg {
+  width: 1.5rem;
+}
+
+.pixGrid > div:last-child > strong {
+  margin-top: 0.5rem;
+  color: #d8cec3;
+  font-size: 0.7rem;
+}
+
+.copyButton,
+.secondaryAction {
+  display: inline-flex;
+  min-height: 2.65rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  border: 1px solid rgb(240 81 96 / 32%);
+  border-radius: 0.75rem;
+  background: rgb(224 49 66 / 10%);
+  padding: 0.55rem 0.8rem;
+  color: #f08c95;
+  font-size: 0.64rem;
+  font-weight: 850;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.copyButton:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.copyButton svg,
+.secondaryAction svg {
+  width: 0.85rem;
+}
+
+.boletoCode {
+  margin-top: 0.8rem;
+  overflow-wrap: anywhere;
+  border: 1px dashed rgb(255 255 255 / 15%);
+  border-radius: 0.75rem;
+  background: #070605;
+  padding: 0.75rem;
+  color: #d5cbc0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.resultActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.secondaryAction {
+  border-color: rgb(255 255 255 / 13%);
+  background: rgb(255 255 255 / 4%);
+  color: #b9aea4;
+}
+
+.primaryPaymentAction {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.paymentSuccess {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  border-color: rgb(82 193 124 / 28%);
+  background: rgb(57 154 94 / 9%);
+}
+
+.paymentSuccess > svg {
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #4ca56d;
+  padding: 0.45rem;
+  color: white;
+}
+
+.paymentSuccess strong,
+.paymentSuccess span {
+  display: block;
+}
+
+.paymentSuccess strong {
+  color: #aee2bf;
+  font-size: 0.83rem;
+}
+
+.paymentSuccess span {
+  margin-top: 0.2rem;
+  color: #8da797;
+  font-size: 0.65rem;
+  line-height: 1.45;
+}
+
+@keyframes paymentSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.returnShell {
+  display: grid;
+  min-height: 760px;
+  place-items: center;
+  padding: 9rem 1rem 5rem;
+  background: radial-gradient(circle at 50% 35%, rgb(224 49 66 / 10%), transparent 32rem);
+}
+
+.returnCard {
+  width: min(100%, 620px);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 1.6rem;
+  background: #100e0c;
+  padding: clamp(2rem, 6vw, 4rem);
+  text-align: center;
+  box-shadow: 0 30px 90px rgb(0 0 0 / 36%);
+}
+
+.returnSuccessIcon,
+.returnPendingIcon,
+.returnErrorIcon {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.returnSuccessIcon {
+  background: rgb(72 167 106 / 14%);
+  color: #78d095;
+}
+
+.returnPendingIcon {
+  background: rgb(220 173 80 / 12%);
+  color: #d8ae5e;
+}
+
+.returnErrorIcon {
+  background: rgb(224 49 66 / 12%);
+  color: #f06f7a;
+}
+
+.returnSuccessIcon svg,
+.returnPendingIcon svg,
+.returnErrorIcon svg {
+  width: 1.8rem;
+}
+
+.returnCard > p {
+  margin-top: 1.5rem;
+  color: #df5663;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.returnCard h1 {
+  margin-top: 0.55rem;
+  color: #f3e7da;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  font-weight: 500;
+  line-height: 1.08;
+}
+
+.returnCard > span:not(:first-child) {
+  display: block;
+  margin-top: 1rem;
+  color: #8f8780;
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.returnButton {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.5rem;
+  border: 1px solid #ff818a;
+  border-radius: 0.8rem;
+  background: linear-gradient(110deg, #c91f32, #ed3b4c 52%, #bd182b);
+  padding: 0.7rem 1.2rem;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.orderSummary {
+  position: sticky;
+  top: 6.5rem;
+  padding: 1.3rem;
+}
+
+.orderSummary > p {
+  color: #b5aba0;
+  font-size: 0.57rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.planBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  border-bottom: 1px solid rgb(255 255 255 / 7%);
+  padding-bottom: 1rem;
+}
+
+.planBadge > span {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border: 1px solid rgb(223 178 93 / 35%);
+  border-radius: 0.9rem;
+  background: rgb(223 178 93 / 8%);
+  color: #d8b36d;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 0.75rem;
+}
+
+.planBadge small,
+.planBadge strong {
+  display: block;
+}
+
+.planBadge small {
+  color: #756f68;
+  font-size: 0.53rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.planBadge strong {
+  margin-top: 0.12rem;
+  color: #f0e5d7;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.orderSummary dl {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.orderSummary dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #817a73;
+  font-size: 0.66rem;
+}
+
+.orderSummary dd {
+  color: #c4b9ae;
+  font-weight: 800;
+  text-align: right;
+}
+
+.totalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.1rem;
+  border-top: 1px solid rgb(255 255 255 / 8%);
+  padding-top: 1rem;
+  color: #9d948b;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.totalRow strong {
+  color: #f4c4c7;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.65rem;
+  font-weight: 600;
+}
+
+.totalRow small {
+  font-family: inherit;
+  font-size: 0.68rem;
+}
+
+.securitySeal {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-top: 1rem;
+  border-radius: 0.8rem;
+  background: rgb(255 255 255 / 3%);
+  padding: 0.7rem;
+  color: #6f6963;
+  font-size: 0.57rem;
+  line-height: 1.45;
+}
+
+.securitySeal svg {
+  width: 0.9rem;
+  flex: 0 0 auto;
+  color: #7dad8d;
+}
+
+@media (max-width: 800px) {
+  .checkoutGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .orderSummary {
+    position: static;
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 520px) {
+  .checkoutShell {
+    width: min(100% - 1.4rem, 1120px);
+    padding-top: 7.5rem;
+    padding-bottom: 4rem;
+  }
+
+  .checkoutHeader h1 {
+    font-size: 2.55rem;
+  }
+
+  .checkoutHeader > span {
+    font-size: 0.8rem;
+  }
+
+  .checkoutGrid {
+    margin-top: 2rem;
+  }
+
+  .paymentPanel,
+  .orderSummary {
+    border-radius: 1.2rem;
+  }
+
+  .paymentPanel {
+    padding: 1rem;
+  }
+
+  .panelHeading h2 {
+    font-size: 1.25rem;
+  }
+
+  .methodCard {
+    gap: 0.65rem;
+    min-height: 6rem;
+    padding: 0.75rem;
+  }
+
+  .methodIcon {
+    width: 2.45rem;
+    height: 2.45rem;
+  }
+
+  .methodCopy small {
+    font-size: 0.61rem;
+    line-height: 1.4;
+  }
+
+  .methodCopy em {
+    display: none;
+  }
+
+  .payerForm,
+  .pixGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .generateButton,
+  .formHeading,
+  .loginHint {
+    grid-column: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backLink,
+  .methodCard,
+  .payerForm input,
+  .generateButton,
+  .primaryPaymentAction {
+    transition: none;
+  }
+
+  .paymentLoading svg,
+  .spinner {
+    animation: none;
+  }
+}

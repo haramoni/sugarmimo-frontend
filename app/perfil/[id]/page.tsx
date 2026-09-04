@@ -3,12 +3,14 @@
 import {
   ArrowLeft,
   AtSign,
+  BadgeCheck,
   Briefcase,
   Camera,
   Check,
   Cigarette,
   Eye,
   GraduationCap,
+  Gem,
   Heart,
   HeartHandshake,
   Loader2,
@@ -27,13 +29,14 @@ import {
   UserRound,
   type LucideIcon,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { profileIdentityLabel } from "@/app/lib/profileIdentity";
 import { Navbar } from "../../components/ui/Navbar";
+import { PremiumLoadingScreen } from "../../components/ui/PremiumLoadingScreen";
 import { PhotoZoom } from "../../components/ui/PhotoZoom";
 import { useAuth } from "../../components/AuthProvider";
 import {
@@ -50,6 +53,12 @@ import {
 import type { PublicProfile } from "../../buscar/types";
 import { describeForProfile } from "../perfiloptions";
 import { getRelationshipIntentLabel } from "../../lib/relationship-intent";
+import { getProviderProfilePlaceholder } from "../../lib/profileIdentity";
+import {
+  MEMBERSHIP_DETAILS,
+  resolveProfileFrame,
+  resolveMembershipTier,
+} from "../../lib/membership";
 import {
   ProfileApprovalGuard,
   shouldShowPendingApproval,
@@ -148,13 +157,17 @@ export default function PublicProfilePage() {
     );
   }, [profile?.id, user?.id]);
 
-  if (isAuthLoading || !user || isApprovalPending) {
+  if (isAuthLoading) {
+    return <PremiumLoadingScreen label="Carregando o perfil..." />;
+  }
+
+  if (!user || isApprovalPending) {
     return <ProfileApprovalGuard user={user} />;
   }
 
   return (
     <ProfileApprovalGuard user={user}>
-      <main className="min-h-screen bg-[radial-gradient(circle_at_14%_12%,color-mix(in_srgb,var(--emerald)_12%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--gold-soft)_20%,transparent),transparent_30%),url('/wallpaper-marble.webp')] bg-cover bg-center text-black-jewel md:bg-fixed">
+      <main className="public-profile-luxury-page min-h-screen text-luxury-ivory">
         <Navbar />
 
         <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
@@ -162,7 +175,7 @@ export default function PublicProfilePage() {
             type="button"
             variant="ghost"
             onClick={() => router.back()}
-            className="mb-4 h-11 rounded-sm border border-emerald/24 bg-white/76 px-4 text-sm font-extrabold text-black-jewel hover:bg-[color-mix(in_srgb,var(--emerald)_8%,white)]"
+            className="public-profile-back mb-4 h-11 rounded-lg border px-4 text-sm font-extrabold"
           >
             <ArrowLeft className="h-4 w-4" />
             Voltar
@@ -192,7 +205,6 @@ export default function PublicProfilePage() {
               profile={profile}
               viewerRole={user.role}
               viewerIsPremium={Boolean(user.isPremium)}
-              viewerIsPremiere={Boolean(user.isPremiere)}
             />
           )}
         </section>
@@ -205,12 +217,10 @@ function ProfileView({
   profile,
   viewerRole,
   viewerIsPremium,
-  viewerIsPremiere,
 }: {
   profile: PublicProfile;
   viewerRole?: string | null;
   viewerIsPremium: boolean;
-  viewerIsPremiere: boolean;
 }) {
   const [interaction, setInteraction] = useState(
     profile.interaction ?? {
@@ -225,6 +235,10 @@ function ProfileView({
   const [isPinned, setIsPinned] = useState(Boolean(profile.isPinned));
   const [isUpdatingPin, setIsUpdatingPin] = useState(false);
   const mainPhoto = getProfilePhoto(profile);
+  const providerPlaceholder = getProviderProfilePlaceholder(
+    profile.role,
+    profile.gender,
+  );
   const galleryPhotos = getGalleryPhotos(profile);
   const privatePhotos = getPrivatePhotos(profile);
   const photoGallery = [...galleryPhotos, ...privatePhotos].map(
@@ -253,14 +267,23 @@ function ProfileView({
   const isBabyViewingDaddy =
     normalizedViewerRole === "SUGAR_BABY" &&
     normalizedProfileRole === "SUGAR_DADDY";
-  const viewerHasMessagingAccess = viewerIsPremium || viewerIsPremiere;
-  const canLike = isDaddyViewingBaby && viewerHasMessagingAccess;
-  const canBabyLike =
-    isBabyViewingDaddy && Boolean(profile.isPremium || profile.isPremiere);
-  const isPremiumDaddy =
-    normalizedProfileRole === "SUGAR_DADDY" && Boolean(profile.isPremium);
-  const isPremiereDaddy =
-    normalizedProfileRole === "SUGAR_DADDY" && Boolean(profile.isPremiere);
+  const canLike = isDaddyViewingBaby && viewerIsPremium;
+  const canBabyLike = isBabyViewingDaddy && Boolean(profile.isPremium);
+  const membershipTier =
+    normalizedProfileRole === "SUGAR_DADDY"
+      ? resolveMembershipTier(profile)
+      : null;
+  const profileFrame =
+    normalizedProfileRole === "SUGAR_DADDY"
+      ? resolveProfileFrame(profile)
+      : "STANDARD";
+  const membershipDetails = membershipTier
+    ? MEMBERSHIP_DETAILS[membershipTier]
+    : null;
+  const isBasicDaddy = profileFrame === "BASIC";
+  const isPremiumDaddy = profileFrame === "PREMIUM";
+  const isEliteDaddy = profileFrame === "ELITE";
+  const isPremiereDaddy = profileFrame === "PREMIERE";
   const showMessageButton = isDaddyViewingBaby || isBabyViewingDaddy;
   const canOpenChat = isDaddyViewingBaby || isBabyViewingDaddy;
 
@@ -330,9 +353,9 @@ function ProfileView({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-emerald/28 bg-[color:color-mix(in_srgb,var(--surface)_91%,white)] shadow-[0_28px_70px_rgba(0,55,44,0.15)] ring-1 ring-white/70 backdrop-blur-sm">
+    <div className="public-profile-card overflow-hidden rounded-lg border backdrop-blur-sm">
       <div className="grid min-w-0 lg:grid-cols-[minmax(260px,360px)_minmax(0,1fr)]">
-        <aside className="bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_10%,white),color-mix(in_srgb,var(--surface)_94%,white)_48%,color-mix(in_srgb,var(--gold-soft)_16%,white))] p-4 sm:p-6">
+        <aside className="public-profile-aside p-4 sm:p-6">
           {isPremiereDaddy ? (
             <div className="mx-auto flex max-w-88 items-center justify-center gap-3 rounded-t-xl border-x border-t border-[#b99658] bg-[linear-gradient(135deg,#211912,#38291e_52%,#241a13)] px-4 py-3.5 font-serif text-xl font-semibold uppercase tracking-[0.13em] text-[#e4c787] shadow-[0_10px_22px_rgba(70,47,24,0.16)]">
               <Crown
@@ -344,10 +367,9 @@ function ProfileView({
           ) : null}
           <div
             className={[
-              "relative mx-auto aspect-[4/5] max-w-88 overflow-hidden bg-white p-1 shadow-[0_20px_44px_rgba(0,55,44,0.18)]",
-              isPremiereDaddy
-                ? "rounded-b-xl border-2 border-[#c4a266] ring-1 ring-[#ead6aa]"
-                : "rounded-lg border-[3px] border-emerald/62",
+              "public-profile-photo public-profile-membership-frame relative mx-auto aspect-[4/5] max-w-88 overflow-hidden p-1",
+              `public-profile-membership-frame--${profileFrame.toLowerCase()}`,
+              isPremiereDaddy ? "rounded-b-xl" : "rounded-xl",
             ].join(" ")}
           >
             <div className="h-full overflow-hidden rounded-md">
@@ -358,6 +380,15 @@ function ProfileView({
                   imageClassName="h-full w-full object-cover"
                   gallery={photoGallery}
                   initialIndex={0}
+                />
+              ) : providerPlaceholder ? (
+                <Image
+                  src={providerPlaceholder}
+                  alt={`Imagem padrão de ${profile.username ?? "perfil"}`}
+                  width={900}
+                  height={900}
+                  sizes="(max-width: 640px) 88vw, 352px"
+                  className="h-full w-full object-cover"
                 />
               ) : (
                 <div className="grid h-full place-items-center bg-white/82 text-emerald">
@@ -373,25 +404,37 @@ function ProfileView({
                   profile.isOnline ? "text-emerald" : "text-black-jewel/62",
                 ].join(" ")}
               >
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald shadow-[0_0_0_3px_rgba(0,108,88,0.14)]" />
+                <span className="public-profile-online-dot h-2.5 w-2.5 rounded-full bg-emerald shadow-[0_0_0_3px_rgba(0,108,88,0.14)]" />
               </span>
             )}
-            {isNewProfile || isPremiumDaddy || isPremiereDaddy ? (
+            {isNewProfile || profileFrame !== "STANDARD" ? (
               <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
                 {isPremiereDaddy ? (
-                  <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-[#c4a266] bg-[#fff8ea]/94 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#8e6730] shadow-[0_6px_14px_rgba(70,47,24,0.14)]">
+                  <span className="public-profile-status-badge inline-flex min-h-8 items-center gap-1.5 rounded-full border border-[#c4a266] bg-[#fff8ea]/94 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#8e6730] shadow-[0_6px_14px_rgba(70,47,24,0.14)]">
                     <Crown className="h-3.5 w-3.5 stroke-[1.5] text-[#b78945]" />
                     Premiere
                   </span>
                 ) : null}
                 {isPremiumDaddy ? (
-                  <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-gold/55 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--gold-soft)_42%,white),white)] px-3 py-1 text-xs font-extrabold text-black-jewel shadow-[0_8px_18px_rgba(20,17,14,0.12)]">
+                  <span className="public-profile-status-badge inline-flex min-h-8 items-center gap-1.5 rounded-full border border-gold/55 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--gold-soft)_42%,white),white)] px-3 py-1 text-xs font-extrabold text-black-jewel shadow-[0_8px_18px_rgba(20,17,14,0.12)]">
                     <Crown className="h-3.5 w-3.5 text-gold" />
                     Premium
                   </span>
                 ) : null}
+                {isEliteDaddy ? (
+                  <span className="public-profile-status-badge public-profile-tier-badge public-profile-tier-badge--elite inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wider shadow-[0_8px_18px_rgba(20,17,14,0.18)]">
+                    <Gem className="h-3.5 w-3.5" />
+                    Elite
+                  </span>
+                ) : null}
+                {isBasicDaddy ? (
+                  <span className="public-profile-status-badge public-profile-tier-badge public-profile-tier-badge--basic inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wider shadow-[0_8px_18px_rgba(20,17,14,0.14)]">
+                    <BadgeCheck className="h-3.5 w-3.5" />
+                    Membro
+                  </span>
+                ) : null}
                 {isNewProfile ? (
-                  <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-gold/45 bg-[color-mix(in_srgb,var(--gold-soft)_28%,white)] px-3 py-1 text-xs font-extrabold text-black-jewel shadow-[0_8px_18px_rgba(20,17,14,0.12)]">
+                  <span className="public-profile-status-badge inline-flex min-h-8 items-center gap-1.5 rounded-full border border-gold/45 bg-[color-mix(in_srgb,var(--gold-soft)_28%,white)] px-3 py-1 text-xs font-extrabold text-black-jewel shadow-[0_8px_18px_rgba(20,17,14,0.12)]">
                     <Sparkles className="h-3.5 w-3.5 text-gold" />
                     Perfil Novo
                   </span>
@@ -400,13 +443,30 @@ function ProfileView({
             ) : null}
           </div>
 
+          {membershipTier && membershipDetails ? (
+            <div
+              className={`public-profile-membership-rank public-profile-membership-rank--${membershipTier.toLowerCase()} mx-auto flex max-w-88 items-center gap-3 px-4 py-3`}
+              aria-label={`Nível da assinatura: ${membershipDetails.label}`}
+            >
+              <span className="public-profile-membership-rank-icon grid h-10 w-10 shrink-0 place-items-center rounded-full">
+                {membershipTier === "ELITE" ? (
+                  <Gem className="h-5 w-5" />
+                ) : membershipTier === "BASIC" ? (
+                  <BadgeCheck className="h-5 w-5" />
+                ) : (
+                  <Crown className="h-5 w-5" />
+                )}
+              </span>
+              <span className="public-profile-membership-line min-w-0 flex-1 text-center">
+                <h1 className="font-hess uppercase">
+                  ASSINATURA: {membershipDetails.label}
+                </h1>
+              </span>
+            </div>
+          ) : null}
+
           <div className="mt-5 space-y-3 text-center">
-            <h1 className="wrap-anywhere text-3xl font-extrabold tracking-tight text-black-jewel">
-              {profile.username}
-            </h1>
-            <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald">
-              {profileIdentityLabel(profile.role, profile.gender)}
-            </p>
+            <FitUsername username={profile.username ?? "Perfil"} />
             <div className="grid gap-2">
               <Button
                 type="button"
@@ -453,7 +513,7 @@ function ProfileView({
                   className="h-auto min-h-11 rounded-sm bg-black-jewel/70 px-4 py-2 font-extrabold text-white"
                 >
                   <Crown className="h-4 w-4 text-gold-soft" />
-                  Seja Premiere para dar Like
+                  Ative uma assinatura para dar Like
                 </Button>
               ) : null}
 
@@ -483,7 +543,7 @@ function ProfileView({
                   >
                     <Link href={`/chat?with=${encodeURIComponent(profile.id)}`}>
                       <MessageCircle className="h-4 w-4" />
-                      {isDaddyViewingBaby && !viewerHasMessagingAccess
+                      {isDaddyViewingBaby && !viewerIsPremium
                         ? "Enviar mensagem grátis"
                         : "Enviar mensagem"}
                     </Link>
@@ -495,8 +555,8 @@ function ProfileView({
                     className="h-auto min-h-11 rounded-sm bg-emerald px-4 py-2 font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-55"
                   >
                     <MessageCircle className="h-4 w-4" />
-                    {isDaddyViewingBaby && !viewerHasMessagingAccess
-                      ? "Seja Premiere para enviar mensagem"
+                    {isDaddyViewingBaby && !viewerIsPremium
+                      ? "Ative uma assinatura para enviar mensagem"
                       : "Disponível após o match"}
                   </Button>
                 ))}
@@ -535,7 +595,7 @@ function ProfileView({
           </dl>
         </aside>
 
-        <section className="min-w-0 space-y-6 p-4 sm:p-6 lg:p-7">
+        <section className="public-profile-content min-w-0 space-y-6 p-4 sm:p-6 lg:p-7">
           <TextBlock
             title="Sobre"
             body={
@@ -607,7 +667,7 @@ function ProfileView({
           </section>
 
           {privatePhotos.length > 0 ? (
-            <section className="space-y-3 rounded-md border border-gold/30 bg-[color-mix(in_srgb,var(--gold-soft)_12%,white)] p-4">
+            <section className="public-profile-private-photos space-y-3 rounded-md border p-4">
               <div className="flex items-center gap-2">
                 <Lock className="h-5 w-5 text-gold" />
                 <h2 className="font-serif text-xl font-semibold text-black-jewel sm:text-2xl">
@@ -638,6 +698,54 @@ function ProfileView({
         </section>
       </div>
     </div>
+  );
+}
+
+function FitUsername({ username }: { username: string }) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useLayoutEffect(() => {
+    const heading = headingRef.current;
+    if (!heading) return;
+
+    const maximumFontSize = 30;
+    const minimumFontSize = 12;
+    let isCancelled = false;
+
+    const fitToWidth = () => {
+      if (isCancelled) return;
+
+      heading.style.fontSize = `${maximumFontSize}px`;
+      const availableWidth = heading.clientWidth;
+      const requiredWidth = heading.scrollWidth;
+
+      if (availableWidth <= 0 || requiredWidth <= availableWidth) return;
+
+      const fittedSize = Math.max(
+        minimumFontSize,
+        maximumFontSize * (availableWidth / requiredWidth),
+      );
+      heading.style.fontSize = `${Math.floor(fittedSize * 10) / 10}px`;
+    };
+
+    fitToWidth();
+    window.addEventListener("resize", fitToWidth);
+    void document.fonts?.ready.then(fitToWidth);
+
+    return () => {
+      isCancelled = true;
+      window.removeEventListener("resize", fitToWidth);
+    };
+  }, [username]);
+
+  return (
+    <h1
+      ref={headingRef}
+      title={username}
+      className="public-profile-username w-full overflow-hidden whitespace-nowrap font-extrabold tracking-tight text-black-jewel"
+    >
+      {username}
+    </h1>
   );
 }
 
@@ -825,7 +933,7 @@ function StatePanel({
   spin?: boolean;
 }) {
   return (
-    <div className="grid min-h-96 place-items-center rounded-lg border border-emerald/24 bg-[color:color-mix(in_srgb,var(--surface)_90%,white)] p-6 text-center shadow-[0_22px_58px_rgba(20,17,14,0.12)] ring-1 ring-white/70">
+    <div className="public-profile-state grid min-h-96 place-items-center rounded-lg border p-6 text-center">
       <div className="max-w-sm">
         <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald text-white shadow-[0_14px_32px_rgba(0,108,88,0.22)]">
           <Icon className={["h-6 w-6", spin ? "animate-spin" : ""].join(" ")} />

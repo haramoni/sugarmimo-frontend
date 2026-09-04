@@ -31,7 +31,7 @@ export async function forwardAdminRequest(
 
   const result = await response.json().catch(() => null);
 
-  if (response.status === 401 || response.status === 403) {
+  if (response.status === 401) {
     await clearAdminSessionCookie();
   }
 
@@ -66,7 +66,7 @@ export async function forwardAdminAssetRequest(path: string) {
     );
   }
 
-  if (response.status === 401 || response.status === 403) {
+  if (response.status === 401) {
     await clearAdminSessionCookie();
   }
 

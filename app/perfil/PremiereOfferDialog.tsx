@@ -54,12 +54,16 @@ type PremierePaymentState = {
 
 export function PremiereOfferDialog({
   triggerVariant = "default",
+  initialOpen = false,
+  initialStep = "benefits",
 }: {
   triggerVariant?: "default" | "navbar";
+  initialOpen?: boolean;
+  initialStep?: "benefits" | "payment";
 }) {
-  const { refreshUser } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
-  const [step, setStep] = useState<"benefits" | "payment">("benefits");
+  const { refreshUser, user } = useAuth();
+  const [isOpen, setIsOpen] = useState(initialOpen);
+  const [step, setStep] = useState<"benefits" | "payment">(initialStep);
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
     "idle",
   );
@@ -70,6 +74,8 @@ export function PremiereOfferDialog({
   const [isGenerating, setIsGenerating] = useState(false);
   const [paymentError, setPaymentError] = useState("");
   const contentRef = useRef<HTMLDivElement>(null);
+
+  console.log("User type", user);
 
   function handleOpenChange(open: boolean) {
     setIsOpen(open);
@@ -205,40 +211,42 @@ export function PremiereOfferDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button
-          aria-label="Seja Premiere"
-          className={
-            triggerVariant === "navbar"
-              ? "h-10 shrink-0 rounded-full border border-[#d5b66f] bg-[linear-gradient(180deg,#fff8e8,#e8cc91)] px-3 text-xs font-extrabold text-[#5b4224] shadow-[0_8px_20px_rgba(205,167,94,0.22)] hover:bg-[linear-gradient(180deg,#fffdf7,#efdba9)] hover:text-[#3f2d19] sm:px-4"
-              : "h-auto min-h-14 w-full rounded-full border border-[#e5cc96] bg-[linear-gradient(180deg,#fff8e8,#e8cc91)] px-4 py-2 font-bold text-[#5b4224] shadow-[0_12px_26px_rgba(205,167,94,0.24)] hover:bg-[linear-gradient(180deg,#fffdf7,#efdba9)] hover:text-[#3f2d19]"
-          }
-        >
-          <Sparkles className="h-4 w-4 shrink-0 text-[#a87937]" />
-          <span
+      {!user?.isPremiere && (
+        <DialogTrigger asChild>
+          <Button
+            aria-label="Seja Premiere"
             className={
               triggerVariant === "navbar"
-                ? "whitespace-nowrap"
-                : "grid text-center leading-tight"
+                ? "h-10 shrink-0 rounded-full border border-[#f3d58f] bg-[linear-gradient(180deg,#ffecb9_0%,#e6bd67_55%,#c98c2e_100%)] px-3 text-xs font-extrabold text-[#241509] shadow-[0_0_17px_rgba(225,189,138,0.55),0_8px_22px_rgba(84,55,19,0.34),inset_0_1px_0_rgba(255,250,229,0.78)] hover:bg-[linear-gradient(180deg,#fff3c9_0%,#edc978_55%,#d69a38_100%)] hover:text-[#1c1108] sm:px-4"
+                : "h-auto min-h-14 w-full rounded-full border border-[#e5cc96] bg-[linear-gradient(180deg,#fff8e8,#e8cc91)] px-4 py-2 font-bold text-[#5b4224] shadow-[0_12px_26px_rgba(205,167,94,0.24)] hover:bg-[linear-gradient(180deg,#fffdf7,#efdba9)] hover:text-[#3f2d19]"
             }
           >
+            <Sparkles className="h-4 w-4 shrink-0 text-[#87571f]" />
             <span
               className={
                 triggerVariant === "navbar"
-                  ? "text-xs font-extrabold sm:text-sm"
-                  : "text-sm font-extrabold sm:text-base"
+                  ? "whitespace-nowrap"
+                  : "grid text-center leading-tight"
               }
             >
-              SEJA PREMIERE
-            </span>
-            {triggerVariant === "default" ? (
-              <span className="text-[10px] font-bold tracking-[0.14em] text-[#7a5b32] sm:text-[11px]">
-                (OFERTA LIMITADA)
+              <span
+                className={
+                  triggerVariant === "navbar"
+                    ? "text-xs font-extrabold sm:text-sm"
+                    : "text-sm font-extrabold sm:text-base"
+                }
+              >
+                SEJA PREMIERE
               </span>
-            ) : null}
-          </span>
-        </Button>
-      </DialogTrigger>
+              {triggerVariant === "default" ? (
+                <span className="text-[10px] font-bold tracking-[0.14em] text-[#7a5b32] sm:text-[11px]">
+                  (OFERTA LIMITADA)
+                </span>
+              ) : null}
+            </span>
+          </Button>
+        </DialogTrigger>
+      )}
 
       <DialogContent
         ref={contentRef}

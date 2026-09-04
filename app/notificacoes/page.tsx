@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Navbar } from "../components/ui/Navbar";
+import { PremiumLoadingScreen } from "../components/ui/PremiumLoadingScreen";
 import { useAuth } from "../components/AuthProvider";
 import {
   ProfileApprovalGuard,
@@ -101,23 +102,27 @@ export default function NotificationsPage() {
     router.push(`/perfil/${encodeURIComponent(notification.actor.username)}`);
   }
 
-  if (isAuthLoading || !user || isApprovalPending) {
+  if (isAuthLoading) {
+    return <PremiumLoadingScreen label="Carregando suas notificações..." />;
+  }
+
+  if (!user || isApprovalPending) {
     return <ProfileApprovalGuard user={user} />;
   }
 
   return (
     <ProfileApprovalGuard user={user}>
-      <main className="page-marble-background min-h-screen bg-cover bg-center text-black-jewel">
+      <main className="premium-page-shell">
         <Navbar />
         <section className="mx-auto max-w-4xl px-4 py-7 sm:px-6">
-          <div className="rounded-lg border border-emerald/24 bg-[color-mix(in_srgb,var(--surface)_92%,white)] p-4 shadow-[0_22px_58px_rgba(20,17,14,0.12)] sm:p-6">
+          <div className="premium-surface-card rounded-xl p-4 sm:p-6">
             <div className="flex items-center gap-3">
-              <span className="grid h-11 w-11 place-items-center rounded-full bg-emerald text-white">
+              <span className="premium-icon-medallion h-11 w-11 rounded-full">
                 <Bell className="h-5 w-5" />
               </span>
               <div>
-                <h1 className="text-2xl font-extrabold">Notificações</h1>
-                <p className="text-sm font-semibold text-black-jewel/62">
+                <h1 className="text-2xl font-extrabold text-luxury-ivory">Notificações</h1>
+                <p className="text-sm font-semibold text-luxury-muted">
                   Likes e liberações de contato aparecem aqui.
                 </p>
               </div>
@@ -125,16 +130,16 @@ export default function NotificationsPage() {
 
             <div className="mt-6 grid gap-3">
               {isLoading ? (
-                <div className="flex min-h-36 items-center justify-center gap-2 text-sm font-bold text-black-jewel/62">
-                  <Loader2 className="h-5 w-5 animate-spin text-emerald" />
+                <div className="flex min-h-36 items-center justify-center gap-2 text-sm font-bold text-luxury-muted">
+                  <Loader2 className="h-5 w-5 animate-spin text-luxury-champagne" />
                   Carregando notificações...
                 </div>
               ) : error ? (
-                <p className="rounded-sm bg-ruby/10 p-4 text-sm font-bold text-ruby">
+                <p className="rounded-lg border border-ruby/50 bg-ruby/10 p-4 text-sm font-bold text-[#f0a5b3]">
                   {error}
                 </p>
               ) : items.length === 0 ? (
-                <p className="rounded-sm border border-emerald/20 bg-white/74 p-5 text-sm font-semibold text-black-jewel/62">
+                <p className="rounded-lg border border-luxury-gold/25 bg-luxury-black/60 p-5 text-sm font-semibold text-luxury-muted">
                   Você ainda não recebeu notificações.
                 </p>
               ) : (
@@ -159,13 +164,13 @@ export default function NotificationsPage() {
                       type="button"
                       onClick={() => void openNotification(notification)}
                       className={[
-                        "flex min-w-0 items-center gap-3 rounded-sm border p-3 text-left shadow-[0_10px_22px_rgba(0,55,44,0.07)] transition hover:border-emerald",
+                        "flex min-w-0 items-center gap-3 rounded-lg border p-3 text-left shadow-[0_10px_24px_rgba(0,0,0,0.22)] transition hover:border-luxury-champagne",
                         notification.readAt
-                          ? "border-silver/60 bg-white/68"
-                          : "border-emerald/38 bg-[color-mix(in_srgb,var(--emerald)_7%,white)]",
+                          ? "border-luxury-gold/18 bg-luxury-black/48"
+                          : "border-luxury-gold/48 bg-luxury-gold/10",
                       ].join(" ")}
                     >
-                      <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald/10 text-emerald">
+                      <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full border border-luxury-gold/30 bg-luxury-gold/10 text-luxury-champagne">
                         {photo ? (
                           // The authenticated proxy serves a compact card image.
                           // eslint-disable-next-line @next/next/no-img-element
@@ -181,10 +186,10 @@ export default function NotificationsPage() {
                         )}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block font-extrabold text-black-jewel">
+                        <span className="block font-extrabold text-luxury-ivory">
                           @{notification.actor.username}
                         </span>
-                        <span className="block text-sm font-semibold text-black-jewel/68">
+                        <span className="block text-sm font-semibold text-luxury-muted">
                           {isBabyLikeAndRelease
                             ? "Curtiu seu perfil e liberou os contatos para você."
                             : isLike
@@ -192,7 +197,7 @@ export default function NotificationsPage() {
                               : "Liberou os contatos para você."}
                         </span>
                         {location ? (
-                          <span className="mt-1 flex items-center gap-1 text-xs font-medium text-black-jewel/50">
+                          <span className="mt-1 flex items-center gap-1 text-xs font-medium text-luxury-muted/75">
                             <MapPin className="h-3 w-3" />
                             {location}
                           </span>
@@ -205,11 +210,11 @@ export default function NotificationsPage() {
             </div>
 
             {!isLoading && !error && items.length > 6 && !showAll ? (
-              <div className="mt-5 flex justify-center border-t border-emerald/14 pt-5">
+              <div className="mt-5 flex justify-center border-t border-luxury-gold/18 pt-5">
                 <button
                   type="button"
                   onClick={() => setShowAll(true)}
-                  className="inline-flex h-11 items-center gap-2 rounded-full border border-emerald/32 bg-white/82 px-6 text-sm font-extrabold text-emerald shadow-[0_10px_24px_rgba(0,55,44,0.08)] transition hover:-translate-y-0.5 hover:border-emerald hover:bg-emerald hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald"
+                  className="premium-secondary-action inline-flex h-11 items-center gap-2 rounded-full px-6 text-sm font-extrabold shadow-[0_10px_24px_rgba(0,0,0,0.2)] transition"
                 >
                   Ver todas as notificações
                   <ChevronDown className="h-4 w-4" />

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function AtendimentoPage() {
   return (
-    <main className="page-marble-background min-h-screen bg-cover bg-center text-black-jewel">
+    <main className="premium-page-shell">
       <NavBarMenu />
       <div className="pt-20">
         <HomeSupportSection />

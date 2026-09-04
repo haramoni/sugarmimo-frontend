@@ -5,8 +5,10 @@ export default function ChatPage() {
   return (
     <Suspense
       fallback={
-        <main className="grid min-h-screen place-items-center bg-[var(--surface)]">
-          <p className="text-sm font-bold text-black/55">Abrindo conversas…</p>
+        <main className="grid min-h-screen place-items-center bg-luxury-black">
+          <p className="text-sm font-bold text-luxury-muted">
+            Abrindo conversas…
+          </p>
         </main>
       }
     >

@@ -24,7 +24,11 @@ import { type ReactNode, useState } from "react";
 const navigation = [
   { href: "/admin/profiles", label: "Todos os perfis", icon: UsersRound },
   { href: "/admin/approvals", label: "Aprovações", icon: ShieldCheck },
-  { href: "/admin/photo-moderation", label: "Validação de fotos", icon: Images },
+  {
+    href: "/admin/photo-moderation",
+    label: "Validação de fotos",
+    icon: Images,
+  },
   { href: "/admin/waiting", label: "Lista de espera", icon: Hourglass },
   { href: "/admin/featured", label: "Perfis em destaque", icon: Star },
   { href: "/admin/premium", label: "Premium e Premiere", icon: Crown },
@@ -32,7 +36,11 @@ const navigation = [
   { href: "/admin/chat-reports", label: "Denúncias do chat", icon: Flag },
   { href: "/admin/support", label: "Atendimentos", icon: Headset },
   { href: "/admin/security-incidents", label: "Incidentes", icon: Siren },
-  { href: "/admin/activity-logs", label: "Logs de atividade", icon: ClipboardList },
+  {
+    href: "/admin/activity-logs",
+    label: "Logs de atividade",
+    icon: ClipboardList,
+  },
 ];
 
 export function AdminSidebar({ children }: { children: ReactNode }) {
@@ -74,11 +82,11 @@ export function AdminSidebar({ children }: { children: ReactNode }) {
       >
         <div className="flex h-24 items-center justify-between border-b border-white/10 px-6">
           <Image
-            src="/sm-image.png"
+            src="/brand/logo-dark-bg.webp"
             alt="SugarMimo"
             width={178}
             height={60}
-            className="h-auto brightness-0 invert"
+            className="h-auto"
             priority
           />
           <button
@@ -98,12 +106,16 @@ export function AdminSidebar({ children }: { children: ReactNode }) {
           <p className="mt-1 text-sm text-white/55">Painel administrativo</p>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-6" aria-label="Menu administrativo">
+        <nav
+          className="flex-1 space-y-1 overflow-y-auto px-3 pb-6"
+          aria-label="Menu administrativo"
+        >
           {navigation.map((item) => {
             const Icon = item.icon;
             const active =
               pathname === item.href ||
-              (item.href !== "/admin/approvals" && pathname.startsWith(`${item.href}/`));
+              (item.href !== "/admin/approvals" &&
+                pathname.startsWith(`${item.href}/`));
 
             return (
               <Link
@@ -117,7 +129,9 @@ export function AdminSidebar({ children }: { children: ReactNode }) {
                     : "text-white/72 hover:bg-white/8 hover:text-white"
                 }`}
               >
-                <Icon className={`h-5 w-5 shrink-0 ${active ? "text-white" : "text-[var(--gold-soft)]"}`} />
+                <Icon
+                  className={`h-5 w-5 shrink-0 ${active ? "text-white" : "text-[var(--gold-soft)]"}`}
+                />
                 <span>{item.label}</span>
               </Link>
             );
@@ -136,7 +150,9 @@ export function AdminSidebar({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <div className="admin-shell-content min-w-0 overflow-x-hidden">{children}</div>
+      <div className="admin-shell-content min-w-0 overflow-x-hidden">
+        {children}
+      </div>
     </div>
   );
 }

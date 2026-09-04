@@ -3,6 +3,14 @@
 import { CheckCircle2, LoaderCircle, Send } from "lucide-react";
 import { FormEvent, useState } from "react";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 type FormStatus =
   | { type: "idle" }
   | { type: "success"; message: string }
@@ -63,27 +71,27 @@ export function ContactForm({
   }
 
   const fieldClassName =
-    "mt-2 min-h-12 w-full rounded-xl border border-gold/30 bg-white px-4 py-3 text-base text-black-jewel outline-none transition placeholder:text-black-jewel/38 focus:border-emerald focus:ring-2 focus:ring-emerald/15";
+    "premium-field mt-2 min-h-12 w-full rounded-xl px-4 py-3 text-base outline-none transition";
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="mx-auto mt-12 max-w-3xl rounded-2xl border border-gold/25 bg-white p-6 shadow-[0_18px_48px_rgba(20,17,14,0.07)] sm:p-10"
+      className="premium-surface-card mx-auto mt-12 max-w-3xl rounded-2xl p-6 sm:p-10"
     >
       <div className="text-center">
-        <p className="text-sm font-extrabold uppercase tracking-normal text-gold">
+        <p className="text-sm font-extrabold uppercase tracking-[0.18em] text-luxury-champagne">
           Fale com a gente
         </p>
-        <h2 className="mt-2 font-serif text-3xl font-semibold text-black-jewel">
+        <h2 className="mt-2 font-serif text-3xl font-semibold text-luxury-ivory">
           Envie uma mensagem
         </h2>
-        <p className="mx-auto mt-3 max-w-xl text-sm font-medium leading-6 text-black-jewel/66">
+        <p className="mx-auto mt-3 max-w-xl text-sm font-medium leading-6 text-luxury-muted">
           Preencha os campos abaixo e responderemos diretamente no e-mail informado.
         </p>
       </div>
 
       <div className="mt-8 grid gap-6 sm:grid-cols-2">
-        <label className="text-sm font-bold text-black-jewel">
+        <label className="text-sm font-bold text-luxury-ivory">
           Nome
           <input
             className={fieldClassName}
@@ -97,7 +105,7 @@ export function ContactForm({
           />
         </label>
 
-        <label className="text-sm font-bold text-black-jewel">
+        <label className="text-sm font-bold text-luxury-ivory">
           E-mail
           <input
             className={fieldClassName}
@@ -111,23 +119,31 @@ export function ContactForm({
         </label>
       </div>
 
-      <label className="mt-6 block text-sm font-bold text-black-jewel">
+      <label className="mt-6 block text-sm font-bold text-luxury-ivory">
         Tipo de solicitação
-        <select
-          className={fieldClassName}
+        <Select
           name="category"
           defaultValue={initialCategory}
           required
         >
-          <option value="ATENDIMENTO">Atendimento geral</option>
-          <option value="RECLAMACAO">Reclamação</option>
-          <option value="CANCELAMENTO">Cancelamento</option>
-          <option value="PRIVACIDADE">Privacidade e LGPD</option>
-          <option value="DENUNCIA">Denúncia e segurança</option>
-        </select>
+          <SelectTrigger className="premium-field mt-2 h-12 w-full rounded-xl px-4 text-base [&_svg]:text-luxury-champagne">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent
+            position="popper"
+            align="start"
+            className="premium-select-content rounded-lg border border-luxury-gold/45 bg-luxury-surface-raised p-1 text-luxury-ivory shadow-[0_22px_48px_rgba(0,0,0,0.48)]"
+          >
+            <SelectItem value="ATENDIMENTO" className="rounded-md focus:bg-luxury-gold/18 focus:text-luxury-champagne">Atendimento geral</SelectItem>
+            <SelectItem value="RECLAMACAO" className="rounded-md focus:bg-luxury-gold/18 focus:text-luxury-champagne">Reclamação</SelectItem>
+            <SelectItem value="CANCELAMENTO" className="rounded-md focus:bg-luxury-gold/18 focus:text-luxury-champagne">Cancelamento</SelectItem>
+            <SelectItem value="PRIVACIDADE" className="rounded-md focus:bg-luxury-gold/18 focus:text-luxury-champagne">Privacidade e LGPD</SelectItem>
+            <SelectItem value="DENUNCIA" className="rounded-md focus:bg-luxury-gold/18 focus:text-luxury-champagne">Denúncia e segurança</SelectItem>
+          </SelectContent>
+        </Select>
       </label>
 
-      <label className="mt-6 block text-sm font-bold text-black-jewel">
+      <label className="mt-6 block text-sm font-bold text-luxury-ivory">
         Assunto
         <input
           className={fieldClassName}
@@ -140,7 +156,7 @@ export function ContactForm({
         />
       </label>
 
-      <label className="mt-6 block text-sm font-bold text-black-jewel">
+      <label className="mt-6 block text-sm font-bold text-luxury-ivory">
         Mensagem
         <textarea
           className={`${fieldClassName} min-h-40 resize-y`}
@@ -163,7 +179,7 @@ export function ContactForm({
         <button
           type="submit"
           disabled={isSending}
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-emerald px-8 py-3 text-sm font-extrabold text-white shadow-[0_8px_20px_rgba(0,108,88,0.2)] transition hover:bg-gold disabled:cursor-not-allowed disabled:opacity-65 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald"
+          className="premium-primary-action inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-8 py-3 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-65"
         >
           {isSending ? (
             <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden="true" />
@@ -175,12 +191,12 @@ export function ContactForm({
 
         <div className="min-h-6 text-center" aria-live="polite">
           {status.type === "success" ? (
-            <p className="inline-flex items-center gap-2 text-sm font-bold text-emerald">
+            <p className="inline-flex items-center gap-2 text-sm font-bold text-[#78d6c0]">
               <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
               {status.message}
             </p>
           ) : status.type === "error" ? (
-            <p className="text-sm font-bold text-red-700" role="alert">
+            <p className="text-sm font-bold text-[#f0a5b3]" role="alert">
               {status.message}
             </p>
           ) : null}

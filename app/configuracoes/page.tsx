@@ -18,6 +18,7 @@ import { type FormEvent, useEffect, useState } from "react";
 
 import { useAuth } from "../components/AuthProvider";
 import { Navbar } from "../components/ui/Navbar";
+import { PremiumLoadingScreen } from "../components/ui/PremiumLoadingScreen";
 
 const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
@@ -237,12 +238,16 @@ export default function ConfiguracoesPage() {
     }
   }
 
-  if (isAuthLoading || !user) {
+  if (isAuthLoading) {
+    return <PremiumLoadingScreen label="Carregando suas configurações..." />;
+  }
+
+  if (!user) {
     return null;
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--gold-soft)_24%,transparent),transparent_34%),var(--background)]">
+    <main className="premium-page-shell settings-luxury-page">
       <Navbar />
 
       <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
@@ -259,8 +264,8 @@ export default function ConfiguracoesPage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.35fr]">
-          <article className="h-fit rounded-[2rem] border border-[color:color-mix(in_srgb,var(--gold)_26%,transparent)] bg-white/72 p-6 shadow-[0_22px_55px_rgba(20,17,14,0.08)] backdrop-blur-xl">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[color:color-mix(in_srgb,var(--emerald)_12%,white)] text-[var(--emerald)]">
+          <article className="settings-card h-fit rounded-[2rem] border border-[color:color-mix(in_srgb,var(--gold)_26%,transparent)] bg-white/72 p-6 shadow-[0_22px_55px_rgba(20,17,14,0.08)] backdrop-blur-xl">
+            <span className="settings-icon grid h-11 w-11 place-items-center rounded-2xl bg-[color:color-mix(in_srgb,var(--emerald)_12%,white)] text-[var(--emerald)]">
               <Mail className="h-5 w-5" />
             </span>
             <h2 className="mt-5 font-serif text-xl font-semibold text-[var(--black)]">
@@ -269,7 +274,7 @@ export default function ConfiguracoesPage() {
             <p className="mt-2 text-sm text-[color:color-mix(in_srgb,var(--black)_55%,var(--silver))]">
               Este é o e-mail vinculado à sua conta.
             </p>
-            <div className="mt-5 break-all rounded-2xl border border-[color:color-mix(in_srgb,var(--silver)_38%,transparent)] bg-[var(--surface)] px-4 py-3 font-semibold text-[var(--black)]">
+            <div className="settings-value mt-5 break-all rounded-2xl border border-[color:color-mix(in_srgb,var(--silver)_38%,transparent)] bg-[var(--surface)] px-4 py-3 font-semibold text-[var(--black)]">
               {user.email || "E-mail não disponível"}
             </div>
 
@@ -315,7 +320,7 @@ export default function ConfiguracoesPage() {
               <Button
                 type="submit"
                 disabled={isEmailSubmitting}
-                className="h-12 w-full rounded-full bg-[var(--emerald)] px-6 font-extrabold text-white hover:bg-[color:color-mix(in_srgb,var(--emerald)_84%,black)]"
+                className="settings-primary-action h-12 w-full rounded-full bg-[var(--emerald)] px-6 font-extrabold text-white hover:bg-[color:color-mix(in_srgb,var(--emerald)_84%,black)]"
               >
                 {isEmailSubmitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -327,9 +332,9 @@ export default function ConfiguracoesPage() {
             </form>
           </article>
 
-          <article className="rounded-[2rem] border border-[color:color-mix(in_srgb,var(--gold)_26%,transparent)] bg-white/72 p-6 shadow-[0_22px_55px_rgba(20,17,14,0.08)] backdrop-blur-xl sm:p-8">
+          <article className="settings-card rounded-[2rem] border border-[color:color-mix(in_srgb,var(--gold)_26%,transparent)] bg-white/72 p-6 shadow-[0_22px_55px_rgba(20,17,14,0.08)] backdrop-blur-xl sm:p-8">
             <div className="flex items-start gap-4">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[color:color-mix(in_srgb,var(--gold-soft)_35%,white)] text-[var(--gold)]">
+              <span className="settings-icon grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[color:color-mix(in_srgb,var(--gold-soft)_35%,white)] text-[var(--gold)]">
                 <KeyRound className="h-5 w-5" />
               </span>
               <div>
@@ -400,7 +405,7 @@ export default function ConfiguracoesPage() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="h-12 w-full rounded-full bg-[var(--emerald)] px-6 font-extrabold text-white hover:bg-[color:color-mix(in_srgb,var(--emerald)_84%,black)] sm:w-auto"
+                className="settings-primary-action h-12 w-full rounded-full bg-[var(--emerald)] px-6 font-extrabold text-white hover:bg-[color:color-mix(in_srgb,var(--emerald)_84%,black)] sm:w-auto"
               >
                 {isSubmitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -413,9 +418,9 @@ export default function ConfiguracoesPage() {
           </article>
         </div>
 
-        <article className="mt-6 rounded-[2rem] border border-[color:color-mix(in_srgb,var(--emerald)_28%,transparent)] bg-white/72 p-6 shadow-[0_22px_55px_rgba(20,17,14,0.07)] backdrop-blur-xl sm:p-8">
+        <article className="settings-card mt-6 rounded-[2rem] border border-[color:color-mix(in_srgb,var(--emerald)_28%,transparent)] bg-white/72 p-6 shadow-[0_22px_55px_rgba(20,17,14,0.07)] backdrop-blur-xl sm:p-8">
           <div className="flex items-start gap-4">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[color:color-mix(in_srgb,var(--emerald)_12%,white)] text-[var(--emerald)]">
+            <span className="settings-icon grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[color:color-mix(in_srgb,var(--emerald)_12%,white)] text-[var(--emerald)]">
               <History className="h-5 w-5" />
             </span>
             <div>
@@ -436,15 +441,15 @@ export default function ConfiguracoesPage() {
                 Carregando histórico...
               </p>
             ) : consentHistoryError ? (
-              <p className="rounded-xl bg-[color:color-mix(in_srgb,var(--ruby)_10%,white)] px-4 py-3 text-sm font-bold text-[var(--ruby)]">
+              <p className="rounded-xl border border-ruby/50 bg-ruby/10 px-4 py-3 text-sm font-bold text-[#f0a5b3]">
                 {consentHistoryError}
               </p>
             ) : consentHistory.length === 0 ? (
-              <p className="rounded-xl border border-[color:color-mix(in_srgb,var(--silver)_38%,transparent)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--black)]/60">
+              <p className="settings-empty rounded-xl border border-[color:color-mix(in_srgb,var(--silver)_38%,transparent)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--black)]/60">
                 Nenhum aceite foi registrado para esta conta.
               </p>
             ) : (
-              <div className="divide-y divide-[color:color-mix(in_srgb,var(--silver)_35%,transparent)] overflow-hidden rounded-2xl border border-[color:color-mix(in_srgb,var(--silver)_42%,transparent)] bg-white/75">
+              <div className="settings-list divide-y divide-[color:color-mix(in_srgb,var(--silver)_35%,transparent)] overflow-hidden rounded-2xl border border-[color:color-mix(in_srgb,var(--silver)_42%,transparent)] bg-white/75">
                 {consentHistory.map((consent) => (
                   <div
                     key={consent.id}
@@ -463,8 +468,8 @@ export default function ConfiguracoesPage() {
                       className={[
                         "w-fit rounded-full px-3 py-1 text-xs font-extrabold",
                         consent.granted
-                          ? "bg-[color:color-mix(in_srgb,var(--emerald)_12%,white)] text-[var(--emerald)]"
-                          : "bg-[color:color-mix(in_srgb,var(--silver)_28%,white)] text-[var(--black)]/65",
+                          ? "border border-emerald/40 bg-emerald/12 text-[#78d6c0]"
+                          : "border border-luxury-gold/24 bg-luxury-black/60 text-luxury-muted",
                       ].join(" ")}
                     >
                       {getConsentStatus(consent)}
@@ -476,9 +481,9 @@ export default function ConfiguracoesPage() {
           </div>
         </article>
 
-        <article id="excluir-conta" className="mt-6 scroll-mt-24 rounded-[2rem] border border-[color:color-mix(in_srgb,var(--ruby)_34%,transparent)] bg-[color:color-mix(in_srgb,var(--ruby)_4%,white)] p-6 shadow-[0_22px_55px_rgba(20,17,14,0.06)] sm:p-8">
+        <article id="excluir-conta" className="settings-card settings-danger-card mt-6 scroll-mt-24 rounded-[2rem] border border-[color:color-mix(in_srgb,var(--ruby)_34%,transparent)] bg-[color:color-mix(in_srgb,var(--ruby)_4%,white)] p-6 shadow-[0_22px_55px_rgba(20,17,14,0.06)] sm:p-8">
           <div className="flex items-start gap-4">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[color:color-mix(in_srgb,var(--ruby)_12%,white)] text-[var(--ruby)]">
+            <span className="settings-danger-icon grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[color:color-mix(in_srgb,var(--ruby)_12%,white)] text-[var(--ruby)]">
               <AlertTriangle className="h-5 w-5" />
             </span>
             <div>

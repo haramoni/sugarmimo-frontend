@@ -61,19 +61,23 @@ export function ResetPasswordForm() {
 
   return (
     <section className="mx-auto flex min-h-screen w-full max-w-xl items-center px-5 py-16">
-      <div className="w-full rounded-3xl border border-black/10 bg-white/90 p-7 shadow-2xl backdrop-blur md:p-10">
-        <div className="mb-7 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--black)] text-[var(--gold)]">
+      <div className="premium-surface-card w-full rounded-3xl p-7 md:p-10">
+        <div className="premium-icon-medallion mb-7 h-12 w-12 rounded-2xl">
           <KeyRound aria-hidden="true" className="h-6 w-6" />
         </div>
-        <h1 className="font-serif text-4xl text-[var(--black)]">Criar nova senha</h1>
-        <p className="mt-3 text-sm leading-6 text-black/65">
+        <h1 className="font-serif text-4xl text-luxury-ivory">
+          Criar nova senha
+        </h1>
+        <p className="mt-3 text-sm leading-6 text-luxury-muted">
           O link funciona uma única vez. Ao concluir, as sessões antigas da sua
           conta serão encerradas.
         </p>
 
         <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <Label htmlFor="new-password">Nova senha</Label>
+            <Label htmlFor="new-password" className="text-luxury-ivory">
+              Nova senha
+            </Label>
             <Input
               id="new-password"
               type="password"
@@ -84,14 +88,17 @@ export function ResetPasswordForm() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               disabled={isSubmitting || Boolean(success)}
+              className="premium-field h-12 rounded-xl"
             />
-            <p className="text-xs text-black/55">
+            <p className="text-xs text-luxury-muted/80">
               Use maiúscula, minúscula, número e caractere especial.
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirmar nova senha</Label>
+            <Label htmlFor="confirm-password" className="text-luxury-ivory">
+              Confirmar nova senha
+            </Label>
             <Input
               id="confirm-password"
               type="password"
@@ -102,30 +109,48 @@ export function ResetPasswordForm() {
               value={confirmation}
               onChange={(event) => setConfirmation(event.target.value)}
               disabled={isSubmitting || Boolean(success)}
+              className="premium-field h-12 rounded-xl"
             />
           </div>
+          <div className="space-y-3 flex justify-center">
+            {error ? (
+              <p
+                role="alert"
+                className="rounded-xl border border-ruby/50 bg-ruby/10 px-4 py-3 text-sm font-semibold text-[#f0a5b3]"
+              >
+                {error}
+              </p>
+            ) : null}
+            {success ? (
+              <p
+                role="status"
+                className="flex items-start gap-2 rounded-xl border border-emerald/45 bg-emerald/12 px-4 py-3 text-sm font-semibold text-[#78d6c0]"
+              >
+                <ShieldCheck
+                  aria-hidden="true"
+                  className="mt-0.5 h-4 w-4 shrink-0"
+                />
+                {success}
+              </p>
+            ) : null}
 
-          {error ? (
-            <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">
-              {error}
-            </p>
-          ) : null}
-          {success ? (
-            <p role="status" className="flex items-start gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
-              <ShieldCheck aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
-              {success}
-            </p>
-          ) : null}
-
-          {success ? (
-            <Button asChild className="w-full bg-gold">
-              <Link href="/login">Ir para o login</Link>
-            </Button>
-          ) : (
-            <Button className="w-full bg-gold" type="submit" disabled={isSubmitting || !token}>
-              {isSubmitting ? "Redefinindo..." : "Redefinir senha"}
-            </Button>
-          )}
+            {success ? (
+              <Button
+                asChild
+                className="premium-primary-action h-12 w-full rounded-full"
+              >
+                <Link href="/login">Ir para o login</Link>
+              </Button>
+            ) : (
+              <Button
+                className="premium-primary-action h-12 w-full rounded-full"
+                type="submit"
+                disabled={isSubmitting || !token}
+              >
+                {isSubmitting ? "Redefinindo..." : "Redefinir senha"}
+              </Button>
+            )}
+          </div>
         </form>
       </div>
     </section>

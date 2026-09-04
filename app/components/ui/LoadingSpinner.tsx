@@ -28,12 +28,12 @@ export function LoadingSpinner({
           />
           <div className="absolute inset-[7px] rounded-full bg-white shadow-inner" />
           <Image
-            src="/sm-icon.png"
+            src="/brand/monogram-dark.webp"
             alt=""
             width={70}
             height={70}
             priority
-            className="relative h-[70px] w-[70px] scale-[2.4] animate-pulse object-contain [animation-duration:1.8s]"
+            className="relative h-[58px] w-[58px] animate-pulse object-contain [animation-duration:1.8s]"
           />
         </div>
         <p className="text-sm font-bold tracking-wide text-[var(--gold)]">

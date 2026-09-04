@@ -50,7 +50,9 @@ export default function AdminActivityLogsPage() {
       const result = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(result?.message ?? "Não foi possível carregar os logs.");
+        throw new Error(
+          result?.message ?? "Não foi possível carregar os logs.",
+        );
       }
 
       setLogs(result);
@@ -81,7 +83,7 @@ export default function AdminActivityLogsPage() {
       <header className="border-b border-[var(--platinum)] bg-white px-5 py-4">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <Image
-            src="/sm-image.png"
+            src="/brand/logo-primary.webp"
             alt="SugarMimo"
             width={190}
             height={64}

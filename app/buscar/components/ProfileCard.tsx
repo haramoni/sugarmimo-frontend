@@ -1,8 +1,10 @@
 "use client";
 
 import {
+  Activity,
   BadgeCheck,
   Crown,
+  Gem,
   Heart,
   HeartHandshake,
   Loader2,
@@ -13,9 +15,11 @@ import {
   UserRound,
   Zap,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { profileIdentityLabel } from "@/app/lib/profileIdentity";
+import { resolveProfileFrame } from "@/app/lib/membership";
+import { getProviderProfilePlaceholder } from "@/app/lib/profileIdentity";
 import {
   getAge,
   getCustomInterests,
@@ -31,16 +35,16 @@ export default function ProfileCard({
   eager = false,
   viewerRole,
   viewerIsPremium = false,
-  viewerIsPremiere = false,
   onPinChange,
+  variant = "default",
 }: {
   profile: PublicProfile;
   onNavigate?: () => void;
   eager?: boolean;
   viewerRole?: string | null;
   viewerIsPremium?: boolean;
-  viewerIsPremiere?: boolean;
   onPinChange?: (isPinned: boolean) => void;
+  variant?: "default" | "active" | "searchDark";
 }) {
   const [interaction, setInteraction] = useState(profile.interaction ?? {});
   const [isFavoriting, setIsFavoriting] = useState(false);
@@ -49,6 +53,10 @@ export default function ProfileCard({
   const [isUpdatingPin, setIsUpdatingPin] = useState(false);
   const [pinError, setPinError] = useState("");
   const photo = getProfilePhoto(profile);
+  const providerPlaceholder = getProviderProfilePlaceholder(
+    profile.role,
+    profile.gender,
+  );
   const age = getAge(profile.birthDate, profile.age);
   const location = getLocation(profile);
   const interests = getCustomInterests(profile).slice(0, 3);
@@ -57,10 +65,14 @@ export default function ProfileCard({
     ? new Date().getTime() - new Date(profile.createdAt).getTime() <
       7 * 24 * 60 * 60 * 1000
     : false;
-  const isPremiumDaddy =
-    profile.role?.trim().toUpperCase() === "SUGAR_DADDY" && profile.isPremium;
-  const isPremiereDaddy =
-    profile.role?.trim().toUpperCase() === "SUGAR_DADDY" && profile.isPremiere;
+  const membershipTier = resolveProfileFrame(profile);
+  const isBasicMember = membershipTier === "BASIC";
+  const isPremiumMember = membershipTier === "PREMIUM";
+  const isEliteMember = membershipTier === "ELITE";
+  const isPremiereMember = membershipTier === "PREMIERE";
+  const isActiveVariant = variant === "active";
+  const isSearchDarkVariant = variant === "searchDark";
+  const isLuxuryVariant = isActiveVariant || isSearchDarkVariant;
   const isBoosted = profile.boostedUntil
     ? new Date(profile.boostedUntil).getTime() > new Date().getTime()
     : false;
@@ -75,7 +87,7 @@ export default function ProfileCard({
   const canMessage = isDaddyViewingBaby || isBabyViewingDaddy;
   const favoriteAction = isDaddyViewingBaby
     ? "daddy-like"
-    : isBabyViewingDaddy && Boolean(profile.isPremium || profile.isPremiere)
+    : isBabyViewingDaddy && Boolean(profile.isPremium)
       ? "baby-like"
       : null;
   const isFavorited = isDaddyViewingBaby
@@ -83,7 +95,7 @@ export default function ProfileCard({
     : Boolean(interaction.babyLiked);
   const canFavorite =
     favoriteAction === "baby-like" ||
-    (favoriteAction === "daddy-like" && (viewerIsPremium || viewerIsPremiere));
+    (favoriteAction === "daddy-like" && viewerIsPremium);
 
   async function favoriteProfile() {
     if (!favoriteAction || !canFavorite || isFavorited || isFavoriting) {
@@ -155,11 +167,17 @@ export default function ProfileCard({
   return (
     <article
       id={`profile-card-${profile.id}`}
-      className={
-        isPremiereDaddy
+      className={[
+        styles.uniformCard,
+        isSearchDarkVariant ? styles.searchCardSize : styles.standardCardSize,
+        isPremiereMember
           ? `${styles.premiereCard} relative`
-          : "relative min-w-0 self-start overflow-hidden rounded-lg border border-emerald/24 bg-[color-mix(in_srgb,var(--surface)_92%,white)] shadow-[0_18px_44px_rgba(20,17,14,0.12)] ring-1 ring-white/70 transition duration-300 hover:-translate-y-0.5 hover:border-gold/55 hover:shadow-[0_24px_56px_rgba(20,17,14,0.16)]"
-      }
+          : isLuxuryVariant
+            ? styles.luxuryCard
+            : "relative min-w-0 self-start overflow-hidden rounded-lg bg-[color-mix(in_srgb,var(--surface)_92%,white)] shadow-[0_18px_44px_rgba(20,17,14,0.12)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_56px_rgba(20,17,14,0.16)]",
+        isEliteMember ? styles.eliteCard : "",
+        isPremiumMember ? styles.premiumCard : "",
+      ].join(" ")}
     >
       <Link
         href={href}
@@ -167,17 +185,25 @@ export default function ProfileCard({
         aria-label={`Ver perfil de ${profile.username ?? "usuário"}`}
         className="absolute inset-0 z-10 rounded-[inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-emerald"
       />
-      <div className={isPremiereDaddy ? styles.premiereInner : undefined}>
-        {isPremiereDaddy ? (
-          <div className={styles.premiereHeader} aria-label="Perfil Premiere">
+      <div
+        className={
+          isPremiereMember ? styles.premiereInner : styles.standardInner
+        }
+      >
+        {isPremiereMember ? (
+          <div className={styles.premiereHeader} aria-label="Membro Premiere">
             <Crown aria-hidden="true" className={styles.premiereCrown} />
             <span>Premiere</span>
           </div>
         ) : null}
         <div
           className={[
-            "relative aspect-[5/7] overflow-hidden bg-[linear-gradient(135deg,color-mix(in_srgb,var(--emerald)_18%,white),color-mix(in_srgb,var(--gold-soft)_35%,white))]",
-            isPremiereDaddy ? styles.premierePhoto : "",
+            styles.cardPhoto,
+            "relative overflow-hidden bg-[linear-gradient(135deg,color-mix(in_srgb,var(--emerald)_18%,white),color-mix(in_srgb,var(--gold-soft)_35%,white))]",
+            isLuxuryVariant ? styles.luxuryPhoto : "",
+            isSearchDarkVariant ? styles.searchPhoto : "",
+            isPremiereMember ? styles.premierePhoto : "",
+            isEliteMember ? styles.elitePhoto : "",
           ].join(" ")}
         >
           {photo ? (
@@ -191,7 +217,18 @@ export default function ProfileCard({
               decoding="async"
               className={[
                 "block h-full w-full object-cover",
-                isPremiereDaddy ? styles.premiereImage : "",
+                isPremiereMember ? styles.premiereImage : "",
+              ].join(" ")}
+            />
+          ) : providerPlaceholder ? (
+            <Image
+              src={providerPlaceholder}
+              alt={`Imagem padrão de ${profile.username ?? "perfil"}`}
+              fill
+              sizes="(max-width: 640px) 92vw, (max-width: 1024px) 44vw, 320px"
+              className={[
+                "object-cover",
+                isPremiereMember ? styles.premiereImage : "",
               ].join(" ")}
             />
           ) : (
@@ -199,47 +236,107 @@ export default function ProfileCard({
               <UserRound className="h-16 w-16" />
             </div>
           )}
-          {isPremiereDaddy ? (
+          {isPremiereMember ? (
             <span className={styles.premiereVignette} aria-hidden="true" />
           ) : null}
-          {profile.isOnline && !isPremiereDaddy && (
+          {isActiveVariant ? (
+            <span
+              aria-label={profile.isOnline ? "Online agora" : "Perfil ativo"}
+              title={
+                profile.isOnline ? "Online agora" : "Ativo nos últimos 7 dias"
+              }
+              className={styles.activeStatus}
+            >
+              <Activity aria-hidden="true" />
+            </span>
+          ) : profile.isOnline ? (
             <span
               aria-label={profile.isOnline ? "Online agora" : "Perfil ativo"}
               title={profile.isOnline ? "Online agora" : "Perfil ativo"}
               className={[
-                "absolute left-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/90 shadow-[0_8px_18px_rgba(20,17,14,0.12)] backdrop-blur-sm",
-                profile.isOnline ? "text-emerald" : "text-black-jewel/62",
+                "absolute top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-[0_8px_18px_rgba(20,17,14,0.12)] backdrop-blur-sm",
+                "left-3",
+                isEliteMember
+                  ? styles.eliteStatusBadge
+                  : isSearchDarkVariant
+                    ? "border-luxury-gold/70 bg-luxury-black/82 text-luxury-champagne"
+                    : profile.isOnline
+                      ? "border-white/70 bg-white/90 text-emerald"
+                      : "border-white/70 bg-white/90 text-black-jewel/62",
               ].join(" ")}
             >
               <BadgeCheck aria-hidden="true" className="h-5 w-5" />
             </span>
-          )}
+          ) : null}
 
-          {!isPremiereDaddy && (isNewProfile || isPremiumDaddy || isBoosted) ? (
-            <div className="absolute right-3 top-3 flex items-center gap-2">
-              {isBoosted ? (
+          {isBasicMember ||
+          isPremiumMember ||
+          isEliteMember ||
+          (!isActiveVariant && (isNewProfile || isBoosted)) ? (
+            <div
+              className={[
+                "absolute top-3 flex items-center gap-2",
+                isActiveVariant ? "right-[3.5rem]" : "right-3",
+              ].join(" ")}
+            >
+              {isBoosted && !isActiveVariant ? (
                 <span
                   aria-label="Perfil com Boost ativo"
                   title="Perfil com Boost ativo"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gold/60 bg-gold text-white shadow-[0_8px_18px_rgba(185,138,56,0.28)]"
+                  className={[
+                    "inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-[0_8px_18px_rgba(185,138,56,0.28)]",
+                    isEliteMember
+                      ? styles.eliteStatusBadge
+                      : isSearchDarkVariant
+                        ? "border-luxury-champagne bg-[linear-gradient(145deg,var(--luxury-champagne),var(--luxury-gold))] text-luxury-ink"
+                        : "border-gold/60 bg-gold text-white",
+                  ].join(" ")}
                 >
                   <Zap aria-hidden="true" className="h-5 w-5 fill-current" />
                 </span>
               ) : null}
-              {isPremiumDaddy ? (
+              {isPremiumMember ? (
                 <span
                   aria-label="Perfil Premium"
                   title="Perfil Premium"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gold/55 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--gold-soft)_42%,white),white)] text-gold shadow-[0_8px_18px_rgba(20,17,14,0.12)] backdrop-blur-sm"
+                  className={styles.premiumBadge}
                 >
-                  <Crown aria-hidden="true" className="h-5 w-5" />
+                  <Crown aria-hidden="true" />
+                  <strong>PREMIUM</strong>
                 </span>
               ) : null}
-              {isNewProfile ? (
+              {isEliteMember ? (
+                <span
+                  aria-label="Perfil Elite"
+                  title="Perfil Elite"
+                  className={styles.eliteBadge}
+                >
+                  <Gem aria-hidden="true" />
+                  <strong>ELITE</strong>
+                </span>
+              ) : null}
+              {isBasicMember ? (
+                <span
+                  aria-label="Membro Básico"
+                  title="Membro Básico"
+                  className={styles.basicBadge}
+                >
+                  <Crown aria-hidden="true" />
+                  <strong>MEMBRO</strong>
+                </span>
+              ) : null}
+              {isNewProfile && !isActiveVariant ? (
                 <span
                   aria-label="Perfil novo"
                   title="Perfil novo"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gold/45 bg-[color-mix(in_srgb,var(--gold-soft)_28%,white)] text-gold shadow-[0_8px_18px_rgba(20,17,14,0.12)] backdrop-blur-sm"
+                  className={[
+                    "inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-[0_8px_18px_rgba(20,17,14,0.12)] backdrop-blur-sm",
+                    isEliteMember
+                      ? styles.eliteStatusBadge
+                      : isSearchDarkVariant
+                        ? "border-luxury-champagne bg-[linear-gradient(145deg,var(--luxury-champagne),var(--luxury-gold))] text-luxury-ink"
+                        : "border-gold/45 bg-[color-mix(in_srgb,var(--gold-soft)_28%,white)] text-gold",
+                  ].join(" ")}
                 >
                   <Sparkles aria-hidden="true" className="h-5 w-5" />
                 </span>
@@ -250,14 +347,19 @@ export default function ProfileCard({
           <div
             className={[
               styles.profileOverlay,
-              isPremiereDaddy ? styles.premiereOverlay : "",
+              isPremiereMember ? styles.premiereOverlay : "",
+              isLuxuryVariant ? styles.luxuryOverlay : "",
+              isSearchDarkVariant ? styles.searchOverlay : "",
             ].join(" ")}
           >
-            <h2 className={styles.profileName}>{profile.username}</h2>
-
-            <span className="inline-flex w-fit rounded-full border border-white/45 bg-black/35 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-white backdrop-blur-sm">
-              {profileIdentityLabel(profile.role, profile.gender)}
-            </span>
+            <h2
+              className={[
+                styles.profileName,
+                isEliteMember ? styles.eliteProfileName : "",
+              ].join(" ")}
+            >
+              {profile.username}
+            </h2>
 
             <div className={styles.profileMeta}>
               <span className={styles.profileMetaItem}>
@@ -274,7 +376,7 @@ export default function ProfileCard({
               </span>
             </div>
 
-            {interests.length > 0 && !isPremiereDaddy ? (
+            {interests.length > 0 && !isPremiereMember && !isLuxuryVariant ? (
               <div className={styles.interestList}>
                 {interests.map((interest) => (
                   <span key={interest} className={styles.profileInterest}>
@@ -285,7 +387,12 @@ export default function ProfileCard({
             ) : null}
           </div>
 
-          <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5">
+          <div
+            className={[
+              "absolute bottom-3 right-3 z-20 flex items-center gap-1.5",
+              isEliteMember ? styles.eliteActions : "",
+            ].join(" ")}
+          >
             <button
               type="button"
               onClick={() => void togglePin()}
@@ -294,10 +401,16 @@ export default function ProfileCard({
               aria-label={isPinned ? "Remover dos Pins" : "Pinar perfil"}
               title={isPinned ? "Remover dos Pins" : "Pinar perfil"}
               className={[
-                "inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border bg-white/88 shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-wait disabled:opacity-60",
-                isPinned
-                  ? "border-gold/60 text-gold"
-                  : "border-white/70 text-black-jewel/72",
+                "inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-wait disabled:opacity-60",
+                isEliteMember
+                  ? styles.eliteAction
+                  : isLuxuryVariant
+                    ? isPinned
+                      ? "border-luxury-champagne bg-luxury-gold text-luxury-ink hover:bg-luxury-champagne"
+                      : "border-luxury-gold/80 bg-luxury-black/78 text-luxury-champagne hover:bg-luxury-gold hover:text-luxury-ink"
+                    : isPinned
+                      ? "border-gold/60 bg-white/88 text-gold hover:bg-white"
+                      : "border-white/70 bg-white/88 text-black-jewel/72 hover:bg-white",
               ].join(" ")}
             >
               {isUpdatingPin ? (
@@ -333,10 +446,16 @@ export default function ProfileCard({
                           : "Disponível para perfis Premium e Premiere"
                     }
                     className={[
-                      "inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border bg-white/88 shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ruby disabled:cursor-not-allowed disabled:opacity-60",
-                      isFavorited
-                        ? "border-ruby/45 text-ruby"
-                        : "border-white/70 text-black-jewel/72",
+                      "inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ruby disabled:cursor-not-allowed disabled:opacity-60",
+                      isEliteMember
+                        ? styles.eliteAction
+                        : isLuxuryVariant
+                          ? isFavorited
+                            ? "border-ruby/70 bg-luxury-black/82 text-[#ff9eae]"
+                            : "border-luxury-gold/80 bg-luxury-black/78 text-luxury-champagne hover:bg-luxury-gold hover:text-luxury-ink"
+                          : isFavorited
+                            ? "border-ruby/45 bg-white/88 text-ruby hover:bg-white"
+                            : "border-white/70 bg-white/88 text-black-jewel/72 hover:bg-white",
                     ].join(" ")}
                   >
                     {isFavoriting ? (
@@ -359,13 +478,28 @@ export default function ProfileCard({
                   onClick={onNavigate}
                   aria-label={`Enviar mensagem para ${profile.username ?? "este perfil"}`}
                   title="Enviar mensagem"
-                  className="inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border border-white/70 bg-white/88 text-emerald shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald"
+                  className={[
+                    "inline-flex h-8.5 w-8.5 items-center justify-center rounded-full border shadow-[0_7px_16px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald",
+                    isEliteMember
+                      ? styles.eliteAction
+                      : isLuxuryVariant
+                        ? "border-luxury-gold/80 bg-luxury-black/78 text-luxury-champagne hover:bg-luxury-gold hover:text-luxury-ink"
+                        : "border-white/70 bg-white/88 text-emerald hover:bg-white",
+                  ].join(" ")}
                 >
                   <MessageCircle aria-hidden="true" className="h-4 w-4" />
                 </Link>
               </>
             ) : null}
           </div>
+
+          {isEliteMember ? (
+            <div className={styles.eliteFooter} aria-label="Membro Elite">
+              <span aria-hidden="true">◆</span>
+              <strong>MEMBRO ELITE</strong>
+              <span aria-hidden="true">◆</span>
+            </div>
+          ) : null}
 
           {favoriteError || pinError ? (
             <span className="sr-only" role="status">

@@ -3,6 +3,7 @@
 import {
   AlertTriangle,
   Camera,
+  CalendarClock,
   Check,
   ChevronDown,
   Crown,
@@ -21,11 +22,13 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import {
   type ChangeEvent,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -61,10 +64,18 @@ import { PhotoZoom } from "../components/ui/PhotoZoom";
 import premiereStyles from "../buscar/components/ProfileCard.module.css";
 import { PremiereOfferDialog } from "./PremiereOfferDialog";
 import { BoostControl, type BoostStatus } from "./BoostControl";
+import { relationshipIntentOptions } from "../lib/relationship-intent";
+import { getProviderProfilePlaceholder } from "../lib/profileIdentity";
 import {
-  getRelationshipIntentLabel,
-  relationshipIntentOptions,
-} from "../lib/relationship-intent";
+  availableProfileFrames,
+  formatMembershipExpiry,
+  MEMBERSHIP_DETAILS,
+  membershipDaysRemaining,
+  membershipRemainingLabel,
+  PROFILE_FRAME_DETAILS,
+  resolveProfileFrame,
+  resolveMembershipTier,
+} from "../lib/membership";
 import {
   ProfileApprovalGuard,
   shouldShowPendingApproval,
@@ -90,7 +101,71 @@ const MAX_INTERESTS = 3;
 
 const heights = Array.from({ length: 111 }, (_, index) => 120 + index);
 
+const USERNAME_MAX_FONT_SIZE = 30;
+const USERNAME_MIN_FONT_SIZE = 8;
+
 type ContactChannel = "whatsapp" | "telegram" | "instagram";
+
+function AutoFitUsername({ value }: { value: string }) {
+  const usernameRef = useRef<HTMLHeadingElement>(null);
+
+  useLayoutEffect(() => {
+    const username = usernameRef.current;
+
+    if (!username) return;
+
+    const fitUsername = () => {
+      let minimum = USERNAME_MIN_FONT_SIZE;
+      let maximum = USERNAME_MAX_FONT_SIZE;
+
+      username.style.fontSize = `${maximum}px`;
+
+      if (username.scrollWidth <= username.clientWidth) {
+        return;
+      }
+
+      while (maximum - minimum > 0.25) {
+        const candidate = (minimum + maximum) / 2;
+        username.style.fontSize = `${candidate}px`;
+
+        if (username.scrollWidth <= username.clientWidth) {
+          minimum = candidate;
+        } else {
+          maximum = candidate;
+        }
+      }
+
+      username.style.fontSize = `${minimum}px`;
+    };
+
+    fitUsername();
+
+    let observedWidth = username.clientWidth;
+    const resizeObserver = new ResizeObserver(() => {
+      const nextWidth = username.clientWidth;
+
+      if (nextWidth === observedWidth) return;
+
+      observedWidth = nextWidth;
+      fitUsername();
+    });
+    resizeObserver.observe(username);
+    void document.fonts?.ready.then(fitUsername);
+
+    return () => resizeObserver.disconnect();
+  }, [value]);
+
+  return (
+    <h1
+      ref={usernameRef}
+      className="w-full overflow-hidden whitespace-nowrap font-extrabold tracking-tight text-black-jewel"
+      style={{ fontSize: `${USERNAME_MAX_FONT_SIZE}px`, lineHeight: 1.2 }}
+      title={value}
+    >
+      {value}
+    </h1>
+  );
+}
 
 type ContactViewerSuggestion = {
   id: string;
@@ -171,7 +246,12 @@ type ProfileUser = {
   approvalStatus?: string;
   moderationAction?: string | null;
   moderationReason?: string | null;
+  isPremium?: boolean;
+  premiumUntil?: string | null;
   isPremiere?: boolean;
+  membershipTier?: string | null;
+  membershipUntil?: string | null;
+  profileFrame?: string | null;
   boostCredits?: number;
   boostedUntil?: string | null;
   createdAt?: string | null;
@@ -220,6 +300,7 @@ type ProfileForm = {
   visibleContactChannels: ContactChannel[];
   contactViewerUsernames: string[];
   privatePhotoViewerUsernames: string[];
+  profileFrame: string;
 };
 
 type TextProfileField = Exclude<
@@ -248,6 +329,56 @@ function getUserSnapshot() {
   }
 
   return savedUser;
+}
+
+function EmptyProfilePhotoButton({
+  onClick,
+  placeholder,
+  accentClassName,
+  showLimit,
+}: {
+  onClick: () => void;
+  placeholder: string | null;
+  accentClassName: string;
+  showLimit: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "relative flex h-full w-full flex-col items-center justify-center gap-3 overflow-hidden px-4 text-center text-sm font-bold",
+        placeholder
+          ? "bg-[#160b06] text-white"
+          : "bg-white/80 text-black-jewel",
+      ].join(" ")}
+    >
+      {placeholder ? (
+        <>
+          <Image
+            src={placeholder}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 288px, 310px"
+            className="object-cover"
+          />
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 bg-[linear-gradient(180deg,rgba(12,6,3,0.08),rgba(12,6,3,0.62))]"
+          />
+        </>
+      ) : null}
+      <Camera
+        className={`relative z-10 h-10 w-10 drop-shadow-md ${accentClassName}`}
+      />
+      <span className="relative z-10 drop-shadow-md">Adicionar foto</span>
+      {showLimit ? (
+        <span className="relative z-10 text-xs font-semibold opacity-85 drop-shadow-md">
+          Até {MAX_PHOTO_SIZE_LABEL}
+        </span>
+      ) : null}
+    </button>
+  );
 }
 
 export default function PerfilPage() {
@@ -497,8 +628,8 @@ export function ProfilePageContent({
 
   if (!user && reapplication) {
     return (
-      <main className="grid min-h-screen place-items-center bg-[url('/wallpaper-marble.webp')] px-5 text-center text-black-jewel">
-        <p className="rounded-xl border border-gold/30 bg-white/90 px-6 py-5 font-bold shadow-lg">
+      <main className="premium-page-shell grid place-items-center px-5 text-center">
+        <p className="premium-surface-card rounded-xl px-6 py-5 font-bold text-luxury-ivory">
           Carregando seu cadastro para correção...
         </p>
       </main>
@@ -513,10 +644,20 @@ export function ProfilePageContent({
   const publicPhotos = editablePhotos.filter((photo) => !photo.isPrivate);
   const privatePhotos = editablePhotos.filter((photo) => photo.isPrivate);
   const profilePhoto = publicPhotos[0];
-  const isPremiereDaddy =
-    user.role?.trim().toUpperCase() === "SUGAR_DADDY" &&
-    Boolean(user.isPremiere);
+  const isSugarDaddy = user.role?.trim().toUpperCase() === "SUGAR_DADDY";
   const isSugarBaby = user.role?.trim().toUpperCase() === "SUGAR_BABY";
+  const providerPlaceholder = getProviderProfilePlaceholder(
+    user.role,
+    user.gender,
+  );
+  const membershipTier = resolveMembershipTier(user);
+  const selectableProfileFrames = availableProfileFrames(user);
+  const profileFrame = resolveProfileFrame({
+    ...user,
+    profileFrame: form.profileFrame,
+  });
+  const isPremiereFrame = isSugarDaddy && profileFrame === "PREMIERE";
+  const membershipRemainingDays = membershipDaysRemaining(user.membershipUntil);
   const age = getAge(form.birthDate || user.birthDate);
   const location = [form.city, form.state].filter(Boolean).join(", ");
   function updateField(field: TextProfileField, value: string) {
@@ -956,8 +1097,10 @@ export function ProfilePageContent({
       user={reapplication ? { ...user, approvalStatus: "APPROVED" } : user}
     >
       <main
-        className={`min-h-screen bg-[radial-gradient(circle_at_18%_12%,color-mix(in_srgb,var(--emerald)_13%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--gold-soft)_22%,transparent),transparent_30%),url('/wallpaper-marble.webp')] bg-cover bg-center text-black-jewel md:bg-fixed ${
-          reapplication ? "reapplication-page" : ""
+        className={`min-h-screen ${
+          reapplication
+            ? "reapplication-page bg-[radial-gradient(circle_at_18%_12%,color-mix(in_srgb,var(--emerald)_13%,transparent),transparent_28%),radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--gold-soft)_22%,transparent),transparent_30%),linear-gradient(145deg,#fffdf8,#efe2cf)] bg-cover bg-center text-black-jewel md:bg-fixed"
+            : "profile-luxury-page text-luxury-ivory"
         }`}
       >
         {reapplication ? (
@@ -1065,9 +1208,13 @@ export function ProfilePageContent({
             <div className="grid min-w-0 xl:grid-cols-[minmax(250px,310px)_minmax(0,1fr)_minmax(240px,290px)]">
               <aside className="reapplication-profile-pane min-w-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_8%,white),color-mix(in_srgb,var(--surface)_94%,white)_42%,color-mix(in_srgb,var(--gold-soft)_12%,white))] p-4 sm:p-6 xl:p-7">
                 <div className="relative mx-auto w-full max-w-72">
-                  {isPremiereDaddy ? (
-                    <div className={premiereStyles.premiereCard}>
-                      <div className={premiereStyles.premiereInner}>
+                  {isPremiereFrame ? (
+                    <div
+                      className={`${premiereStyles.premiereCard} ${premiereStyles.premiereProfileCard}`}
+                    >
+                      <div
+                        className={`${premiereStyles.premiereInner} ${premiereStyles.premiereProfileLayout}`}
+                      >
                         <div
                           className={premiereStyles.premiereHeader}
                           aria-label="Perfil Premiere"
@@ -1091,19 +1238,12 @@ export function ProfilePageContent({
                               <PhotoModerationBadge photo={profilePhoto} />
                             </>
                           ) : (
-                            <button
-                              type="button"
+                            <EmptyProfilePhotoButton
                               onClick={() => fileInputRef.current?.click()}
-                              className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white/80 px-4 text-center text-sm font-bold text-black-jewel"
-                            >
-                              <Camera className="h-10 w-10 text-[#b78945]" />
-                              <span>Adicionar foto</span>
-                              {reapplication ? (
-                                <span className="text-xs font-semibold opacity-75">
-                                  Até {MAX_PHOTO_SIZE_LABEL}
-                                </span>
-                              ) : null}
-                            </button>
+                              placeholder={providerPlaceholder}
+                              accentClassName="text-[#e8bd75]"
+                              showLimit={reapplication}
+                            />
                           )}
                           <span
                             className={premiereStyles.premiereVignette}
@@ -1121,7 +1261,9 @@ export function ProfilePageContent({
                       </div>
                     </div>
                   ) : (
-                    <div className="aspect-4/5 overflow-hidden rounded-lg border-[3px] border-emerald/70 bg-[color-mix(in_srgb,var(--emerald)_10%,white)] p-1 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.86),0_18px_38px_rgba(0,55,44,0.18)] sm:aspect-[1/0.98]">
+                    <div
+                      className={`profile-photo-frame profile-photo-frame--${profileFrame.toLowerCase()} aspect-4/5 overflow-hidden rounded-lg border-[3px] p-1 sm:aspect-[1/0.98]`}
+                    >
                       <div className="relative h-full overflow-hidden rounded-md">
                         {profilePhoto ? (
                           <>
@@ -1133,19 +1275,12 @@ export function ProfilePageContent({
                             <PhotoModerationBadge photo={profilePhoto} />
                           </>
                         ) : (
-                          <button
-                            type="button"
+                          <EmptyProfilePhotoButton
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white/74 px-4 text-center text-sm font-bold text-black-jewel"
-                          >
-                            <Camera className="h-10 w-10 text-emerald" />
-                            <span>Adicionar foto</span>
-                            {reapplication ? (
-                              <span className="text-xs font-semibold opacity-75">
-                                Até {MAX_PHOTO_SIZE_LABEL}
-                              </span>
-                            ) : null}
-                          </button>
+                            placeholder={providerPlaceholder}
+                            accentClassName="text-emerald"
+                            showLimit={reapplication}
+                          />
                         )}
                       </div>
                     </div>
@@ -1154,9 +1289,9 @@ export function ProfilePageContent({
 
                 <div className="mt-6 space-y-4 text-center sm:mt-8">
                   <div className="min-w-0">
-                    <h1 className="wrap-anywhere text-2xl font-extrabold tracking-tight text-black-jewel sm:text-3xl">
-                      {form.username || user.username}
-                    </h1>
+                    <AutoFitUsername
+                      value={(form.username || user.username) ?? ""}
+                    />
                     <p className="mt-1 text-sm font-semibold leading-5 text-black-jewel/72 wrap-anywhere">
                       {form.introductionPhrase}
                     </p>
@@ -1381,15 +1516,110 @@ export function ProfilePageContent({
                 </div>
               </section>
 
-              <aside className="reapplication-actions-pane min-w-0 bg-[radial-gradient(circle_at_12%_0%,rgba(255,255,255,0.14),transparent_28%),linear-gradient(145deg,#05251f,#083e34_50%,#111512)] p-4 text-white sm:p-6">
+              <aside className=" min-w-0 p-4 text-white sm:p-6">
                 <div className="flex h-full flex-col justify-between gap-7">
                   <div className="space-y-4">
                     {/* <Button className="h-auto min-h-12 w-full rounded-full border border-white/20 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--emerald)_78%,white),var(--emerald))] px-4 py-2 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(0,108,88,0.34)] hover:bg-emerald/85 sm:text-base">
                       <Crown className="h-4 w-4" />
                       SEJA PREMIUM
                     </Button> */}
-                    {user.role?.trim().toUpperCase() === "SUGAR_DADDY" ? (
-                      <PremiereOfferDialog />
+                    {isSugarDaddy && user.membershipUntil ? (
+                      <div
+                        className={`rounded-xl border p-4 ${membershipRemainingDays && membershipRemainingDays > 0 ? "border-gold/45 bg-gold/12" : "border-ruby/45 bg-ruby/12"}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <CalendarClock className="mt-0.5 h-5 w-5 shrink-0 text-gold-soft" />
+                          <div>
+                            <p className="text-sm font-extrabold text-gold-soft">
+                              Plano{" "}
+                              {membershipTier
+                                ? MEMBERSHIP_DETAILS[membershipTier].label
+                                : "SugarMimo"}
+                            </p>
+                            <p className="mt-1 text-sm font-bold text-white">
+                              {membershipRemainingLabel(
+                                membershipRemainingDays,
+                              )}
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-white/70">
+                              Ativo até{" "}
+                              {formatMembershipExpiry(user.membershipUntil)}. O
+                              acesso é encerrado automaticamente ao vencer.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
+                    {isSugarDaddy ? <PremiereOfferDialog /> : null}
+                    {isSugarDaddy &&
+                    !reapplication &&
+                    selectableProfileFrames.length > 1 ? (
+                      <div className="rounded-xl border border-gold/35 bg-white/10 p-4">
+                        <p className="text-sm font-extrabold text-gold-soft">
+                          Moldura exibida
+                        </p>
+                        <p className="mt-1 text-xs leading-5 text-white/75">
+                          Escolha entre as molduras que seu perfil possui.
+                        </p>
+                        <div
+                          className="mt-3 grid gap-2"
+                          role="radiogroup"
+                          aria-label="Moldura exibida no perfil"
+                        >
+                          {selectableProfileFrames.map((frame) => {
+                            const details = PROFILE_FRAME_DETAILS[frame];
+                            const selected = profileFrame === frame;
+
+                            return (
+                              <button
+                                key={frame}
+                                type="button"
+                                role="radio"
+                                aria-checked={selected}
+                                onClick={() => {
+                                  setForm((current) => ({
+                                    ...current,
+                                    profileFrame: frame,
+                                  }));
+                                  setIsEditing(true);
+                                  setFeedback("");
+                                  setError("");
+                                }}
+                                className={[
+                                  "profile-frame-option flex min-h-12 items-center gap-3 rounded-lg border px-3 py-2 text-left transition",
+                                  `profile-frame-option--${frame.toLowerCase()}`,
+                                  selected
+                                    ? "border-gold-soft bg-gold/20 text-white shadow-[0_8px_20px_rgba(185,138,56,0.2)]"
+                                    : "border-white/20 bg-black/10 text-white/80 hover:border-gold/55 hover:bg-white/10",
+                                ].join(" ")}
+                              >
+                                <span
+                                  className="profile-frame-option-swatch h-8 w-8 shrink-0 rounded-full border-2"
+                                  aria-hidden="true"
+                                />
+                                <span className="min-w-0 flex-1">
+                                  <strong className="block text-sm">
+                                    {details.label}
+                                  </strong>
+                                  <small className="block text-[11px] leading-4 text-white/60">
+                                    {details.description}
+                                  </small>
+                                </span>
+                                {selected ? (
+                                  <Check className="h-4 w-4 shrink-0 text-gold-soft" />
+                                ) : null}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {user.isPremiere ? (
+                          <p className="mt-3 border-t border-white/15 pt-3 text-[11px] leading-5 text-white/65">
+                            Premiere mantém a moldura vitalícia e os Boosts
+                            recebidos. Mensagens e outros recursos dependem de
+                            uma assinatura ativa.
+                          </p>
+                        ) : null}
+                      </div>
                     ) : null}
                     {isSugarBaby && !reapplication ? (
                       <div className="rounded-xl border border-gold/35 bg-white/10 p-4">
@@ -1439,7 +1669,7 @@ export function ProfilePageContent({
                     ) : null}
                     {isEditing &&
                       (reapplication ? (
-                        <div className="rounded-2xl border border-gold-soft/55 bg-[linear-gradient(145deg,rgba(255,255,255,0.16),rgba(234,210,154,0.08))] p-3 shadow-[0_18px_42px_rgba(0,0,0,0.28)] ring-1 ring-white/10 sm:p-4">
+                        <div className="rounded-2xl border border-gold-soft/55  ring-1 ring-white/10 sm:p-4">
                           <div className="px-1 pb-3">
                             <p className="text-sm font-extrabold text-white sm:text-base">
                               Terminou as correções?
@@ -1579,7 +1809,7 @@ function PrivatePhotosSection({
   );
 
   return (
-    <section className="space-y-3 rounded-md border border-gold/30 bg-[color-mix(in_srgb,var(--gold-soft)_12%,white)] p-4">
+    <section className="profile-private-photos space-y-3 rounded-md border border-gold/30 bg-[color-mix(in_srgb,var(--gold-soft)_12%,white)] p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-2 font-serif text-xl font-semibold text-gold! sm:text-2xl">
@@ -2288,10 +2518,10 @@ function ProfileSelect({
     <div className="min-w-0 space-y-2">
       <Label className="font-bold text-black-jewel">{label}</Label>
       <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger className="h-11 w-full min-w-0 rounded-sm border border-emerald/25 bg-white px-3 shadow-none focus:border-emerald focus:ring-0">
+        <SelectTrigger className="premium-field h-11 w-full min-w-0 rounded-lg px-3 shadow-none [&_svg]:text-luxury-champagne">
           <SelectValue placeholder="Selecione uma opção" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="premium-select-content rounded-lg border border-luxury-gold/45 bg-luxury-surface-raised p-1 text-luxury-ivory shadow-[0_22px_48px_rgba(0,0,0,0.48)]">
           {options.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
@@ -2381,6 +2611,7 @@ function formFromUser(user: ProfileUser): ProfileForm {
     privatePhotoViewerUsernames: normalizeUsernames(
       preferences?.privatePhotoViewerUsernames,
     ),
+    profileFrame: resolveProfileFrame(user),
   };
 }
 
@@ -2413,6 +2644,7 @@ const emptyForm: ProfileForm = {
   visibleContactChannels: [],
   contactViewerUsernames: [],
   privatePhotoViewerUsernames: [],
+  profileFrame: "STANDARD",
 };
 
 function fileToDataUrl(file: File) {

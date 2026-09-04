@@ -6,6 +6,7 @@ import { clearAdminSessionCookie, getAdminSessionToken } from "../../_session";
 
 type ExportProfile = {
   username: string;
+  email: string;
   role: string | null;
   gender: string | null;
   lookingFor: string | null;
@@ -14,6 +15,12 @@ type ExportProfile = {
   state: string | null;
   approvalStatus: string;
   accountStatus: string;
+  membershipTier: string | null;
+  membershipUntil: string | null;
+  membershipActive: boolean;
+  membershipDaysRemaining: number | null;
+  membershipPurchasedAt: string | null;
+  membershipDurationMonths: number | null;
 };
 
 const LOOKING_FOR_LABELS: Record<string, string> = {
@@ -138,14 +145,21 @@ export async function GET(request: Request) {
   const rows = [
     [
       "Usuário",
+      "E-mail",
       "O que é",
       "O que procura",
       "Região",
       "Idade das meninas",
       "Status",
+      "Plano",
+      "Validade do plano",
+      "Dias restantes",
+      "Último pagamento",
+      "Duração contratada (meses)",
     ],
     ...profiles.map((profile) => [
       profile.username,
+      profile.email,
       profileIdentityLabel(profile.role, profile.gender),
       label(LOOKING_FOR_LABELS, profile.lookingFor),
       regionFromState(profile.state),
@@ -155,6 +169,19 @@ export async function GET(request: Request) {
           : String(profile.age)
         : "",
       `${label(APPROVAL_LABELS, profile.approvalStatus)} · ${label(ACCOUNT_LABELS, profile.accountStatus)}`,
+      profile.membershipTier ?? "Sem plano",
+      profile.membershipUntil
+        ? new Date(profile.membershipUntil).toLocaleString("pt-BR")
+        : "",
+      profile.membershipDaysRemaining === null
+        ? ""
+        : String(profile.membershipDaysRemaining),
+      profile.membershipPurchasedAt
+        ? new Date(profile.membershipPurchasedAt).toLocaleString("pt-BR")
+        : "",
+      profile.membershipDurationMonths === null
+        ? ""
+        : String(profile.membershipDurationMonths),
     ]),
   ];
   const csv = `\uFEFF${rows.map((row) => row.map(csvCell).join(";")).join("\r\n")}`;

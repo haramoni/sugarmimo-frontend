@@ -2,6 +2,11 @@ export type ChatMember = {
   id: string;
   username: string;
   role: string | null;
+  gender: string | null;
+  isPremium: boolean;
+  isPremiere: boolean;
+  membershipTier: string | null;
+  profileFrame: string | null;
   lastActiveAt: string | null;
   photos: Array<{ id: string; sortOrder: number }>;
 };

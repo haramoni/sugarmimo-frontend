@@ -22,6 +22,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${site.url}/planos`,
+      lastModified: new Date("2026-09-03T12:00:00Z"),
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+    {
       url: `${site.url}/atendimento`,
       lastModified: homepageLastModified,
       changeFrequency: "monthly",

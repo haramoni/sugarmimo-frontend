@@ -112,7 +112,7 @@ export function ModalForgotPassword() {
           {error && (
             <p
               role="alert"
-              className="rounded-sm bg-[color:color-mix(in_srgb,var(--ruby)_12%,white)] px-3 py-2 text-sm font-bold text-[var(--ruby)]"
+              className="rounded-lg border border-ruby/50 bg-ruby/12 px-3 py-2 text-sm font-bold text-[#f0a5b3]"
             >
               {error}
             </p>
@@ -121,7 +121,7 @@ export function ModalForgotPassword() {
           {success && (
             <p
               role="status"
-              className="rounded-sm bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800"
+              className="rounded-lg border border-emerald/45 bg-emerald/12 px-3 py-2 text-sm font-semibold text-[#78d6c0]"
             >
               {success}
             </p>

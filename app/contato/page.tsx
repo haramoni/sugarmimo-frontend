@@ -61,40 +61,40 @@ export default async function ContactPage({
     ? category
     : "ATENDIMENTO";
   return (
-    <main className="page-marble-background min-h-screen bg-cover bg-center text-black-jewel">
+    <main className="premium-page-shell">
       <NavBarMenu />
 
-      <section className="border-b border-gold/35 bg-[color-mix(in_srgb,var(--surface)_94%,transparent)] px-6 pb-16 pt-32 sm:px-10 lg:px-16">
+      <section className="border-b border-luxury-gold/22 bg-luxury-black/32 px-6 pb-16 pt-32 sm:px-10 lg:px-16">
         <div className="mx-auto max-w-4xl text-center">
-          <p className="text-sm font-extrabold uppercase tracking-normal text-gold">
+          <p className="text-sm font-extrabold uppercase tracking-[0.18em] text-luxury-champagne">
             Estamos aqui por você
           </p>
-          <h1 className="mt-3 font-serif text-4xl font-semibold leading-tight text-black-jewel sm:text-5xl">
+          <h1 className="mt-3 font-serif text-4xl font-semibold leading-tight text-luxury-ivory sm:text-5xl">
             Como podemos ajudar?
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-base font-medium leading-8 text-black-jewel/72 sm:text-lg">
+          <p className="mx-auto mt-5 max-w-2xl text-base font-medium leading-8 text-luxury-muted sm:text-lg">
             Escolha o canal que preferir. Nossa equipe está pronta para ouvir,
             orientar e tornar sua experiência na SugarMimo mais tranquila.
           </p>
         </div>
       </section>
 
-      <section className="bg-surface px-6 py-16 sm:px-10 lg:px-16">
+      <section className="bg-transparent px-6 py-16 sm:px-10 lg:px-16">
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-6 md:grid-cols-2">
             {contactChannels.map(
               ({ title, description, value, action, href, icon: Icon }) => (
                 <article
                   key={title}
-                  className="flex min-h-96 flex-col items-center rounded-2xl border border-gold/25 bg-white p-8 text-center shadow-[0_18px_48px_rgba(20,17,14,0.07)]"
+                  className="premium-surface-card flex min-h-96 flex-col items-center rounded-2xl p-8 text-center"
                 >
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald text-white shadow-[0_8px_20px_rgba(0,108,88,0.22)]">
+                  <div className="premium-icon-medallion h-14 w-14 rounded-full">
                     <Icon className="h-6 w-6" aria-hidden="true" />
                   </div>
-                  <h2 className="mt-6 font-serif text-2xl font-semibold text-black-jewel">
+                  <h2 className="mt-6 font-serif text-2xl font-semibold text-luxury-ivory">
                     {title}
                   </h2>
-                  <p className="mt-3 text-sm font-medium leading-7 text-black-jewel/66">
+                  <p className="mt-3 text-sm font-medium leading-7 text-luxury-muted">
                     {description}
                   </p>
                   {href ? (
@@ -102,13 +102,13 @@ export default async function ContactPage({
                       href={href}
                       target={title === "WhatsApp" ? "_blank" : undefined}
                       rel={title === "WhatsApp" ? "noreferrer" : undefined}
-                      className="mt-6 break-words text-base font-extrabold text-emerald underline decoration-gold/55 decoration-1 underline-offset-4 transition hover:text-gold focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+                      className="mt-6 break-words text-base font-extrabold text-luxury-champagne underline decoration-luxury-gold/55 decoration-1 underline-offset-4 transition hover:text-luxury-ivory"
                       aria-label={`${action}: ${value}`}
                     >
                       {value}
                     </a>
                   ) : (
-                    <p className="mt-6 break-words text-base font-extrabold text-emerald">
+                    <p className="mt-6 break-words text-base font-extrabold text-luxury-champagne">
                       {value}
                     </p>
                   )}
@@ -118,7 +118,7 @@ export default async function ContactPage({
                       href={href}
                       target={title === "WhatsApp" ? "_blank" : undefined}
                       rel={title === "WhatsApp" ? "noreferrer" : undefined}
-                      className="mt-12 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-emerald/40 bg-transparent px-6 py-2.5 text-sm font-bold text-emerald transition hover:border-emerald hover:bg-emerald hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald"
+                      className="premium-secondary-action mt-12 inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold transition"
                     >
                       {action}
                       <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
@@ -129,12 +129,12 @@ export default async function ContactPage({
             )}
           </div>
 
-          <div className="mx-auto mt-10 flex max-w-3xl flex-col items-center gap-3 rounded-xl border border-gold/25 bg-background-vanilla/25 p-5 text-center sm:flex-row sm:justify-center">
+          <div className="mx-auto mt-10 flex max-w-3xl flex-col items-center gap-3 rounded-xl border border-luxury-gold/24 bg-luxury-gold/7 p-5 text-center sm:flex-row sm:justify-center">
             <ShieldCheck
-              className="mt-0.5 h-6 w-6 shrink-0 text-emerald sm:mt-0"
+              className="mt-0.5 h-6 w-6 shrink-0 text-luxury-champagne sm:mt-0"
               aria-hidden="true"
             />
-            <p className="text-sm font-medium leading-6 text-black-jewel/68">
+            <p className="text-sm font-medium leading-6 text-luxury-muted">
               Para sua segurança, nunca envie senhas ou códigos de acesso. Ao
               falar com o suporte, conte apenas o necessário para identificarmos
               e resolvermos o problema.

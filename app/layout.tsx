@@ -6,6 +6,7 @@ import { AuthProvider } from "./components/AuthProvider";
 import { CookieConsentBanner } from "./components/CookieConsentBanner";
 import { AgeConfirmationDialog } from "./components/AgeConfirmationDialog";
 import { site } from "@/lib/site";
+import { futura, hessGothic, zingRust } from "./fonts";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -37,10 +38,10 @@ export const metadata: Metadata = {
     locale: site.locale,
     images: [
       {
-        url: "/og.jpg",
-        width: 1200,
-        height: 630,
-        type: "image/jpeg",
+        url: "/brand/hero-trio-hq-4k.webp",
+        width: 3548,
+        height: 1774,
+        type: "image/webp",
         alt: "SugarMimo — Elegância, segurança e liberdade de escolha",
       },
     ],
@@ -49,7 +50,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "SugarMimo | Relacionamento Sugar com Segurança e Privacidade",
     description: site.description,
-    images: ["/og.jpg"],
+    images: ["/brand/hero-trio-hq-4k.webp"],
   },
 };
 
@@ -66,6 +67,9 @@ export default function RootLayout({
         "h-full antialiased font-sans",
         manrope.variable,
         playfair.variable,
+        futura.variable,
+        hessGothic.variable,
+        zingRust.variable,
       )}
     >
       <body className="min-h-full bg-[var(--background)] text-[var(--foreground)]">

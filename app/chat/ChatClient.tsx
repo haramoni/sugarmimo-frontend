@@ -16,6 +16,7 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -31,6 +32,18 @@ import { io, type Socket } from "socket.io-client";
 
 import { useAuth } from "@/app/components/AuthProvider";
 import { Navbar } from "@/app/components/ui/Navbar";
+import {
+  PROFILE_FRAME_DETAILS,
+  resolveProfileFrame,
+} from "@/app/lib/membership";
+import { getProviderProfilePlaceholder } from "@/app/lib/profileIdentity";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { ChatMessage, Conversation } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
@@ -99,11 +112,10 @@ export function ChatClient() {
 
   const selected = conversations.find(({ id }) => id === selectedId) ?? null;
   const isStandardDaddy =
-    user?.role?.trim().toUpperCase() === "SUGAR_DADDY" &&
-    !user.isPremium &&
-    !user.isPremiere;
-  const canSendMessages =
-    !isStandardDaddy || Boolean(messageAccess?.freeMessagesRemaining);
+    user?.role?.trim().toUpperCase() === "SUGAR_DADDY" && !user.isPremium;
+  const canSendMessages = messageAccess
+    ? messageAccess.canSend
+    : !isStandardDaddy;
   const filteredConversations = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("pt-BR");
     return term
@@ -137,7 +149,11 @@ export function ChatClient() {
     if (!response?.ok) {
       return;
     }
-    setMessageAccess((await response.json()) as MessageAccess);
+    const access = (await response.json()) as MessageAccess;
+    setMessageAccess(access);
+    if (access.requiresUpgrade) {
+      setUpgradeAlertOpen(true);
+    }
   }, []);
 
   const loadMonitoringNotice = useCallback(async (conversationId: string) => {
@@ -405,10 +421,13 @@ export function ChatClient() {
     if (!response?.ok) {
       const result = await response?.json().catch(() => null);
       setDraft(body);
-      setError(result?.message ?? "Não foi possível enviar a mensagem.");
-      if (response?.status === 403 && isStandardDaddy) {
+      setError(
+        response?.status === 429
+          ? "Você está enviando mensagens muito rápido. Aguarde alguns segundos e tente novamente."
+          : (result?.message ?? "Não foi possível enviar a mensagem."),
+      );
+      if (response?.status === 403) {
         await loadMessageAccess();
-        setUpgradeAlertOpen(true);
       } else if (response?.status === 412 && selectedId) {
         await loadMonitoringNotice(selectedId);
       }
@@ -417,10 +436,7 @@ export function ChatClient() {
         freeMessagesRemaining?: number | null;
       };
       setMessages((current) => deduplicateMessages([...current, message]));
-      if (
-        isStandardDaddy &&
-        typeof message.freeMessagesRemaining === "number"
-      ) {
+      if (typeof message.freeMessagesRemaining === "number") {
         const remaining = message.freeMessagesRemaining;
         setMessageAccess((current) => ({
           canSend: remaining > 0,
@@ -506,18 +522,18 @@ export function ChatClient() {
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(145deg,var(--surface),#f6f1e8)] text-[var(--black)]">
+    <main className="chat-luxury-page min-h-screen text-[var(--black)]">
       <Navbar />
-      <section className="mx-auto h-[calc(100vh-92px)] max-w-7xl px-3 py-4 sm:px-6">
-        <div className="grid h-full overflow-hidden rounded-3xl border border-black/10 bg-white/90 shadow-[0_28px_90px_rgba(20,17,14,0.12)] backdrop-blur-xl md:grid-cols-[340px_1fr]">
+      <section className="chat-luxury-stage mx-auto h-[calc(100dvh-92px)] min-h-[38rem] max-w-[1400px] px-3 py-4 sm:px-6">
+        <div className="chat-luxury-shell grid h-full overflow-hidden rounded-3xl border backdrop-blur-xl md:grid-cols-[340px_1fr]">
           <aside
             className={[
-              "min-h-0 border-r border-black/8 bg-[#fcfaf5]",
+              "chat-sidebar min-h-0 border-r",
               selectedId ? "hidden md:flex" : "flex",
               "flex-col",
             ].join(" ")}
           >
-            <div className="border-b border-black/8 p-5">
+            <div className="chat-sidebar-header border-b p-5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--gold)]">
@@ -527,12 +543,12 @@ export function ChatClient() {
                     Conversas
                   </h1>
                 </div>
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-[var(--emerald)] text-white">
+                <span className="chat-sidebar-icon grid h-10 w-10 place-items-center rounded-full border">
                   <MessageCircle className="h-5 w-5" />
                 </span>
               </div>
-              <label className="mt-4 flex h-11 items-center gap-2 rounded-2xl border border-black/10 bg-white px-3 focus-within:border-[var(--gold)]">
-                <Search className="h-4 w-4 text-black/40" />
+              <label className="chat-search mt-4 flex h-11 items-center gap-2 rounded-2xl border px-3">
+                <Search className="h-4 w-4" />
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
@@ -555,10 +571,10 @@ export function ChatClient() {
                     key={conversation.id}
                     onClick={() => setSelectedId(conversation.id)}
                     className={[
-                      "flex w-full items-center gap-3 rounded-2xl p-3 text-left transition",
+                      "chat-conversation-button flex w-full items-center gap-3 rounded-2xl border border-transparent p-3 text-left transition",
                       conversation.id === selectedId
-                        ? "bg-[color:color-mix(in_srgb,var(--gold-soft)_38%,white)]"
-                        : "hover:bg-black/[0.035]",
+                        ? "is-selected"
+                        : "is-idle",
                     ].join(" ")}
                   >
                     <Avatar conversation={conversation} />
@@ -596,14 +612,14 @@ export function ChatClient() {
 
           <section
             className={[
-              "min-h-0 flex-col bg-[linear-gradient(180deg,#fff,#fbf8f1)]",
+              "chat-main-panel min-h-0 flex-col",
               selectedId ? "flex" : "hidden md:flex",
             ].join(" ")}
           >
             {!selected ? (
               <div className="grid h-full place-items-center p-8 text-center">
                 <div>
-                  <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[var(--emerald)]/10 text-[var(--emerald)]">
+                  <span className="chat-empty-icon mx-auto grid h-16 w-16 place-items-center rounded-full bg-[var(--emerald)]/10 text-[var(--emerald)]">
                     <LockKeyhole className="h-7 w-7" />
                   </span>
                   <h2 className="mt-4 font-serif text-2xl font-semibold">
@@ -617,7 +633,7 @@ export function ChatClient() {
               </div>
             ) : (
               <>
-                <header className="flex min-h-20 items-center gap-3 border-b border-black/8 bg-white/80 px-4 backdrop-blur md:px-6">
+                <header className="chat-conversation-header flex min-h-20 items-center gap-3 border-b px-4 backdrop-blur md:px-6">
                   <button
                     type="button"
                     onClick={() => setSelectedId(null)}
@@ -654,7 +670,7 @@ export function ChatClient() {
                     {menuOpen ? (
                       <div
                         role="menu"
-                        className="absolute right-0 top-12 z-30 w-60 overflow-hidden rounded-2xl border border-black/10 bg-white p-2 shadow-[0_18px_55px_rgba(20,17,14,0.18)]"
+                        className="chat-conversation-menu absolute right-0 top-12 z-30 w-60 overflow-hidden rounded-2xl border p-2"
                       >
                         <div className="mb-1 flex items-center justify-between px-2 py-1.5">
                           <span className="text-[0.68rem] font-bold uppercase tracking-wider text-black/40">
@@ -702,12 +718,10 @@ export function ChatClient() {
                   </div>
                 </header>
 
-                <details className="group border-b border-black/5 bg-[var(--emerald)]/[0.035] text-black/55">
+                <details className="chat-security-strip group border-b">
                   <summary className="flex min-h-10 cursor-pointer list-none items-center justify-center gap-2 px-4 py-2 text-center text-[0.7rem] font-semibold marker:hidden hover:bg-[var(--emerald)]/[0.025]">
                     <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[var(--emerald)]" />
-                    <span>
-                      Mensagens protegidas · histórico de até 60 dias
-                    </span>
+                    <span>Mensagens protegidas · histórico de até 60 dias</span>
                     <ChevronUp className="h-3.5 w-3.5 rotate-180 transition group-open:rotate-0" />
                   </summary>
                   <div className="border-t border-black/5 px-5 py-3 text-center text-[0.7rem] leading-5">
@@ -721,7 +735,7 @@ export function ChatClient() {
                   </div>
                 </details>
 
-                <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-8">
+                <div className="chat-message-scroll min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-8">
                   {nextCursor ? (
                     <button
                       type="button"
@@ -755,7 +769,7 @@ export function ChatClient() {
 
                 <form
                   onSubmit={sendMessage}
-                  className="border-t border-black/8 bg-white/90 p-3 sm:p-4"
+                  className="chat-composer border-t p-3 sm:p-4"
                 >
                   {error ? (
                     <div className="mb-2 flex items-start justify-between rounded-xl bg-[var(--ruby)]/8 px-3 py-2 text-xs font-semibold text-[var(--ruby)]">
@@ -769,12 +783,41 @@ export function ChatClient() {
                       </button>
                     </div>
                   ) : null}
-                  {isStandardDaddy &&
-                  messageAccess?.isTrial &&
-                  canSendMessages ? (
+                  {messageAccess?.isTrial ? (
                     <div className="mb-2 rounded-xl border border-[var(--gold)]/25 bg-[var(--gold-soft)]/15 px-3 py-2 text-center text-xs font-semibold text-black/58">
-                      Você ainda tem {messageAccess.freeMessagesRemaining} de{" "}
-                      {messageAccess.freeMessagesLimit} mensagens gratuitas.
+                      <div>
+                        Restam {messageAccess.freeMessagesRemaining ?? 0} de{" "}
+                        {messageAccess.freeMessagesLimit ??
+                          DEFAULT_FREE_MESSAGE_LIMIT}{" "}
+                        mensagens gratuitas.
+                      </div>
+                      <div
+                        role="progressbar"
+                        aria-label="Mensagens gratuitas restantes"
+                        aria-valuemin={0}
+                        aria-valuemax={
+                          messageAccess.freeMessagesLimit ??
+                          DEFAULT_FREE_MESSAGE_LIMIT
+                        }
+                        aria-valuenow={messageAccess.freeMessagesRemaining ?? 0}
+                        className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/10"
+                      >
+                        <div
+                          className="h-full rounded-full bg-[var(--gold)] transition-[width]"
+                          style={{
+                            width: `${Math.max(
+                              0,
+                              Math.min(
+                                100,
+                                ((messageAccess.freeMessagesRemaining ?? 0) /
+                                  (messageAccess.freeMessagesLimit ??
+                                    DEFAULT_FREE_MESSAGE_LIMIT)) *
+                                  100,
+                              ),
+                            )}%`,
+                          }}
+                        />
+                      </div>
                     </div>
                   ) : null}
                   {selected.blocked ? (
@@ -800,10 +843,8 @@ export function ChatClient() {
                             <button
                               type="button"
                               disabled={acknowledgingNotice}
-                              onClick={() =>
-                                void acknowledgeMonitoringNotice()
-                              }
-                              className="rounded-xl bg-[var(--emerald)] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50"
+                              onClick={() => void acknowledgeMonitoringNotice()}
+                              className="chat-privacy-ack rounded-xl bg-[var(--emerald)] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50"
                             >
                               {acknowledgingNotice
                                 ? "Registrando…"
@@ -820,14 +861,24 @@ export function ChatClient() {
                       </div>
                     </div>
                   ) : !canSendMessages ? (
-                    <div className="flex items-center justify-center gap-2 rounded-2xl border border-[var(--gold)]/25 bg-[var(--gold-soft)]/20 px-4 py-3 text-center text-sm font-semibold text-black/60">
-                      <LockKeyhole className="h-4 w-4 text-[var(--gold)]" />
-                      {isStandardDaddy && !messageAccess
-                        ? "Carregando suas mensagens gratuitas…"
-                        : `Você já enviou as ${messageAccess?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT} mensagens gratuitas. Faça upgrade para continuar conversando.`}
+                    <div className="rounded-2xl border border-[var(--gold)]/25 bg-[var(--gold-soft)]/20 px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2 text-sm font-semibold text-black/60">
+                        <LockKeyhole className="h-4 w-4 shrink-0 text-[var(--gold)]" />
+                        {isStandardDaddy && !messageAccess
+                          ? "Carregando suas mensagens gratuitas…"
+                          : `Você já enviou as ${messageAccess?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT} mensagens gratuitas. Assine para continuar conversando e acessar contatos.`}
+                      </div>
+                      {messageAccess?.requiresUpgrade ? (
+                        <Link
+                          href="/planos?source=chat-limit"
+                          className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl bg-[var(--gold)] px-5 py-2 text-xs font-extrabold text-white transition hover:brightness-105"
+                        >
+                          Ir para o pagamento
+                        </Link>
+                      ) : null}
                     </div>
                   ) : (
-                    <div className="flex items-end gap-2 rounded-2xl border border-black/10 bg-[#fcfaf6] p-2 focus-within:border-[var(--gold)]">
+                    <div className="chat-composer-field flex items-end gap-2 rounded-2xl border p-2">
                       <textarea
                         value={draft}
                         onChange={(event) =>
@@ -846,7 +897,7 @@ export function ChatClient() {
                         type="submit"
                         disabled={!draft.trim() || sending}
                         aria-label="Enviar mensagem"
-                        className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[var(--emerald)] text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="chat-send-button grid h-11 w-11 shrink-0 place-items-center rounded-xl transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         <Send className="h-4.5 w-4.5" />
                       </button>
@@ -893,9 +944,9 @@ export function ChatClient() {
             </h2>
             <p className="mt-2 text-sm leading-6 text-black/55">
               Você já enviou suas{" "}
-              {messageAccess?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT}
-              {" "}mensagens de teste. Faça um upgrade para Premium ou Premiere
-              para continuar enviando e respondendo mensagens sem esse limite.
+              {messageAccess?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT}{" "}
+              mensagens gratuitas. Para enviar novas mensagens e voltar a
+              acessar contatos liberados, ative uma assinatura.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <button
@@ -906,10 +957,10 @@ export function ChatClient() {
                 Agora não
               </button>
               <Link
-                href="/perfil"
+                href="/planos?source=chat-limit"
                 className="rounded-xl bg-[var(--gold)] px-4 py-3 text-sm font-bold text-white"
               >
-                Fazer upgrade
+                Ir para o pagamento
               </Link>
             </div>
           </div>
@@ -978,21 +1029,47 @@ function toTimestamp(value?: string | null) {
 }
 
 function Avatar({ conversation }: { conversation: Conversation }) {
+  const profileFrame = resolveProfileFrame(conversation.otherMember);
   const photoId = conversation.otherMember.photos[0]?.id;
   const photo = photoId
     ? `/api/match-photos/${encodeURIComponent(photoId)}?variant=card&v=3`
     : null;
+  const providerPlaceholder = getProviderProfilePlaceholder(
+    conversation.otherMember.role,
+    conversation.otherMember.gender,
+  );
+  const membershipLabel = `Moldura ${PROFILE_FRAME_DETAILS[profileFrame].label}`;
+
   return (
-    <span className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-[var(--gold-soft)]/35 text-[var(--gold)]">
-      {photo ? (
-        // The authenticated proxy serves a compact card-sized variant.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={photo} alt="" className="h-full w-full object-cover" />
-      ) : (
-        <UserRound className="h-5 w-5" />
-      )}
+    <span
+      className={`chat-avatar chat-avatar--${profileFrame.toLowerCase()}`}
+      title={membershipLabel}
+    >
+      <span className="chat-avatar-photo grid place-items-center overflow-hidden rounded-full bg-[var(--gold-soft)]/35 text-[var(--gold)]">
+        {photo ? (
+          // The authenticated proxy serves a compact card-sized variant.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photo} alt="" className="h-full w-full object-cover" />
+        ) : providerPlaceholder ? (
+          <Image
+            src={providerPlaceholder}
+            alt=""
+            width={44}
+            height={44}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <UserRound className="h-5 w-5" />
+        )}
+      </span>
+      {profileFrame === "ELITE" ? (
+        <>
+          <span className="chat-avatar-elite-accent chat-avatar-elite-accent--top" />
+          <span className="chat-avatar-elite-accent chat-avatar-elite-accent--bottom" />
+        </>
+      ) : null}
       {isOnline(conversation.otherMember.lastActiveAt) ? (
-        <span className="absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full border-2 border-white bg-[var(--emerald)]" />
+        <span className="chat-avatar-online absolute rounded-full border-2 bg-[var(--emerald)]" />
       ) : null}
     </span>
   );
@@ -1016,21 +1093,21 @@ function MessageList({
         return (
           <div key={message.id}>
             {showDay ? (
-              <div className="my-5 flex items-center gap-3">
-                <span className="h-px flex-1 bg-black/8" />
-                <span className="text-[0.68rem] font-bold uppercase tracking-wider text-black/35">
+              <div className="chat-day-divider my-5 flex items-center gap-3">
+                <span className="h-px flex-1" />
+                <span className="text-[0.68rem] font-bold uppercase tracking-wider">
                   {formatDayLabel(message.createdAt)}
                 </span>
-                <span className="h-px flex-1 bg-black/8" />
+                <span className="h-px flex-1" />
               </div>
             ) : null}
             <div className={mine ? "flex justify-end" : "flex justify-start"}>
               <div
                 className={[
-                  "max-w-[82%] rounded-2xl px-4 py-2.5 text-sm leading-5 shadow-sm sm:max-w-[68%]",
+                  "chat-message-bubble max-w-[82%] rounded-2xl px-4 py-2.5 text-sm leading-5 sm:max-w-[68%]",
                   mine
-                    ? "rounded-br-md bg-[var(--emerald)] text-white"
-                    : "rounded-bl-md border border-black/8 bg-white text-[var(--black)]",
+                    ? "chat-message-mine rounded-br-md"
+                    : "chat-message-theirs rounded-bl-md border",
                 ].join(" ")}
               >
                 <p className="whitespace-pre-wrap break-words">
@@ -1039,7 +1116,9 @@ function MessageList({
                 <span
                   className={[
                     "mt-1 flex items-center justify-end gap-1 text-[0.62rem]",
-                    mine ? "text-white/65" : "text-black/38",
+                    mine
+                      ? "chat-message-time-mine"
+                      : "chat-message-time-theirs",
                   ].join(" ")}
                 >
                   {formatMessageTime(message.createdAt)}
@@ -1132,17 +1211,22 @@ function ReportDialog({
 
         <label className="mt-5 block text-sm font-bold">
           Motivo
-          <select
-            value={category}
-            onChange={(event) => setCategory(event.target.value)}
-            className="mt-2 h-11 w-full rounded-xl border border-black/12 bg-white px-3 outline-none focus:border-[var(--gold)]"
-          >
-            {reportCategories.map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="premium-field mt-2 h-11 w-full rounded-xl px-3 [&_svg]:text-luxury-champagne">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent
+              position="popper"
+              align="start"
+              className="premium-select-content rounded-lg border border-luxury-gold/45 bg-luxury-surface-raised p-1 text-luxury-ivory shadow-[0_22px_48px_rgba(0,0,0,0.48)]"
+            >
+              {reportCategories.map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </label>
 
         <fieldset className="mt-5">
@@ -1304,7 +1388,7 @@ function ModalShell({
 
 function StateMessage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid min-h-32 place-items-center p-5 text-center text-sm leading-6 text-black/48">
+    <div className="chat-state-message grid min-h-32 place-items-center p-5 text-center text-sm leading-6">
       {children}
     </div>
   );
