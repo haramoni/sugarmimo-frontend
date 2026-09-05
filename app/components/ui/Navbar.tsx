@@ -230,10 +230,10 @@ export function Navbar() {
               >
                 <span className="navbar-membership-avatar-photo grid place-items-center overflow-hidden rounded-full bg-[#050504] text-[#d9ac55]">
                   {profilePhoto?.dataUrl ? (
-                    // User uploads are data URLs and should not use Next image optimization.
+                    // This authenticated endpoint already serves the optimized WebP variant.
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={profilePhoto.dataUrl}
+                      src={profilePhoto.cardDataUrl ?? profilePhoto.dataUrl}
                       alt=""
                       className="h-11 w-11 object-cover"
                     />

@@ -60,6 +60,7 @@ export type AuthUser = {
   photos?: Array<{
     id?: string;
     dataUrl: string;
+    cardDataUrl?: string;
     sortOrder?: number;
     isPrivate?: boolean;
     moderationStatus?: "PENDING" | "APPROVED" | "REJECTED";

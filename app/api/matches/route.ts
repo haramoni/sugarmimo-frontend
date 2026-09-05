@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { API_URL, clearSessionCookie, getSessionToken } from "../auth/_cookies";
+import { matchPhotoUrl } from "@/app/lib/photo-delivery";
 
 export async function GET(request: Request) {
   const token = await getSessionToken();
@@ -19,6 +20,11 @@ export async function GET(request: Request) {
   const relationshipMode = searchParams.get("relationshipMode")?.trim();
   const latitude = searchParams.get("latitude")?.trim();
   const longitude = searchParams.get("longitude")?.trim();
+  const locationMode = searchParams.get("locationMode")?.trim();
+  const radiusKm = searchParams.get("radiusKm")?.trim();
+  const country = searchParams.get("country")?.trim();
+  const state = searchParams.get("state")?.trim();
+  const city = searchParams.get("city")?.trim();
   const backendParams = new URLSearchParams();
 
   backendParams.set("page", page);
@@ -50,6 +56,26 @@ export async function GET(request: Request) {
 
   if (longitude) {
     backendParams.set("longitude", longitude);
+  }
+
+  if (locationMode) {
+    backendParams.set("locationMode", locationMode);
+  }
+
+  if (radiusKm) {
+    backendParams.set("radiusKm", radiusKm);
+  }
+
+  if (country) {
+    backendParams.set("country", country);
+  }
+
+  if (state) {
+    backendParams.set("state", state);
+  }
+
+  if (city) {
+    backendParams.set("city", city);
   }
 
   const response = await fetch(
@@ -85,7 +111,7 @@ export async function GET(request: Request) {
               ? profile.photos.map((photo: { id?: string }) => ({
                   ...photo,
                   dataUrl: photo.id
-                    ? `/api/match-photos/${encodeURIComponent(photo.id)}?variant=card&v=3`
+                    ? matchPhotoUrl(photo.id, "card")
                     : "",
                 }))
               : [],

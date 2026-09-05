@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { API_URL, clearSessionCookie, getSessionToken } from "../auth/_cookies";
+import { matchPhotoUrl } from "@/app/lib/photo-delivery";
 
 export async function GET(request: Request) {
   const token = await getSessionToken();
@@ -43,7 +44,7 @@ export async function GET(request: Request) {
               ? profile.photos.map((photo: { id?: string }) => ({
                   ...photo,
                   dataUrl: photo.id
-                    ? `/api/match-photos/${encodeURIComponent(photo.id)}?variant=card&v=3`
+                    ? matchPhotoUrl(photo.id, "card")
                     : "",
                 }))
               : [],

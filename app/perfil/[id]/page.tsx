@@ -353,8 +353,14 @@ function ProfileView({
   }
 
   return (
-    <div className="public-profile-card overflow-hidden rounded-lg border backdrop-blur-sm">
-      <div className="grid min-w-0 lg:grid-cols-[minmax(260px,360px)_minmax(0,1fr)]">
+    <>
+      <div
+        className={[
+          "public-profile-card overflow-hidden rounded-lg border backdrop-blur-sm",
+          showMessageButton ? "public-profile-card--with-mobile-action" : "",
+        ].join(" ")}
+      >
+        <div className="grid min-w-0 lg:grid-cols-[minmax(260px,360px)_minmax(0,1fr)]">
         <aside className="public-profile-aside p-4 sm:p-6">
           {isPremiereDaddy ? (
             <div className="mx-auto flex max-w-88 items-center justify-center gap-3 rounded-t-xl border-x border-t border-[#b99658] bg-[linear-gradient(135deg,#211912,#38291e_52%,#241a13)] px-4 py-3.5 font-serif text-xl font-semibold uppercase tracking-[0.13em] text-[#e4c787] shadow-[0_10px_22px_rgba(70,47,24,0.16)]">
@@ -535,31 +541,15 @@ function ProfileView({
                 </Button>
               ) : isBabyViewingDaddy ? null : null}
 
-              {showMessageButton &&
-                (canOpenChat ? (
-                  <Button
-                    asChild
-                    className="h-11 rounded-sm bg-emerald px-4 font-extrabold text-white hover:bg-emerald/84"
-                  >
-                    <Link href={`/chat?with=${encodeURIComponent(profile.id)}`}>
-                      <MessageCircle className="h-4 w-4" />
-                      {isDaddyViewingBaby && !viewerIsPremium
-                        ? "Enviar mensagem grátis"
-                        : "Enviar mensagem"}
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    disabled
-                    className="h-auto min-h-11 rounded-sm bg-emerald px-4 py-2 font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-55"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    {isDaddyViewingBaby && !viewerIsPremium
-                      ? "Ative uma assinatura para enviar mensagem"
-                      : "Disponível após o match"}
-                  </Button>
-                ))}
+              {showMessageButton ? (
+                <ProfileMessageButton
+                  profileId={profile.id}
+                  canOpenChat={canOpenChat}
+                  isDaddyViewingBaby={isDaddyViewingBaby}
+                  viewerIsPremium={viewerIsPremium}
+                  className="hidden h-11 rounded-sm bg-emerald px-4 font-extrabold text-white hover:bg-emerald/84 md:inline-flex"
+                />
+              ) : null}
 
               {actionError ? (
                 <p className="text-xs font-bold text-ruby">{actionError}</p>
@@ -649,6 +639,7 @@ function ProfileView({
                     <div className="h-full overflow-hidden rounded-[0.18rem]">
                       <PhotoZoom
                         src={photo.dataUrl}
+                        thumbnailSrc={photo.cardDataUrl}
                         alt={`Foto pública ${index + 1}`}
                         imageClassName="h-full w-full object-cover"
                         gallery={photoGallery}
@@ -685,6 +676,7 @@ function ProfileView({
                   >
                     <PhotoZoom
                       src={photo.dataUrl}
+                      thumbnailSrc={photo.cardDataUrl}
                       alt={`Foto privada ${index + 1}`}
                       imageClassName="h-full w-full rounded-[0.18rem] object-cover"
                       gallery={photoGallery}
@@ -695,9 +687,65 @@ function ProfileView({
               </div>
             </section>
           ) : null}
-        </section>
+          </section>
+        </div>
       </div>
-    </div>
+
+      {showMessageButton ? (
+        <aside
+          className="public-profile-mobile-message-dock md:hidden"
+          aria-label="Ação rápida do perfil"
+        >
+          <ProfileMessageButton
+            profileId={profile.id}
+            canOpenChat={canOpenChat}
+            isDaddyViewingBaby={isDaddyViewingBaby}
+            viewerIsPremium={viewerIsPremium}
+            className="mx-auto h-12 w-full max-w-md rounded-md bg-emerald px-5 text-base font-extrabold text-white shadow-[0_12px_30px_rgba(0,0,0,0.42)] hover:bg-emerald/84"
+          />
+        </aside>
+      ) : null}
+    </>
+  );
+}
+
+function ProfileMessageButton({
+  profileId,
+  canOpenChat,
+  isDaddyViewingBaby,
+  viewerIsPremium,
+  className,
+}: {
+  profileId: string;
+  canOpenChat: boolean;
+  isDaddyViewingBaby: boolean;
+  viewerIsPremium: boolean;
+  className: string;
+}) {
+  if (canOpenChat) {
+    return (
+      <Button asChild className={className}>
+        <Link href={`/chat?with=${encodeURIComponent(profileId)}`}>
+          <MessageCircle className="h-4 w-4" />
+          {isDaddyViewingBaby && !viewerIsPremium
+            ? "Enviar mensagem grátis"
+            : "Enviar mensagem"}
+        </Link>
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      type="button"
+      disabled
+      className={`${className} h-auto min-h-11 py-2 disabled:cursor-not-allowed disabled:opacity-55`}
+    >
+      <MessageCircle className="h-4 w-4" />
+      {isDaddyViewingBaby && !viewerIsPremium
+        ? "Ative uma assinatura para enviar mensagem"
+        : "Disponível após o match"}
+    </Button>
   );
 }
 

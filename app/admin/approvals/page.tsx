@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PhotoZoom } from "@/app/components/ui/PhotoZoom";
+import { adminPhotoUrl } from "@/app/lib/photo-delivery";
 
 type PendingPhoto = {
   id: string;
@@ -580,8 +581,8 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
                       className="group relative aspect-[3/4] overflow-hidden rounded-sm bg-[var(--platinum)]"
                     >
                       <PhotoZoom
-                        src={`/api/admin/review-photos/${encodeURIComponent(photo.id)}`}
-                        thumbnailSrc={`/api/admin/review-photos/${encodeURIComponent(photo.id)}?variant=card&v=3`}
+                        src={adminPhotoUrl(photo.id, "profile")}
+                        thumbnailSrc={adminPhotoUrl(photo.id, "card")}
                         alt={`Foto ${index + 1} de ${profile.username}`}
                         buttonClassName="absolute inset-0 z-0 block h-full w-full cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--gold)]"
                       />

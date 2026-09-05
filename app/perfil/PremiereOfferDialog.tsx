@@ -75,8 +75,6 @@ export function PremiereOfferDialog({
   const [paymentError, setPaymentError] = useState("");
   const contentRef = useRef<HTMLDivElement>(null);
 
-  console.log("User type", user);
-
   function handleOpenChange(open: boolean) {
     setIsOpen(open);
     if (!open) {

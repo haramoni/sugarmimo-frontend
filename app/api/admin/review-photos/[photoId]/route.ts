@@ -6,7 +6,10 @@ export async function GET(
 ) {
   const { photoId } = await context.params;
   const variant = new URL(request.url).searchParams.get("variant");
-  const query = variant === "card" ? "?variant=card" : "";
+  const query =
+    variant === "card" || variant === "profile"
+      ? `?variant=${variant}`
+      : "?variant=profile";
 
   return forwardAdminAssetRequest(
     `/admin/review-photos/${encodeURIComponent(photoId)}${query}`,

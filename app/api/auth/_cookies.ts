@@ -1,7 +1,22 @@
 import { cookies } from "next/headers";
 
-export { API_URL, SESSION_COOKIE } from "@/app/lib/auth";
-import { SESSION_COOKIE } from "@/app/lib/auth";
+import {
+  API_URL as PUBLIC_API_URL,
+  SESSION_COOKIE,
+} from "@/app/lib/auth";
+
+export { SESSION_COOKIE };
+
+const configuredInternalApiUrl = process.env.INTERNAL_API_URL?.trim();
+
+// Every consumer of this module is a server-side BFF route. In production the
+// API lives on the same EC2 instance, so avoid a paid/public network round trip.
+export const API_URL = (
+  configuredInternalApiUrl ||
+  (process.env.NODE_ENV === "production"
+    ? "http://127.0.0.1:3001"
+    : PUBLIC_API_URL)
+).replace(/\/$/, "");
 
 export const APPROVAL_SESSION_COOKIE = "sugarmimo_approval_session";
 

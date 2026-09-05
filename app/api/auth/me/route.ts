@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { API_URL, clearSessionCookie, getSessionToken } from "../_cookies";
+import { attachOwnPhotoUrls } from "../_profile-photo-urls";
 
 export async function GET() {
   const token = await getSessionToken();
@@ -31,5 +32,5 @@ export async function GET() {
     return NextResponse.json(result, { status: response.status });
   }
 
-  return NextResponse.json(result);
+  return NextResponse.json(attachOwnPhotoUrls(result));
 }

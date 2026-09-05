@@ -3842,6 +3842,31 @@ body:has(.profile-luxury-page) [data-slot="select-item"]:focus {
   .public-profile-luxury-page .public-profile-card {
     border-radius: 1rem;
   }
+
+  .public-profile-luxury-page
+    .public-profile-card.public-profile-card--with-mobile-action {
+    margin-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+
+  .public-profile-mobile-message-dock {
+    position: sticky;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 60;
+    display: flex;
+    justify-content: center;
+    padding: 0.75rem 1rem max(0.75rem, env(safe-area-inset-bottom));
+    border-top: 1px solid
+      color-mix(in srgb, var(--luxury-gold) 32%, transparent);
+    background: linear-gradient(
+      180deg,
+      rgba(7, 7, 6, 0.88),
+      rgba(7, 7, 6, 0.98)
+    );
+    box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(16px);
+  }
 }
 
 /* Chat: dark shell with a bright conversation canvas for image legibility. */

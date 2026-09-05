@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown, Loader2, MapPin, Search, ShieldCheck } from "lucide-react";
+import { Crown, Loader2, Search, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   type FormEvent,
@@ -29,6 +29,10 @@ import {
 import StatePanel from "./components/StatePanel";
 import ProfileCard from "./components/ProfileCard";
 import AgeRangeFilter from "./components/AgeRangeFilter";
+import LocationFilter, {
+  type LocationFilterValue,
+  type SearchCoordinates,
+} from "./components/LocationFilter";
 import type { PublicProfile, PublicProfilePage } from "./types";
 import {
   getRelationshipIntentLabel,
@@ -38,6 +42,16 @@ import {
 
 const PAGE_SIZE = 6;
 const SEARCH_STATE_KEY = "sugarmimo:buscar-state";
+const DEFAULT_LOCATION_FILTER: LocationFilterValue = {
+  mode: "NEARBY",
+  radiusKm: 100,
+  country: "Brasil",
+  stateCode: "",
+  state: "",
+  cityId: "",
+  city: "",
+  targetCoordinates: null,
+};
 
 const BABY_GENDER_FILTER_OPTIONS = [
   { value: "sugar-baby-woman", label: "Mulheres", group: "women" },
@@ -77,15 +91,12 @@ type SavedSearchState = {
   maxAge: string;
   gender: string;
   relationshipMode: RelationshipMode;
+  locationDraft: LocationFilterValue;
+  locationFilter: LocationFilterValue;
   page: number;
   scrollY: number;
   anchorProfileId: string | null;
   anchorOffset: number | null;
-};
-
-type SearchCoordinates = {
-  latitude: number;
-  longitude: number;
 };
 
 type LocationStatus = "checking" | "enabled" | "denied" | "unsupported";
@@ -103,6 +114,12 @@ export default function BuscarPage() {
   const [gender, setGender] = useState("");
   const [relationshipMode, setRelationshipMode] =
     useState<RelationshipMode>("COMPATIBLE");
+  const [locationDraft, setLocationDraft] = useState<LocationFilterValue>({
+    ...DEFAULT_LOCATION_FILTER,
+  });
+  const [locationFilter, setLocationFilter] = useState<LocationFilterValue>({
+    ...DEFAULT_LOCATION_FILTER,
+  });
   const [profiles, setProfiles] = useState<PublicProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -163,6 +180,8 @@ export default function BuscarPage() {
           : providerTargetLabel
         : "Conexões compatíveis";
   const isApprovalPending = shouldShowPendingApproval(user);
+  const isLocationDraftValid =
+    locationDraft.mode !== "OTHER" || Boolean(locationDraft.stateCode);
 
   useEffect(() => {
     const savedState = readSavedSearchState();
@@ -177,6 +196,8 @@ export default function BuscarPage() {
         setMaxAge(savedState.maxAge);
         setGender(savedState.gender);
         setRelationshipMode(savedState.relationshipMode);
+        setLocationDraft(savedState.locationDraft);
+        setLocationFilter(savedState.locationFilter);
         setPage(savedState.page);
         restoredPageRef.current = savedState.page;
         setScrollToRestore(savedState.scrollY);
@@ -212,6 +233,8 @@ export default function BuscarPage() {
         maxAge,
         gender: compatibleGender,
         relationshipMode,
+        locationDraft,
+        locationFilter,
         page,
         scrollY: window.scrollY,
         anchorProfileId: navigationAnchorRef.current?.profileId ?? null,
@@ -232,6 +255,8 @@ export default function BuscarPage() {
     compatibleGender,
     compatibleGenderDraft,
     relationshipMode,
+    locationDraft,
+    locationFilter,
     hasRestoredState,
     isScrollRestored,
     maxAge,
@@ -357,6 +382,7 @@ export default function BuscarPage() {
             gender: isDaddy ? compatibleGender : "",
             relationshipMode,
             coordinates,
+            location: locationFilter,
           },
           controller.signal,
         ),
@@ -417,6 +443,7 @@ export default function BuscarPage() {
     router,
     search,
     relationshipMode,
+    locationFilter,
     user,
   ]);
 
@@ -457,11 +484,10 @@ export default function BuscarPage() {
     }
 
     if (
-      nextSearch === search &&
-      nextMinAge === minAge &&
-      nextMaxAge === maxAge &&
-      compatibleGenderDraft === compatibleGender
+      locationDraft.mode === "OTHER" &&
+      !locationDraft.stateCode
     ) {
+      setError("Escolha ao menos o estado para buscar em outra localidade.");
       return;
     }
 
@@ -474,6 +500,7 @@ export default function BuscarPage() {
     setMinAge(nextMinAge);
     setMaxAge(nextMaxAge);
     setGender(compatibleGenderDraft);
+    setLocationFilter({ ...locationDraft });
   }
 
   const loadMore = useCallback(async () => {
@@ -493,6 +520,7 @@ export default function BuscarPage() {
         gender: isDaddy ? compatibleGender : "",
         relationshipMode,
         coordinates,
+        location: locationFilter,
       });
 
       if (!result) {
@@ -527,6 +555,7 @@ export default function BuscarPage() {
     router,
     search,
     relationshipMode,
+    locationFilter,
   ]);
 
   useEffect(() => {
@@ -662,6 +691,7 @@ export default function BuscarPage() {
                   <Button
                     type="submit"
                     size="icon"
+                    disabled={!isLocationDraftValid}
                     aria-label="Buscar perfis"
                     className="h-11 w-11 shrink-0 rounded-md border border-luxury-gold/60 bg-luxury-black text-luxury-champagne hover:bg-luxury-gold hover:text-luxury-ink"
                   >
@@ -680,6 +710,13 @@ export default function BuscarPage() {
                     onMaxAgeChange={setMaxAgeDraft}
                   />
                 </div>
+
+                <LocationFilter
+                  value={locationDraft}
+                  onChange={setLocationDraft}
+                  locationStatus={locationStatus}
+                  onRetryLocation={requestLocation}
+                />
 
                 {isDaddy ? (
                   <div className="space-y-2">
@@ -720,35 +757,16 @@ export default function BuscarPage() {
                     </Select>
                   </div>
                 ) : null}
-              </form>
 
-              <div className="mt-4 flex items-start gap-2 rounded-md border border-luxury-gold/35 bg-luxury-black/55 p-3 text-xs font-semibold leading-5 text-luxury-muted">
-                {locationStatus === "checking" ? (
-                  <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-luxury-gold" />
-                ) : (
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-luxury-gold" />
-                )}
-                <div>
-                  <p>
-                    {locationStatus === "enabled"
-                      ? "Localização ativada: perfis mais próximos aparecem primeiro."
-                      : locationStatus === "checking"
-                        ? "Verificando sua localização para ordenar os perfis."
-                        : locationStatus === "denied"
-                          ? "Localização não autorizada. Usaremos a cidade e o estado do seu perfil."
-                          : "Este navegador não oferece localização. Usaremos os dados do seu perfil."}
-                  </p>
-                  {locationStatus === "denied" ? (
-                    <button
-                      type="button"
-                      onClick={requestLocation}
-                      className="mt-1 font-extrabold text-luxury-champagne underline underline-offset-2"
-                    >
-                      Tentar novamente
-                    </button>
-                  ) : null}
-                </div>
-              </div>
+                <Button
+                  type="submit"
+                  disabled={!isLocationDraftValid}
+                  className="h-11 w-full rounded-md border border-luxury-champagne/70 bg-luxury-gold font-extrabold text-luxury-ink shadow-[0_8px_22px_rgba(213,166,78,0.2)] hover:bg-luxury-champagne"
+                >
+                  <Search className="h-4 w-4" />
+                  Aplicar filtros
+                </Button>
+              </form>
             </aside>
 
             <section id="profile-results" className="min-w-0 scroll-mt-24">
@@ -801,6 +819,8 @@ export default function BuscarPage() {
                             maxAge,
                             gender: compatibleGender,
                             relationshipMode,
+                            locationDraft,
+                            locationFilter,
                             page,
                             scrollY: window.scrollY,
                             anchorProfileId:
@@ -859,6 +879,7 @@ async function fetchMatchPage(
     gender: string;
     relationshipMode: RelationshipMode;
     coordinates: SearchCoordinates | null;
+    location: LocationFilterValue;
   },
   signal?: AbortSignal,
 ): Promise<PublicProfilePage | null> {
@@ -884,10 +905,28 @@ async function fetchMatchPage(
   }
 
   params.set("relationshipMode", filters.relationshipMode);
+  params.set("locationMode", filters.location.mode);
+  if (
+    filters.location.mode === "NEARBY" ||
+    (filters.location.mode === "OTHER" && filters.location.city)
+  ) {
+    params.set("radiusKm", String(filters.location.radiusKm));
+  }
 
-  if (filters.coordinates) {
-    params.set("latitude", String(filters.coordinates.latitude));
-    params.set("longitude", String(filters.coordinates.longitude));
+  const searchCoordinates =
+    filters.location.mode === "OTHER"
+      ? filters.location.targetCoordinates
+      : filters.coordinates;
+
+  if (searchCoordinates) {
+    params.set("latitude", String(searchCoordinates.latitude));
+    params.set("longitude", String(searchCoordinates.longitude));
+  }
+
+  if (filters.location.mode === "OTHER") {
+    params.set("country", filters.location.country);
+    params.set("state", filters.location.state);
+    params.set("city", filters.location.city);
   }
 
   const response = await fetch(`/api/matches?${params.toString()}`, { signal });
@@ -936,6 +975,8 @@ function readSavedSearchState(): SavedSearchState | null {
         parsed.relationshipMode === "TRADITIONAL"
           ? parsed.relationshipMode
           : "COMPATIBLE",
+      locationDraft: normalizeSavedLocationFilter(parsed.locationDraft),
+      locationFilter: normalizeSavedLocationFilter(parsed.locationFilter),
       page: Number(parsed.page),
       scrollY:
         typeof parsed.scrollY === "number" && parsed.scrollY >= 0
@@ -951,6 +992,49 @@ function readSavedSearchState(): SavedSearchState | null {
   } catch {
     return null;
   }
+}
+
+function normalizeSavedLocationFilter(value: unknown): LocationFilterValue {
+  if (!value || typeof value !== "object") {
+    return { ...DEFAULT_LOCATION_FILTER };
+  }
+
+  const candidate = value as Partial<LocationFilterValue>;
+  const radius = Number(candidate.radiusKm);
+  const coordinates = candidate.targetCoordinates;
+
+  return {
+    mode:
+      candidate.mode === "ALL" || candidate.mode === "OTHER"
+        ? candidate.mode
+        : "NEARBY",
+    radiusKm: Number.isFinite(radius)
+      ? Math.min(500, Math.max(25, Math.round(radius / 25) * 25))
+      : DEFAULT_LOCATION_FILTER.radiusKm,
+    country:
+      typeof candidate.country === "string" ? candidate.country : "Brasil",
+    stateCode:
+      typeof candidate.stateCode === "string" ? candidate.stateCode : "",
+    state:
+      typeof candidate.stateCode === "string" && candidate.stateCode
+        ? candidate.stateCode
+        : typeof candidate.state === "string"
+          ? candidate.state
+          : "",
+    cityId: typeof candidate.cityId === "string" ? candidate.cityId : "",
+    city: typeof candidate.city === "string" ? candidate.city : "",
+    targetCoordinates:
+      coordinates &&
+      typeof coordinates.latitude === "number" &&
+      Number.isFinite(coordinates.latitude) &&
+      typeof coordinates.longitude === "number" &&
+      Number.isFinite(coordinates.longitude)
+        ? {
+            latitude: coordinates.latitude,
+            longitude: coordinates.longitude,
+          }
+        : null,
+  };
 }
 
 function normalizeSavedAge(value: unknown, fallback: number) {

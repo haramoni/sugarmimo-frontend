@@ -393,7 +393,7 @@ export default function AdminFeaturedPage() {
                         aria-label={`Ampliar e ver fotos de ${profile.username}`}
                         className="group block h-full w-full cursor-zoom-in"
                       >
-                        {/* Uploaded data URLs cannot use Next image optimization. */}
+                        {/* The authenticated endpoint already serves an optimized WebP. */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={photo.dataUrl}

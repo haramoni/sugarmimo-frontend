@@ -1,6 +1,7 @@
 export type ProfilePhoto = {
   id?: string;
   dataUrl: string;
+  cardDataUrl?: string;
   fileName?: string | null;
   mimeType?: string | null;
   sortOrder: number;

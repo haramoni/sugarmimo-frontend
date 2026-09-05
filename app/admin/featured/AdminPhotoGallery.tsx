@@ -14,6 +14,7 @@ import { createPortal } from "react-dom";
 export type AdminGalleryPhoto = {
   id: string;
   dataUrl: string;
+  cardDataUrl?: string;
   sortOrder: number;
   isPrivate: boolean;
 };
@@ -144,7 +145,7 @@ export function AdminPhotoGallery({
           <ChevronLeft className="h-7 w-7" />
         </button>
 
-        {/* ADMIN-authorized user upload; Next image optimization does not support data URLs. */}
+        {/* The ADMIN-authorized endpoint already serves an optimized WebP. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={photo.dataUrl}
@@ -188,7 +189,7 @@ export function AdminPhotoGallery({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={item.dataUrl}
+                src={item.cardDataUrl ?? item.dataUrl}
                 alt=""
                 className="h-full w-full object-cover"
               />

@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { Navbar } from "../components/ui/Navbar";
 import { PremiumLoadingScreen } from "../components/ui/PremiumLoadingScreen";
 import { useAuth } from "../components/AuthProvider";
+import { matchPhotoUrl } from "../lib/photo-delivery";
 import {
   ProfileApprovalGuard,
   shouldShowPendingApproval,
@@ -154,9 +155,7 @@ export default function NotificationsPage() {
                     .filter(Boolean)
                     .join(", ");
                   const photoId = notification.actor.photos?.[0]?.id;
-                  const photo = photoId
-                    ? `/api/match-photos/${encodeURIComponent(photoId)}?variant=card&v=3`
-                    : null;
+                  const photo = photoId ? matchPhotoUrl(photoId, "card") : null;
 
                   return (
                     <button

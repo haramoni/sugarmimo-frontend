@@ -2,12 +2,7 @@ import "server-only";
 
 import { API_URL } from "./_cookies";
 
-const configuredInternalApiUrl = process.env.INTERNAL_API_URL?.trim();
-
-export const SERVER_API_URL = (
-  configuredInternalApiUrl ||
-  (process.env.NODE_ENV === "production" ? "http://127.0.0.1:3001" : API_URL)
-).replace(/\/$/, "");
+export const SERVER_API_URL = API_URL;
 
 export function forwardedClientHeaders(request: Request) {
   const ipAddress = normalizeIpHeader(

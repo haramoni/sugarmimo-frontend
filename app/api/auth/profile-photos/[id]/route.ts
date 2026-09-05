@@ -1,27 +1,35 @@
 import { NextResponse } from "next/server";
 
-import { API_URL, clearSessionCookie, getSessionToken } from "../../auth/_cookies";
+import {
+  API_URL,
+  clearApprovalSessionCookie,
+  clearSessionCookie,
+  getApprovalSessionToken,
+  getSessionToken,
+} from "../../_cookies";
 
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const token = await getSessionToken();
+  const searchParams = new URL(request.url).searchParams;
+  const isReapplication = searchParams.get("scope") === "reapplication";
+  const token = isReapplication
+    ? await getApprovalSessionToken()
+    : await getSessionToken();
 
   if (!token) {
     return new NextResponse(null, { status: 401 });
   }
 
   const { id } = await context.params;
-  const variant = new URL(request.url).searchParams.get("variant");
-  const backendParams = new URLSearchParams();
-
-  if (variant === "card" || variant === "profile") {
-    backendParams.set("variant", variant);
-  }
-
+  const requestedVariant = searchParams.get("variant");
+  const variant = requestedVariant === "card" ? "card" : "profile";
+  const backendPath = isReapplication
+    ? "reapplication-profile-photos"
+    : "profile-photos";
   const response = await fetch(
-    `${API_URL}/auth/match-photos/${encodeURIComponent(id)}${backendParams.size ? `?${backendParams}` : ""}`,
+    `${API_URL}/auth/${backendPath}/${encodeURIComponent(id)}?variant=${variant}`,
     {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
@@ -33,7 +41,8 @@ export async function GET(
   }
 
   if (response.status === 401) {
-    await clearSessionCookie();
+    if (isReapplication) await clearApprovalSessionCookie();
+    else await clearSessionCookie();
   }
 
   if (!response.ok) {
@@ -48,8 +57,7 @@ export async function GET(
       ...(response.headers.get("content-length")
         ? { "Content-Length": response.headers.get("content-length")! }
         : {}),
-      "Cache-Control":
-        "private, max-age=31536000, immutable",
+      "Cache-Control": "private, max-age=31536000, immutable",
       ...(response.headers.get("etag")
         ? { ETag: response.headers.get("etag")! }
         : {}),

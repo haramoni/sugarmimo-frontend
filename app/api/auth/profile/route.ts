@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { API_URL, clearSessionCookie, getSessionToken } from "../_cookies";
 import { rejectBodyLargerThan } from "../../_request-security";
+import { attachOwnPhotoUrls } from "../_profile-photo-urls";
 
 export async function PATCH(request: Request) {
   const oversized = rejectBodyLargerThan(request, 64 * 1024 * 1024);
@@ -38,5 +39,8 @@ export async function PATCH(request: Request) {
     await clearSessionCookie();
   }
 
-  return NextResponse.json(result, { status: response.status });
+  return NextResponse.json(
+    response.ok ? attachOwnPhotoUrls(result) : result,
+    { status: response.status },
+  );
 }

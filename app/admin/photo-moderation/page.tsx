@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 import { PhotoZoom } from "@/app/components/ui/PhotoZoom";
+import { adminPhotoUrl } from "@/app/lib/photo-delivery";
 import { profileIdentityLabel } from "@/app/lib/profileIdentity";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -663,8 +664,8 @@ export default function PhotoModerationPage() {
                         >
                           <div className="relative aspect-[4/3] overflow-hidden bg-[#e9e3d9]">
                             <PhotoZoom
-                              src={`/api/admin/review-photos/${encodeURIComponent(photo.id)}`}
-                              thumbnailSrc={`/api/admin/review-photos/${encodeURIComponent(photo.id)}?variant=card&v=3`}
+                              src={adminPhotoUrl(photo.id, "profile")}
+                              thumbnailSrc={adminPhotoUrl(photo.id, "card")}
                               alt={`Foto ${index + 1} de ${profile.username}`}
                               imageClassName="h-full w-full object-cover"
                             />

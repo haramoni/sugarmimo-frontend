@@ -6,6 +6,7 @@ import {
   getApprovalSessionToken,
 } from "../_cookies";
 import { rejectBodyLargerThan } from "../../_request-security";
+import { attachOwnPhotoUrls } from "../_profile-photo-urls";
 
 export async function GET() {
   return forwardReapplicationRequest({ method: "GET" });
@@ -51,5 +52,8 @@ async function forwardReapplicationRequest(init: RequestInit) {
     await clearApprovalSessionCookie();
   }
 
-  return NextResponse.json(result, { status: response.status });
+  return NextResponse.json(
+    response.ok ? attachOwnPhotoUrls(result, true) : result,
+    { status: response.status },
+  );
 }

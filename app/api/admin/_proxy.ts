@@ -6,6 +6,7 @@ import { clearAdminSessionCookie, getAdminSessionToken } from "./_session";
 export async function forwardAdminRequest(
   path: string,
   init: RequestInit = {},
+  transform?: (result: unknown) => unknown,
 ) {
   const token = await getAdminSessionToken();
 
@@ -35,7 +36,10 @@ export async function forwardAdminRequest(
     await clearAdminSessionCookie();
   }
 
-  return NextResponse.json(result, { status: response.status });
+  return NextResponse.json(
+    response.ok && transform ? transform(result) : result,
+    { status: response.status },
+  );
 }
 
 export async function forwardAdminAssetRequest(path: string) {

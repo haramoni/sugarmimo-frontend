@@ -37,6 +37,7 @@ import {
   resolveProfileFrame,
 } from "@/app/lib/membership";
 import { getProviderProfilePlaceholder } from "@/app/lib/profileIdentity";
+import { matchPhotoUrl } from "@/app/lib/photo-delivery";
 import {
   Select,
   SelectContent,
@@ -642,7 +643,13 @@ export function ChatClient() {
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </button>
-                  <Avatar conversation={selected} />
+                  <Link
+                    className="cursor-pointer"
+                    href={`/perfil/${selected.otherMember.id}`}
+                    aria-label={`Ver perfil de ${selected.otherMember.username}`}
+                  >
+                    <Avatar conversation={selected} />
+                  </Link>
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/perfil/${selected.otherMember.id}`}
@@ -1031,9 +1038,7 @@ function toTimestamp(value?: string | null) {
 function Avatar({ conversation }: { conversation: Conversation }) {
   const profileFrame = resolveProfileFrame(conversation.otherMember);
   const photoId = conversation.otherMember.photos[0]?.id;
-  const photo = photoId
-    ? `/api/match-photos/${encodeURIComponent(photoId)}?variant=card&v=3`
-    : null;
+  const photo = photoId ? matchPhotoUrl(photoId, "card") : null;
   const providerPlaceholder = getProviderProfilePlaceholder(
     conversation.otherMember.role,
     conversation.otherMember.gender,

@@ -14,6 +14,7 @@ import {
   FileCheck2,
   ImagePlus,
   ShieldCheck,
+  Star,
   Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -216,6 +217,22 @@ export default function ProfilePhotosPage() {
     setError("");
   }
 
+  function setPrimaryPhoto(previewUrl: string) {
+    setPhotos((currentPhotos) => {
+      const selectedPhoto = currentPhotos.find(
+        (photo) => photo.previewUrl === previewUrl,
+      );
+
+      return selectedPhoto
+        ? [
+            selectedPhoto,
+            ...currentPhotos.filter((photo) => photo !== selectedPhoto),
+          ]
+        : currentPhotos;
+    });
+    setError("");
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -397,7 +414,9 @@ export default function ProfilePhotosPage() {
             <div className="registration-photo-rules">
               <div className="flex items-start gap-2 font-bold text-[#e9dfd0]">
                 <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#e1bd8a]" />
-                <p>Confirme separadamente a autorização de cada foto.</p>
+                <p>
+                  Confirme a autorização e escolha qual será sua foto principal.
+                </p>
               </div>
               <ul className="list-disc space-y-1 pl-5 text-xs font-medium leading-5">
                 <li>
@@ -430,6 +449,22 @@ export default function ProfilePhotosPage() {
                   <span className="absolute left-1 top-1 rounded-sm bg-black/68 px-2 py-1 text-[0.65rem] font-extrabold text-white">
                     Foto {index + 1}
                   </span>
+                  {index === 0 ? (
+                    <span className="absolute bottom-1 left-1 inline-flex items-center gap-1 rounded-full border border-gold-soft/70 bg-espresso/88 px-2 py-1 text-[0.62rem] font-extrabold uppercase tracking-wide text-gold-soft shadow-md backdrop-blur-sm">
+                      <Star className="h-3 w-3 fill-current" />
+                      Principal
+                    </span>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setPrimaryPhoto(photo.previewUrl)}
+                      className="absolute inset-x-1 bottom-1 h-8 rounded-sm border border-gold-soft/70 bg-espresso/88 px-2 text-[0.68rem] font-extrabold text-gold-soft shadow-md backdrop-blur-sm hover:bg-gold hover:text-espresso"
+                    >
+                      <Star className="h-3.5 w-3.5" />
+                      Definir como principal
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     size="icon"

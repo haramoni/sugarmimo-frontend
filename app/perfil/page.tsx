@@ -17,6 +17,7 @@ import {
   Plus,
   Save,
   Send,
+  Star,
   Tag,
   Trash2,
   X,
@@ -187,6 +188,7 @@ const contactChannelOptions: {
 type ProfilePhoto = {
   id?: string;
   dataUrl: string;
+  cardDataUrl?: string;
   fileName?: string | null;
   mimeType?: string | null;
   sortOrder: number;
@@ -986,6 +988,34 @@ export function ProfilePageContent({
     setFeedback("");
   }
 
+  function setPrimaryPhoto(photoToPromote: ProfilePhoto) {
+    if (photoToPromote.isPrivate) {
+      return;
+    }
+
+    setPhotos((currentPhotos) => {
+      const selectedPhoto = currentPhotos.find(
+        (photo) => photo === photoToPromote,
+      );
+
+      if (!selectedPhoto) {
+        return currentPhotos;
+      }
+
+      const otherPublicPhotos = currentPhotos.filter(
+        (photo) => photo !== selectedPhoto && !photo.isPrivate,
+      );
+      const privatePhotos = currentPhotos.filter((photo) => photo.isPrivate);
+
+      return [selectedPhoto, ...otherPublicPhotos, ...privatePhotos].map(
+        (photo, index) => ({ ...photo, sortOrder: index + 1 }),
+      );
+    });
+    setIsEditing(true);
+    setFeedback("Foto principal selecionada. Salve o perfil para confirmar.");
+    setError("");
+  }
+
   function cancelEditing() {
     if (!user) {
       return;
@@ -1235,6 +1265,7 @@ export function ProfilePageContent({
                                 alt={`Foto de ${form.username || "perfil"}`}
                                 imageClassName={`h-full w-full object-cover ${premiereStyles.premiereImage}`}
                               />
+                              <PrimaryPhotoBadge />
                               <PhotoModerationBadge photo={profilePhoto} />
                             </>
                           ) : (
@@ -1272,6 +1303,7 @@ export function ProfilePageContent({
                               alt={`Foto de ${form.username || "perfil"}`}
                               imageClassName="h-full w-full object-cover"
                             />
+                            <PrimaryPhotoBadge />
                             <PhotoModerationBadge photo={profilePhoto} />
                           </>
                         ) : (
@@ -1470,7 +1502,8 @@ export function ProfilePageContent({
                     <p className="rounded-sm border border-gold/25 bg-gold/8 px-3 py-2 text-xs font-semibold leading-5 text-black-jewel/68">
                       Fotos novas, públicas ou privadas, ficam visíveis somente
                       para você e para a equipe de moderação até serem
-                      aprovadas.
+                      aprovadas. Durante a edição, use “Definir como principal”
+                      para escolher a foto que aparece primeiro no seu perfil.
                     </p>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                       {publicPhotos.slice(1, 6).map((photo, index) => (
@@ -1480,6 +1513,7 @@ export function ProfilePageContent({
                           index={index + 1}
                           isEditing={isEditing}
                           onRemove={() => removePhoto(photo)}
+                          onSetPrimary={() => setPrimaryPhoto(photo)}
                         />
                       ))}
                       {publicPhotos.length < MAX_PUBLIC_PHOTOS ? (
@@ -1749,6 +1783,8 @@ export function ProfilePageContent({
                           index={index}
                           isEditing={isEditing}
                           onRemove={() => removePhoto(photo)}
+                          isPrimary={index === 0}
+                          onSetPrimary={() => setPrimaryPhoto(photo)}
                           dark
                         />
                       ))}
@@ -2408,14 +2444,21 @@ function GalleryTile({
   index,
   isEditing,
   onRemove,
+  isPrimary = false,
+  onSetPrimary,
   dark = false,
 }: {
   photo: ProfilePhoto;
   index: number;
   isEditing: boolean;
   onRemove: () => void;
+  isPrimary?: boolean;
+  onSetPrimary?: () => void;
   dark?: boolean;
 }) {
+  const canSetAsPrimary =
+    isEditing && !photo.isPrivate && !isPrimary && Boolean(onSetPrimary);
+
   return (
     <div
       className={[
@@ -2426,11 +2469,16 @@ function GalleryTile({
       <div className="h-full overflow-hidden rounded-[0.18rem]">
         <PhotoZoom
           src={photo.dataUrl}
+          thumbnailSrc={photo.cardDataUrl}
           alt={`${photo.isPrivate ? "Foto privada" : "Foto pública"} ${index + 1}`}
           imageClassName="h-full w-full object-cover"
         />
       </div>
-      <PhotoModerationBadge photo={photo} />
+      {isPrimary ? <PrimaryPhotoBadge compact /> : null}
+      <PhotoModerationBadge
+        photo={photo}
+        className={canSetAsPrimary ? "top-2 bottom-auto" : undefined}
+      />
       {isEditing ? (
         <Button
           type="button"
@@ -2443,15 +2491,49 @@ function GalleryTile({
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       ) : null}
+      {canSetAsPrimary ? (
+        <Button
+          type="button"
+          variant="ghost"
+          aria-label={`Definir foto ${index + 1} como principal`}
+          onClick={onSetPrimary}
+          className="absolute inset-x-1 bottom-1 h-8 rounded-sm border border-gold-soft/70 bg-espresso/88 px-2 text-[11px] font-extrabold text-gold-soft shadow-md backdrop-blur-sm hover:bg-gold hover:text-espresso"
+        >
+          <Star className="h-3.5 w-3.5" />
+          Definir como principal
+        </Button>
+      ) : null}
     </div>
   );
 }
 
-function PhotoModerationBadge({ photo }: { photo: ProfilePhoto }) {
+function PrimaryPhotoBadge({ compact = false }: { compact?: boolean }) {
+  return (
+    <span
+      className={[
+        "pointer-events-none absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-full border border-gold-soft/75 bg-espresso/88 font-extrabold uppercase tracking-wide text-gold-soft shadow-md backdrop-blur-sm",
+        compact ? "px-2 py-1 text-[9px]" : "px-2.5 py-1 text-[10px]",
+      ].join(" ")}
+    >
+      <Star className="h-3 w-3 fill-current" />
+      Principal
+    </span>
+  );
+}
+
+function PhotoModerationBadge({
+  photo,
+  className,
+}: {
+  photo: ProfilePhoto;
+  className?: string;
+}) {
   if (photo.moderationStatus !== "PENDING") return null;
 
   return (
-    <span className="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-amber-900 shadow-md">
+    <span
+      className={`pointer-events-none absolute left-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-amber-900 shadow-md ${className ?? "bottom-2"}`}
+    >
       <Loader2 className="h-3 w-3" /> Em análise
     </span>
   );

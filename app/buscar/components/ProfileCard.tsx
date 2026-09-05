@@ -207,7 +207,7 @@ export default function ProfileCard({
           ].join(" ")}
         >
           {photo ? (
-            // User uploads are data URLs and should not use Next image optimization.
+            // This authenticated endpoint already serves the optimized WebP variant.
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={photo.dataUrl}

@@ -36,6 +36,7 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 import { PhotoZoom } from "@/app/components/ui/PhotoZoom";
+import { adminPhotoUrl } from "@/app/lib/photo-delivery";
 import { profileIdentityLabel } from "@/app/lib/profileIdentity";
 import {
   formatMembershipExpiry,
@@ -1374,8 +1375,8 @@ function AdminProfilePhotoCarousel({
               className="group relative aspect-[4/3] overflow-hidden bg-[#ddd5ca]"
             >
               <PhotoZoom
-                src={`/api/admin/review-photos/${encodeURIComponent(photo.id)}`}
-                thumbnailSrc={`/api/admin/review-photos/${encodeURIComponent(photo.id)}?variant=card&v=3`}
+                src={adminPhotoUrl(photo.id, "profile")}
+                thumbnailSrc={adminPhotoUrl(photo.id, "card")}
                 alt={`Foto ${photoNumber} de ${profile.username}`}
                 buttonClassName="absolute inset-0 block h-full w-full cursor-zoom-in"
               />

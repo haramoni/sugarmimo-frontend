@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { API_URL, clearSessionCookie, getSessionToken } from "../../auth/_cookies";
+import { matchPhotoUrl } from "@/app/lib/photo-delivery";
 
 export async function GET(
   _request: Request,
@@ -43,8 +44,9 @@ export async function GET(
           photos: result.photos.map((photo: { id?: string }) => ({
             ...photo,
             dataUrl: photo.id
-              ? `/api/match-photos/${encodeURIComponent(photo.id)}`
+              ? matchPhotoUrl(photo.id, "profile")
               : "",
+            cardDataUrl: photo.id ? matchPhotoUrl(photo.id, "card") : "",
           })),
         }
       : result;
