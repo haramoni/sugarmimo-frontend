@@ -43,7 +43,7 @@ import {
 const PAGE_SIZE = 6;
 const SEARCH_STATE_KEY = "sugarmimo:buscar-state";
 const DEFAULT_LOCATION_FILTER: LocationFilterValue = {
-  mode: "NEARBY",
+  mode: "ALL",
   radiusKm: 100,
   country: "Brasil",
   stateCode: "",
@@ -310,15 +310,24 @@ export default function BuscarPage() {
 
   useEffect(() => {
     if (
+      hasRestoredState &&
       user &&
       canSearch &&
       !isApprovalPending &&
+      locationDraft.mode === "NEARBY" &&
       !hasRequestedLocationRef.current
     ) {
       hasRequestedLocationRef.current = true;
       requestLocation();
     }
-  }, [canSearch, isApprovalPending, requestLocation, user]);
+  }, [
+    canSearch,
+    hasRestoredState,
+    isApprovalPending,
+    locationDraft.mode,
+    requestLocation,
+    user,
+  ]);
 
   useEffect(() => {
     if (!hasRestoredState || !canSearch || isApprovalPending) {
