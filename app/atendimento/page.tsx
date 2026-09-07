@@ -24,7 +24,7 @@ export default function AtendimentoPage() {
     <main className="premium-page-shell">
       <NavBarMenu />
       <div className="pt-20">
-        <HomeSupportSection />
+        <HomeSupportSection headingLevel="h1" />
       </div>
       <SiteFooter />
       <WhatsappBubble />

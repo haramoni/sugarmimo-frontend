@@ -1,30 +1,14 @@
 import type { MetadataRoute } from "next";
 import { site } from "@/lib/site";
 
-const privateOrUtilityRoutes = [
-  "/api",
-  "/admin",
-  "/buscar",
-  "/chat",
-  "/checkout",
-  "/clube-vip",
-  "/configuracoes",
-  "/inicio",
-  "/login",
-  "/manutencao",
-  "/notificacoes",
-  "/perfil",
-  "/pins",
-  "/register",
-  "/reset-password",
-];
-
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: privateOrUtilityRoutes,
+      // Utility pages must be crawlable so Google can read their noindex.
+      // Existing authentication still protects private data.
+      disallow: ["/api/", "/api$"],
     },
     sitemap: `${site.url}/sitemap.xml`,
     host: site.url,

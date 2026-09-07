@@ -6,20 +6,14 @@ import { ArrowRight, BookOpen, CalendarDays, Clock } from "lucide-react";
 import NavBarMenu from "../components/ui/NavBarMenu";
 import { SiteFooter } from "../components/ui/SiteFooter";
 import { blogPosts, formatBlogDate } from "./blog-data";
+import { GuideLinks } from "../components/seo/GuideLinks";
+import { publicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Blog sobre Relacionamentos e Universo Sugar | SugarMimo",
-  description:
-    "Conteúdos sobre relacionamentos, segurança, comunicação, encontros e o universo sugar para criar conexões mais conscientes.",
-  alternates: { canonical: "/blog" },
-  openGraph: {
-    title: "Blog SugarMimo: relacionamentos e universo sugar",
-    description:
-      "Informação para viver conexões mais transparentes, seguras e respeitosas.",
-    url: "/blog",
-    type: "website",
-  },
-};
+export const metadata: Metadata = publicMetadata(
+  "Blog sobre Relacionamentos e Universo Sugar | SugarMimo",
+  "Conteúdos sobre relacionamento sugar, segurança, comunicação e encontros para sugar babies e sugar daddies adultos.",
+  "/blog",
+);
 
 export default function BlogPage() {
   return (
@@ -34,7 +28,7 @@ export default function BlogPage() {
               Conteúdo SugarMimo
             </span>
             <h1 className="mt-6 font-serif text-4xl font-semibold leading-tight sm:text-6xl">
-              Conversas que inspiram conexões mais conscientes
+              Blog sobre relacionamento sugar e encontros conscientes
             </h1>
             <p className="mt-5 max-w-2xl text-lg font-medium leading-8 text-black-jewel/70">
               Informação sobre relacionamentos, segurança e universo sugar para
@@ -97,6 +91,7 @@ export default function BlogPage() {
         </div>
       </section>
 
+      <GuideLinks />
       <SiteFooter />
     </main>
   );

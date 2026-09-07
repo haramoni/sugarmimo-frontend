@@ -8,10 +8,15 @@ import NavBarMenu from "../../components/ui/NavBarMenu";
 import { SiteFooter } from "../../components/ui/SiteFooter";
 import { blogPosts, formatBlogDate, getBlogPost } from "../blog-data";
 import { site } from "@/lib/site";
+import { breadcrumbs, publicMetadata } from "@/lib/seo";
+import { GuideLinks } from "../../components/seo/GuideLinks";
 
 type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
 };
+
+// The editorial catalog is local: unknown slugs must return HTTP 404 before streaming.
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }));
@@ -24,14 +29,11 @@ export async function generateMetadata({
   const post = getBlogPost(slug);
 
   if (!post) {
-    return { title: "Artigo não encontrado | SugarMimo" };
+    notFound();
   }
 
   return {
-    title: `${post.title} | SugarMimo`,
-    description: post.excerpt,
-    keywords: post.keywords,
-    alternates: { canonical: `/blog/${post.slug}` },
+    ...publicMetadata(`${post.title} | SugarMimo`, post.excerpt, `/blog/${post.slug}`, post.image),
     openGraph: {
       title: post.title,
       description: post.excerpt,
@@ -59,7 +61,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     image: `${site.url}${post.image}`,
     datePublished: post.date,
     dateModified: post.date,
-    author: { "@type": "Organization", name: "SugarMimo" },
+    author: { "@type": "Organization", name: "SugarMimo", url: `${site.url}/sobre` },
     publisher: {
       "@type": "Organization",
       name: "SugarMimo",
@@ -77,7 +79,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c"),
+          __html: JSON.stringify([articleJsonLd, breadcrumbs([
+            { name: "SugarMimo", path: "/" },
+            { name: "Blog", path: "/blog" },
+            { name: post.title, path: `/blog/${post.slug}` },
+          ])]).replace(/</g, "\\u003c"),
         }}
       />
 
@@ -92,6 +98,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </Link>
 
           <header className="mt-5 text-center">
+            <nav aria-label="Caminho da página" className="mb-5 text-sm text-black-jewel/65">
+              <Link href="/" className="underline underline-offset-4">SugarMimo</Link> / <Link href="/blog" className="underline underline-offset-4">Blog</Link> / <span aria-current="page">{post.title}</span>
+            </nav>
             <span className="inline-flex rounded-full bg-emerald/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.14em] text-emerald">
               {post.category}
             </span>
@@ -102,6 +111,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               {post.excerpt}
             </p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-5 text-sm font-semibold text-black-jewel/55">
+              <Link href="/sobre" className="underline underline-offset-4">Por Equipe SugarMimo</Link>
               <time
                 dateTime={post.date}
                 className="inline-flex items-center gap-2"
@@ -166,6 +176,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </div>
       </article>
 
+      <GuideLinks />
       <SiteFooter />
     </main>
   );

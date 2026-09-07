@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
 
 import { blogPosts } from "./blog/blog-data";
-import { site } from "@/lib/site";
+import { absoluteUrl, site } from "@/lib/site";
+import { publicGuides } from "@/lib/public-guides";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const latestBlogDate = new Date(blogPosts[0]?.date ?? "2026-08-13");
-  const homepageLastModified = new Date("2026-08-29T12:00:00Z");
+  // Content dates are fixed to actual edits, never refreshed on every build.
+  const homepageLastModified = new Date("2026-09-07T12:00:00Z");
 
   return [
     {
@@ -17,19 +18,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${site.url}/blog`,
-      lastModified: latestBlogDate,
+      lastModified: homepageLastModified,
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
       url: `${site.url}/atendimento`,
-      lastModified: homepageLastModified,
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
       url: `${site.url}/contato`,
-      lastModified: homepageLastModified,
       changeFrequency: "monthly",
       priority: 0.7,
     },
@@ -45,6 +44,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.5,
     },
+    { url: absoluteUrl("/sobre"), lastModified: homepageLastModified },
+    ...publicGuides.map((guide) => ({
+      url: absoluteUrl(`/${guide.slug}`),
+      lastModified: new Date(`${guide.updated}T12:00:00Z`),
+    })),
     ...blogPosts.map((post) => ({
       url: `${site.url}/blog/${post.slug}`,
       lastModified: new Date(`${post.date}T12:00:00Z`),

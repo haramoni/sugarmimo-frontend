@@ -63,7 +63,12 @@ const channels = [
   },
 ];
 
-export function HomeSupportSection() {
+export function HomeSupportSection({
+  headingLevel = "h2",
+}: {
+  headingLevel?: "h1" | "h2";
+}) {
+  const Heading = headingLevel;
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState("");
   const [ticket, setTicket] = useState<Ticket | null>(null);
@@ -108,9 +113,9 @@ export function HomeSupportSection() {
               <Headphones className="size-5" aria-hidden="true" />
               Atendimento SugarMimo
             </p>
-            <h2 className="mt-3 max-w-3xl font-serif text-4xl font-semibold leading-tight sm:text-5xl">
+            <Heading className="mt-3 max-w-3xl font-serif text-4xl font-semibold leading-tight sm:text-5xl">
               Canais claros para cada tipo de solicitação.
-            </h2>
+            </Heading>
             <p className="mt-4 max-w-3xl text-base font-medium leading-8 text-luxury-muted">
               Escolha o canal adequado ou abra uma solicitação para receber um
               protocolo e acompanhar o histórico do atendimento.

@@ -92,6 +92,16 @@ const nextConfig: NextConfig = {
         source,
         headers: [{ key: "Cache-Control", value: "private, no-store" }],
       })),
+      ...[
+        "/api/:path*", "/admin/:path*", "/buscar/:path*", "/chat/:path*",
+        "/checkout/:path*", "/clube-vip/:path*", "/configuracoes/:path*",
+        "/inicio/:path*", "/login/:path*", "/notificacoes/:path*",
+        "/perfil/:path*", "/pins/:path*", "/planos/:path*",
+        "/register/:path*", "/reset-password/:path*",
+      ].map((source) => ({
+        source,
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      })),
     ];
   },
 };

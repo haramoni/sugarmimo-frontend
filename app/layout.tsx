@@ -6,6 +6,7 @@ import { AuthProvider } from "./components/AuthProvider";
 import { CookieConsentBanner } from "./components/CookieConsentBanner";
 import { AgeConfirmationDialog } from "./components/AgeConfirmationDialog";
 import { site } from "@/lib/site";
+import { publicRobots } from "@/lib/seo";
 import { futura, hessGothic, zingRust } from "./fonts";
 
 const manrope = Manrope({
@@ -29,6 +30,7 @@ export const metadata: Metadata = {
   description: site.description,
   applicationName: site.name,
   category: "Relacionamentos",
+  robots: publicRobots,
   openGraph: {
     siteName: site.name,
     title: "SugarMimo | Relacionamento Sugar com Segurança e Privacidade",

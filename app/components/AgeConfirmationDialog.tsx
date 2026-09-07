@@ -8,6 +8,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { isPublicInformationPath } from "@/lib/public-information";
 import {
   hasAgeConfirmation,
   saveAgeConfirmation,
@@ -20,7 +21,7 @@ function needsAgeConfirmation() {
 
 export function AgeConfirmationDialog() {
   const pathname = usePathname();
-  const isExemptPath = ["/manutencao", "/privacy", "/terms"].includes(pathname);
+  const isExemptPath = isPublicInformationPath(pathname);
   const [isChecked, setIsChecked] = useState(false);
   const isVisible = useSyncExternalStore(
     subscribeToAgeConfirmation,
@@ -70,12 +71,12 @@ export function AgeConfirmationDialog() {
             <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-gold">
               Ambiente exclusivo para adultos
             </p>
-            <h1
+            <h2
               id="age-confirmation-title"
               className="mt-3 font-heading text-3xl font-bold text-espresso sm:text-4xl"
             >
               Você tem 18 anos ou mais?
-            </h1>
+            </h2>
             <p
               id="age-confirmation-description"
               className="mx-auto mt-4 max-w-md text-sm font-medium leading-6 text-black-jewel/65 sm:text-base"

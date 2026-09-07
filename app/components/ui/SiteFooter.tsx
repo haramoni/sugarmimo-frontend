@@ -6,10 +6,11 @@ const footerGroups = [
   {
     title: "O Clube",
     links: [
-      { label: "Manifesto", href: "/#clube" },
-      { label: "Como funciona", href: "/#como-funciona" },
-      { label: "Perfis", href: "/#perfis" },
-      { label: "Experiências", href: "/#experiencias" },
+      { label: "Sobre a SugarMimo", href: "/sobre" },
+      { label: "Como funciona", href: "/como-funciona" },
+      { label: "Relacionamento sugar", href: "/relacionamento-sugar" },
+      { label: "Sugar baby", href: "/sugar-baby" },
+      { label: "Sugar daddy", href: "/sugar-daddy" },
       { label: "Blog", href: "/blog" },
     ],
   },
@@ -17,7 +18,7 @@ const footerGroups = [
     title: "Suporte",
     links: [
       { label: "Perguntas frequentes", href: "/#faq" },
-      { label: "Segurança e privacidade", href: "/#privacidade" },
+      { label: "Segurança e privacidade", href: "/seguranca" },
       { label: "Atendimento", href: "/atendimento" },
       { label: "Fale conosco", href: "/contato" },
     ],

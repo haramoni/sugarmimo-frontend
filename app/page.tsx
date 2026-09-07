@@ -14,14 +14,15 @@ import { SiteFooter } from "./components/ui/SiteFooter";
 import { LandingMotion } from "./components/LandingMotion";
 import WhatsappBubble from "@/components/whatsapp-bubble";
 import { absoluteUrl, site } from "@/lib/site";
+import { GuideLinks } from "./components/seo/GuideLinks";
 
 export const metadata: Metadata = {
-  title: "SugarMimo | Relacionamento Sugar com Segurança e Privacidade",
+  title: "SugarMimo | Sugar Baby, Sugar Daddy e Relacionamento Sugar",
   description:
-    "Conheça o SugarMimo, clube de relacionamento sugar para adultos com perfis moderados, privacidade, consentimento e intenções claras.",
+    "Conheça sugar babies e sugar daddies na SugarMimo. Relacionamento sugar entre adultos com moderação de perfis, chat e controles de privacidade.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "SugarMimo | Relacionamento Sugar com Segurança e Privacidade",
+    title: "SugarMimo | Sugar Baby, Sugar Daddy e Relacionamento Sugar",
     description:
       "Conexões e relacionamentos sugar entre adultos com elegância, segurança e liberdade de escolha.",
     url: "/",
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "SugarMimo | Relacionamento Sugar com Segurança e Privacidade",
+    title: "SugarMimo | Sugar Baby, Sugar Daddy e Relacionamento Sugar",
     description:
       "Conexões e relacionamentos sugar entre adultos com elegância, segurança e liberdade de escolha.",
     images: ["/brand/hero-trio-hq-4k.webp"],
@@ -219,7 +220,7 @@ export default function Home() {
         "@type": "WebPage",
         "@id": `${site.url}/#webpage`,
         url: site.url,
-        name: "SugarMimo | Relacionamento Sugar com Segurança e Privacidade",
+        name: "SugarMimo | Sugar Baby, Sugar Daddy e Relacionamento Sugar",
         description: site.description,
         inLanguage: site.language,
         isPartOf: { "@id": `${site.url}/#website` },
@@ -272,14 +273,14 @@ export default function Home() {
               Clube privado de relacionamento sugar
             </p>
             <h1 className="mt-6 font-serif text-5xl font-medium leading-[1.02] tracking-[-0.035em] text-[#f8f1e7] drop-shadow-[0_4px_28px_rgba(0,0,0,0.65)] sm:text-6xl lg:text-7xl">
-              Onde a elegância
+              Relacionamento sugar
               <span className="block bg-[linear-gradient(135deg,#f3d7aa_0%,#e1bd8a_48%,#9c7443_115%)] bg-clip-text italic text-transparent">
-                encontra a liberdade
+                com liberdade de escolha
               </span>
             </h1>
             <p className="mx-auto mt-7 max-w-xl text-base leading-7 text-[#d0d0d0]/85 sm:text-lg sm:leading-8">
-              Relacionamentos sugar entre adultos, construídos com
-              transparência, respeito e intenções claras — desde o primeiro olá.
+              Sugar babies e sugar daddies se conhecem com transparência,
+              respeito e intenções claras. Uma comunidade exclusiva para adultos.
             </p>
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -712,6 +713,7 @@ export default function Home() {
         </div>
       </section>
 
+      <GuideLinks />
       <SiteFooter />
       <WhatsappBubble />
     </main>
