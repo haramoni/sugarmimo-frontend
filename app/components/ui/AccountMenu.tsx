@@ -13,6 +13,7 @@ import {
 import {
   ArrowRight,
   CreditCard,
+  HeartHandshake,
   LogOut,
   Mail,
   Menu,
@@ -38,6 +39,7 @@ export function AccountMenu() {
   const canPurchasePlan = ["SUGAR_DADDY", "SUGAR_MOMMY"].includes(
     normalizedRole ?? "",
   );
+  const canAccessAffiliates = normalizedRole === "SUGAR_BABY";
 
   async function handleLogout() {
     setOpen(false);
@@ -113,6 +115,17 @@ export function AccountMenu() {
           ) : null}
 
           <div className="mt-5 space-y-2">
+            {canAccessAffiliates ? (
+              <DialogClose asChild>
+                <Link
+                  href="/afiliadas"
+                  className="flex min-h-12 items-center gap-3 rounded-2xl px-4 font-bold text-[var(--black)] transition hover:bg-white hover:text-[var(--emerald)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--emerald)]"
+                >
+                  <HeartHandshake className="h-5 w-5" />
+                  Programa de Afiliadas
+                </Link>
+              </DialogClose>
+            ) : null}
             <DialogClose asChild>
               <Link
                 href="/perfil"

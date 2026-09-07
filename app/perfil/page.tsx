@@ -7,7 +7,6 @@ import {
   Check,
   ChevronDown,
   Crown,
-  Copy,
   ImagePlus,
   Loader2,
   Lock,
@@ -24,6 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import {
@@ -405,7 +405,6 @@ export function ProfilePageContent({
   const [isSaving, setIsSaving] = useState(false);
   const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const [invitationCopied, setInvitationCopied] = useState(false);
   const [error, setError] = useState("");
   const [photos, setPhotos] = useState<ProfilePhoto[]>(() => {
     if (reapplication) return [];
@@ -669,25 +668,6 @@ export function ProfilePageContent({
     }));
     setFeedback("");
     setError("");
-  }
-
-  async function copyInvitationLink() {
-    const username = (user?.username ?? form.username).trim();
-
-    if (!username) {
-      setError("Não foi possível gerar o link de convite.");
-      return;
-    }
-
-    const invitationUrl = `${window.location.origin}/register?ref=${encodeURIComponent(username)}`;
-
-    try {
-      await navigator.clipboard.writeText(invitationUrl);
-      setInvitationCopied(true);
-      window.setTimeout(() => setInvitationCopied(false), 2500);
-    } catch {
-      setError("Não foi possível copiar o link de convite.");
-    }
   }
 
   function handleBoostActivated(status: BoostStatus) {
@@ -1656,27 +1636,20 @@ export function ProfilePageContent({
                       </div>
                     ) : null}
                     {isSugarBaby && !reapplication ? (
-                      <div className="rounded-xl border border-gold/35 bg-white/10 p-4">
-                        <p className="text-sm font-extrabold text-gold-soft">
-                          Seu link de convite
-                        </p>
-                        <p className="mt-1 text-xs leading-5 text-white/75">
-                          Compartilhe com quem você quer convidar para o
-                          SugarMimo.
-                        </p>
-                        <Button
-                          type="button"
-                          onClick={() => void copyInvitationLink()}
-                          className="mt-3 h-auto min-h-11 w-full rounded-full border border-gold/55 bg-gold/15 px-4 py-2 text-sm font-extrabold text-white hover:bg-gold hover:text-espresso"
-                        >
-                          {invitationCopied ? (
-                            <Check className="h-4 w-4" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
-                          {invitationCopied ? "Link copiado!" : "Copiar link"}
-                        </Button>
-                      </div>
+                      <Link
+                        href="/afiliadas"
+                        aria-label="Conhecer o Programa de Afiliadas e compartilhar meu link"
+                        className="group block overflow-hidden rounded-xl border border-gold/45 bg-black/25 shadow-[0_18px_44px_rgba(0,0,0,0.34)] transition duration-300 hover:-translate-y-1 hover:border-gold-soft hover:shadow-[0_24px_58px_rgba(185,138,56,0.24)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-soft"
+                      >
+                        <Image
+                          src="/brand/programa-afiliadas-banner.png"
+                          alt="Programa de Afiliadas SugarMimo — compartilhe seu link de convite"
+                          width={1120}
+                          height={1402}
+                          sizes="(max-width: 1279px) 100vw, 290px"
+                          className="h-auto w-full transition duration-500 group-hover:scale-[1.015]"
+                        />
+                      </Link>
                     ) : null}
                     {!reapplication ? (
                       <>

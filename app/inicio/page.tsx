@@ -1,10 +1,18 @@
 "use client";
 
 import { Activity, Loader2, ShieldCheck, Sparkles } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import ProfileCard from "../buscar/components/ProfileCard";
 import StatePanel from "../buscar/components/StatePanel";
 import type { PublicProfile, PublicProfilePage } from "../buscar/types";
@@ -52,6 +60,7 @@ export default function InicioPage() {
   const canView = ["SUGAR_BABY", "SUGAR_DADDY"].includes(
     user?.role?.trim().toUpperCase() ?? "",
   );
+  const isSugarBaby = user?.role?.trim().toUpperCase() === "SUGAR_BABY";
   const providerTargetLabel =
     user?.lookingFor?.trim().toLowerCase() === "women"
       ? "Sugar Mommies mais ativas"
@@ -279,6 +288,11 @@ export default function InicioPage() {
     <ProfileApprovalGuard user={user}>
       <main className="relative min-h-screen overflow-hidden bg-luxury-black text-luxury-ivory">
         <Navbar />
+        {isSugarBaby ? (
+          <AffiliateReminderDialog
+            userKey={user.id ?? user.username ?? "baby"}
+          />
+        ) : null}
 
         <div
           aria-hidden="true"
@@ -308,10 +322,12 @@ export default function InicioPage() {
                 </h1>
                 <div className="mt-2 max-w-2xl text-sm font-medium leading-6 text-luxury-muted">
                   <p>
-                    Até 20 perfis compatíveis que estiveram ativos nos últimos
-                    7 dias.
+                    Até 20 perfis compatíveis que estiveram ativos nos últimos 7
+                    dias.
                   </p>
-                  <p>A ordem muda regularmente para todos ganharem visibilidade.</p>
+                  <p>
+                    A ordem muda regularmente para todos ganharem visibilidade.
+                  </p>
                 </div>
               </div>
             </div>
@@ -420,6 +436,63 @@ export default function InicioPage() {
         </section>
       </main>
     </ProfileApprovalGuard>
+  );
+}
+
+function AffiliateReminderDialog({ userKey }: { userKey: string }) {
+  const [open, setOpen] = useState(false);
+  const storageKey = `sugarmimo:affiliate-reminder-shown:${userKey}`;
+
+  useEffect(() => {
+    let wasShown = false;
+
+    try {
+      wasShown = window.sessionStorage.getItem(storageKey) === "1";
+    } catch {
+      // The reminder can still be shown when session storage is unavailable.
+    }
+
+    if (wasShown) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setOpen(true);
+      try {
+        window.sessionStorage.setItem(storageKey, "1");
+      } catch {
+        // Closing the dialog still works without session storage.
+      }
+    }, 350);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [storageKey]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-h-[94dvh] w-[calc(100vw-1.5rem)] max-w-none gap-0 overflow-hidden rounded-2xl border border-luxury-gold/65 bg-[#090704] p-0 text-luxury-ivory shadow-[0_30px_100px_rgba(0,0,0,0.72),0_0_44px_rgba(213,166,78,0.2)] sm:w-[min(92vw,34rem)] sm:max-w-[34rem]">
+        <DialogTitle className="sr-only">
+          Programa de Afiliadas SugarMimo
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          Compartilhe seu link de convite e conheça o Programa de Afiliadas.
+        </DialogDescription>
+        <Link
+          href="/afiliadas"
+          onClick={() => setOpen(false)}
+          aria-label="Abrir o Programa de Afiliadas"
+          className="block focus-visible:outline-offset-[-4px] focus-visible:outline-luxury-champagne"
+        >
+          <Image
+            src="/brand/programa-afiliadas-banner.png"
+            alt="Programa de Afiliadas SugarMimo — compartilhe seu link de convite"
+            width={1120}
+            height={1402}
+            sizes="(max-width: 640px) calc(100vw - 32px), 544px"
+            priority
+            className="h-auto max-h-[90dvh] w-full object-contain"
+          />
+        </Link>
+      </DialogContent>
+    </Dialog>
   );
 }
 

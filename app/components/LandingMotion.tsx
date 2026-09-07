@@ -26,17 +26,14 @@ export function LandingMotion() {
     if (!ageConfirmed) return;
 
     const root = document.documentElement;
-    const reducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    const alreadySeen =
-      window.sessionStorage.getItem(INTRO_SESSION_KEY) === "1";
+    const reducedMotion =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const alreadySeen = readIntroSeen();
 
     if (reducedMotion || alreadySeen) {
       root.classList.add("sm-intro-skip");
-      const skipFrame = window.requestAnimationFrame(() =>
-        setShowIntro(false),
-      );
+      const skipFrame = window.requestAnimationFrame(() => setShowIntro(false));
       return () => {
         window.cancelAnimationFrame(skipFrame);
         root.classList.remove("sm-intro-skip");
@@ -55,7 +52,7 @@ export function LandingMotion() {
     const endTimer = window.setTimeout(() => {
       setShowIntro(false);
       root.classList.remove("sm-intro-active");
-      window.sessionStorage.setItem(INTRO_SESSION_KEY, "1");
+      saveIntroSeen();
       document.body.style.overflow = "";
     }, INTRO_END_AT);
 
@@ -67,6 +64,13 @@ export function LandingMotion() {
       document.body.style.overflow = "";
     };
   }, [ageConfirmed]);
+
+  function handleIntroAssetError() {
+    setShowIntro(false);
+    document.documentElement.classList.remove("sm-intro-active");
+    document.documentElement.classList.remove("sm-intro-play");
+    document.body.style.overflow = "";
+  }
 
   useEffect(() => {
     const reducedMotion = window.matchMedia(
@@ -150,6 +154,8 @@ export function LandingMotion() {
           height={173}
           priority
           quality={95}
+          unoptimized
+          onError={handleIntroAssetError}
           className="sm-intro-mark"
           style={{
             position: "relative",
@@ -172,4 +178,20 @@ export function LandingMotion() {
     </div>,
     document.body,
   );
+}
+
+function readIntroSeen() {
+  try {
+    return window.sessionStorage.getItem(INTRO_SESSION_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function saveIntroSeen() {
+  try {
+    window.sessionStorage.setItem(INTRO_SESSION_KEY, "1");
+  } catch {
+    // The intro still completes when session storage is unavailable.
+  }
 }

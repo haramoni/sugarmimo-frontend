@@ -34,6 +34,7 @@ export function Navbar() {
     user?.role?.trim().toUpperCase() ?? "",
   );
   const isSugarDaddy = user?.role?.trim().toUpperCase() === "SUGAR_DADDY";
+  const isSugarBaby = user?.role?.trim().toUpperCase() === "SUGAR_BABY";
   const canBecomePremiere = isSugarDaddy && !user.isPremiere;
   const loggedMenuItems = canSearch
     ? [
@@ -41,6 +42,7 @@ export function Navbar() {
         { label: "Buscar", href: "/buscar" },
         { label: "Pins", href: "/pins" },
         { label: "Chat", href: "/chat" },
+        ...(isSugarBaby ? [{ label: "Afiliadas", href: "/afiliadas" }] : []),
         ...(isSugarDaddy ? [menuItems[1]] : []),
         menuItems[2],
       ]
@@ -165,6 +167,7 @@ export function Navbar() {
           {loggedMenuItems.map((item) => {
             const active = isActivePath(pathname, item.href);
             const isPlansCallout = item.href === "/planos";
+            const isAffiliatesCallout = item.href === "/afiliadas";
 
             return (
               <Link
@@ -175,6 +178,10 @@ export function Navbar() {
                   "relative shrink-0 rounded-full px-3 py-2 transition duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e1bd8a] sm:px-4 sm:py-2.5",
                   isPlansCallout
                     ? "border border-[#ff8798] bg-[linear-gradient(180deg,#f34460_0%,#cf1538_55%,#970b26_100%)] text-white shadow-[0_0_20px_rgba(239,42,76,0.62),0_8px_22px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,220,225,0.38)] ring-1 ring-[#ffbac4]/25 hover:-translate-y-0.5 hover:brightness-110 focus-visible:outline-[#ff8798]"
+                    : isAffiliatesCallout
+                      ? active
+                        ? "border border-[#f3d58e] bg-[linear-gradient(180deg,rgba(185,138,56,0.42),rgba(78,47,17,0.82))] text-[#ffe29b] shadow-[0_0_20px_rgba(225,189,138,0.4),0_8px_20px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,241,202,0.2)]"
+                        : "border border-[#b98a38]/65 bg-[linear-gradient(180deg,rgba(185,138,56,0.22),rgba(63,39,15,0.64))] text-[#e7c579] shadow-[0_0_14px_rgba(213,166,78,0.2),inset_0_1px_0_rgba(255,237,191,0.12)] hover:-translate-y-0.5 hover:border-[#e7c579] hover:bg-[#b98a38]/28 hover:text-[#ffe4a1]"
                     : active
                       ? "bg-[linear-gradient(180deg,#f8dda0_0%,#dfb767_58%,#c9923d_100%)] text-[#1a1209] shadow-[0_0_18px_rgba(225,189,138,0.58),0_8px_20px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,249,224,0.72)]"
                       : "hover:bg-[#b98a38]/12 hover:text-[#e7c579]",
@@ -207,7 +214,9 @@ export function Navbar() {
                   </span>
                 ) : null}
                 {active && !isPlansCallout ? (
-                  <span className="absolute inset-x-5 bottom-1 h-px rounded-full bg-[#75431f]" />
+                  <span
+                    className={`absolute inset-x-5 bottom-1 h-px rounded-full ${isAffiliatesCallout ? "bg-[#ffe29b]" : "bg-[#75431f]"}`}
+                  />
                 ) : null}
               </Link>
             );

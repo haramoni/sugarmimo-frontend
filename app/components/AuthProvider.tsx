@@ -79,7 +79,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const nextUser = (await response.json()) as AuthUser;
+    const sessionResult = (await response.json().catch(() => null)) as
+      | AuthUser
+      | { user: null }
+      | null;
+
+    if (
+      !sessionResult ||
+      ("user" in sessionResult && sessionResult.user === null)
+    ) {
+      setUser(null);
+      setSecurityIncidentNotices([]);
+      removeAuthUser();
+      setIsAuthLoading(false);
+      return;
+    }
+
+    const nextUser = sessionResult as AuthUser;
     setUser(nextUser);
     saveAuthUser(nextUser);
 
