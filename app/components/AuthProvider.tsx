@@ -239,7 +239,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [isAuthLoading, isMaintenancePage, pathname, router, user]);
 
   useEffect(() => {
-    if (!user) {
+    if (!user?.id) {
       return;
     }
 
@@ -257,7 +257,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", sendPresence);
     };
-  }, [user]);
+  }, [user?.id]);
 
   const value = useMemo(
     () => ({

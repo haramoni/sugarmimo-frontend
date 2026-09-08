@@ -59,7 +59,7 @@ export function Navbar() {
     : null;
 
   useEffect(() => {
-    if (!user) {
+    if (!user?.id) {
       return;
     }
 
@@ -106,10 +106,10 @@ export function Navbar() {
         loadUnreadNotifications,
       );
     };
-  }, [user]);
+  }, [user?.id]);
 
   useEffect(() => {
-    if (!user || !canSearch) {
+    if (!user?.id || !canSearch) {
       return;
     }
 
@@ -148,7 +148,7 @@ export function Navbar() {
       window.removeEventListener("focus", loadUnreadChat);
       window.removeEventListener("sugarmimo-chat-updated", loadUnreadChat);
     };
-  }, [canSearch, user]);
+  }, [canSearch, user?.id]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#b98a38]/35 bg-[#030302]/96 px-4 py-3 text-[#f5ead7] shadow-[0_12px_38px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:px-6 lg:px-8">

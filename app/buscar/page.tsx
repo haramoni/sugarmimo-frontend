@@ -311,7 +311,7 @@ export default function BuscarPage() {
   useEffect(() => {
     if (
       hasRestoredState &&
-      user &&
+      user?.id &&
       canSearch &&
       !isApprovalPending &&
       locationDraft.mode === "NEARBY" &&
@@ -326,7 +326,7 @@ export default function BuscarPage() {
     isApprovalPending,
     locationDraft.mode,
     requestLocation,
-    user,
+    user?.id,
   ]);
 
   useEffect(() => {
@@ -369,7 +369,7 @@ export default function BuscarPage() {
   ]);
 
   useEffect(() => {
-    if (!hasRestoredState || !user || isApprovalPending || !canSearch) {
+    if (!hasRestoredState || !user?.id || isApprovalPending || !canSearch) {
       return;
     }
 
@@ -453,7 +453,7 @@ export default function BuscarPage() {
     search,
     relationshipMode,
     locationFilter,
-    user,
+    user?.id,
   ]);
 
   useEffect(() => {
