@@ -165,6 +165,13 @@ export default function NavBarMenu() {
               );
             })}
             <Link
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className="sm-outline-button mt-5 w-full"
+            >
+              Entrar
+            </Link>
+            <Link
               href="/register"
               onClick={() => setMobileOpen(false)}
               className="sm-luxury-button mt-5 w-full"

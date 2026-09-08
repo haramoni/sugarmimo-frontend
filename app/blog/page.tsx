@@ -20,7 +20,7 @@ export default function BlogPage() {
     <main className="page-marble-background min-h-screen bg-cover bg-center text-black-jewel">
       <NavBarMenu />
 
-      <section className="border-b border-gold/30 px-6 pb-16 pt-32 sm:px-10 lg:px-16">
+      <section className="border-b border-gold/30 px-6 pb-16 pt-10 sm:px-10 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-3xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-gold/35 bg-white/70 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.16em] text-gold shadow-sm">

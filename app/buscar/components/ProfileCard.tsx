@@ -2,7 +2,6 @@
 
 import {
   Activity,
-  BadgeCheck,
   Crown,
   Gem,
   Heart,
@@ -239,33 +238,22 @@ export default function ProfileCard({
           {isPremiereMember ? (
             <span className={styles.premiereVignette} aria-hidden="true" />
           ) : null}
-          {isActiveVariant ? (
+          {profile.isOnline ? (
             <span
-              aria-label={profile.isOnline ? "Online agora" : "Perfil ativo"}
-              title={
-                profile.isOnline ? "Online agora" : "Ativo nos últimos 7 dias"
-              }
+              aria-label="Online agora"
+              title="Online agora"
+              className={styles.onlineStatusBadge}
+            >
+              <Activity aria-hidden="true" />
+              <strong>Online</strong>
+            </span>
+          ) : isActiveVariant ? (
+            <span
+              aria-label="Perfil ativo recentemente"
+              title="Ativo nos últimos 7 dias"
               className={styles.activeStatus}
             >
               <Activity aria-hidden="true" />
-            </span>
-          ) : profile.isOnline ? (
-            <span
-              aria-label={profile.isOnline ? "Online agora" : "Perfil ativo"}
-              title={profile.isOnline ? "Online agora" : "Perfil ativo"}
-              className={[
-                "absolute top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-[0_8px_18px_rgba(20,17,14,0.12)] backdrop-blur-sm",
-                "left-3",
-                isEliteMember
-                  ? styles.eliteStatusBadge
-                  : isSearchDarkVariant
-                    ? "border-luxury-gold/70 bg-luxury-black/82 text-luxury-champagne"
-                    : profile.isOnline
-                      ? "border-white/70 bg-white/90 text-emerald"
-                      : "border-white/70 bg-white/90 text-black-jewel/62",
-              ].join(" ")}
-            >
-              <BadgeCheck aria-hidden="true" className="h-5 w-5" />
             </span>
           ) : null}
 
@@ -276,7 +264,9 @@ export default function ProfileCard({
             <div
               className={[
                 "absolute top-3 flex items-center gap-2",
-                isActiveVariant ? "right-[3.5rem]" : "right-3",
+                isActiveVariant && !profile.isOnline
+                  ? "right-[3.5rem]"
+                  : "right-3",
               ].join(" ")}
             >
               {isBoosted && !isActiveVariant ? (

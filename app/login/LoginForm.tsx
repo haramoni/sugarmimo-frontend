@@ -1,12 +1,7 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
-import {
-  ArrowLeft,
-  CrownIcon,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+import { ArrowLeft, CrownIcon, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -17,10 +12,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ModalForgotPassword } from "./ModalForgotPassword";
 import { saveAuthUser } from "../lib/auth-storage";
-import {
-  pendingModerationNotice,
-  type ModerationNotice,
-} from "../lib/auth";
+import { pendingModerationNotice, type ModerationNotice } from "../lib/auth";
 import {
   PENDING_APPROVAL_ROUTE,
   shouldShowPendingApproval,
@@ -140,16 +132,16 @@ export function LoginForm() {
             className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e1bd8a]"
           >
             <Image
-              src="/brand/monogram-champagne.webp"
+              src="/brand/logo-primary.webp"
               alt="SugarMimo"
-              width={64}
+              width={150}
               height={39}
               priority
-              className="h-auto w-16 select-none object-contain"
+              className="h-auto w-auto select-none object-contain"
             />
           </button>
           <h1 className="mt-5 font-serif text-3xl font-medium">
-            Bem-vindo de volta
+            Bem-vindo(a) de volta!
           </h1>
           <p className="text-center text-sm text-[#969189]">
             Acesse sua área privada de membro.
@@ -211,7 +203,10 @@ export function LoginForm() {
             </div>
 
             {error && (
-              <p role="alert" className="rounded-xl border border-[#c85168]/30 bg-[#c85168]/10 px-4 py-3 text-sm font-semibold text-[#f0a5b3]">
+              <p
+                role="alert"
+                className="rounded-xl border border-[#c85168]/30 bg-[#c85168]/10 px-4 py-3 text-sm font-semibold text-[#f0a5b3]"
+              >
                 {error}
               </p>
             )}
@@ -221,7 +216,7 @@ export function LoginForm() {
               type="submit"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Entrando..." : "Entrar no clube"}
+              {isSubmitting ? "Entrando..." : "Entrar"}
             </Button>
           </form>
           <div className="mt-1 flex flex-row items-center justify-between text-xs">

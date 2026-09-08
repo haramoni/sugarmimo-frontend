@@ -139,7 +139,6 @@ export function ChatClient() {
     const result = (await response.json()) as Conversation[];
     const sorted = sortConversationsByLatestMessage(result);
     setConversations(sorted);
-    setSelectedId((current) => current ?? sorted[0]?.id ?? null);
     setLoadingConversations(false);
   }, []);
 

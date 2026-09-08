@@ -670,6 +670,62 @@
   stroke-width: 2;
 }
 
+.onlineStatusBadge {
+  position: absolute;
+  z-index: 20;
+  top: 0.72rem;
+  left: 0.72rem;
+  display: inline-flex;
+  height: 2.15rem;
+  align-items: center;
+  gap: 0.38rem;
+  padding: 0 0.72rem;
+  border: 1px solid rgb(187 247 208 / 90%);
+  border-radius: 999px;
+  background: linear-gradient(145deg, #22c55e, #15803d);
+  color: #fff;
+  box-shadow:
+    0 0 0 3px rgb(34 197 94 / 18%),
+    0 0 20px rgb(34 197 94 / 68%),
+    0 8px 18px rgb(0 0 0 / 32%);
+  text-shadow: 0 1px 2px rgb(0 0 0 / 28%);
+  animation: onlineStatusPulse 1.7s ease-in-out infinite;
+}
+
+.onlineStatusBadge svg {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  stroke-width: 2.7;
+}
+
+.onlineStatusBadge strong {
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+@keyframes onlineStatusPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 3px rgb(34 197 94 / 14%),
+      0 0 14px rgb(34 197 94 / 48%),
+      0 8px 18px rgb(0 0 0 / 32%);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 6px rgb(34 197 94 / 20%),
+      0 0 26px rgb(34 197 94 / 78%),
+      0 8px 18px rgb(0 0 0 / 32%);
+    transform: scale(1.035);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .premiereCard {
     transition: none;
@@ -677,7 +733,8 @@
 
   .eliteCard,
   .eliteFooter,
-  .eliteProfileName {
+  .eliteProfileName,
+  .onlineStatusBadge {
     animation: none;
   }
 }

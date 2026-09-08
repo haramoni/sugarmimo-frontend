@@ -368,7 +368,7 @@ export default function InicioPage() {
                 {profiles.map((profile, index) => (
                   <div
                     key={profile.id}
-                    className="w-full max-w-72 justify-self-center"
+                    className="w-full max-w-auto justify-self-center"
                   >
                     <ProfileCard
                       profile={profile}
