@@ -72,9 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await fetch("/api/auth/me").catch(() => null);
 
     if (!response?.ok) {
-      setUser(null);
-      setSecurityIncidentNotices([]);
-      removeAuthUser();
+      if (response?.status === 401) {
+        setUser(null);
+        setSecurityIncidentNotices([]);
+        removeAuthUser();
+      }
       setIsAuthLoading(false);
       return;
     }
@@ -85,12 +87,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       | null;
 
     if (
-      !sessionResult ||
-      ("user" in sessionResult && sessionResult.user === null)
+      sessionResult && "user" in sessionResult && sessionResult.user === null
     ) {
       setUser(null);
       setSecurityIncidentNotices([]);
       removeAuthUser();
+      setIsAuthLoading(false);
+      return;
+    }
+
+    if (!sessionResult || !("id" in sessionResult) || !sessionResult.id) {
       setIsAuthLoading(false);
       return;
     }

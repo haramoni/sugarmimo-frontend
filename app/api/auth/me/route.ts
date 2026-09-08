@@ -18,7 +18,6 @@ export async function GET() {
   }).catch(() => null);
 
   if (!response) {
-    await clearSessionCookie();
     return NextResponse.json(
       { message: "Não foi possível validar sua sessão." },
       { status: 503 },
@@ -28,8 +27,17 @@ export async function GET() {
   const result = await response.json().catch(() => null);
 
   if (!response.ok) {
-    await clearSessionCookie();
+    if (response.status === 401) {
+      await clearSessionCookie();
+    }
     return NextResponse.json(result, { status: response.status });
+  }
+
+  if (!result || typeof result !== "object" || typeof result.id !== "string") {
+    return NextResponse.json(
+      { message: "Não foi possível carregar sua conta agora." },
+      { status: 502 },
+    );
   }
 
   return NextResponse.json(attachOwnPhotoUrls(result));

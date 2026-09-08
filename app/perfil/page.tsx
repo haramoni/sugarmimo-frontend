@@ -461,13 +461,27 @@ export function ProfilePageContent({
   useEffect(() => {
     fetch(reapplication ? "/api/auth/reapplication-profile" : "/api/auth/me")
       .then(async (response) => {
-        if (!response.ok) {
-          throw new Error("Sessão expirada.");
+        if (response.status === 401) {
+          if (!reapplication) {
+            removeAuthUser();
+            window.dispatchEvent(new Event("sugarmimo-auth"));
+          }
+          router.replace("/login");
+          return null;
         }
 
-        return (await response.json()) as ProfileUser;
+        if (!response.ok) {
+          throw new Error("Não foi possível carregar seu perfil agora.");
+        }
+
+        const profile = (await response.json()) as ProfileUser | null;
+        if (!profile?.id) {
+          throw new Error("Não foi possível carregar seu perfil agora.");
+        }
+        return profile;
       })
       .then((profile) => {
+        if (!profile) return;
         if (!reapplication) {
           saveAuthUser(profile);
         }
@@ -506,9 +520,7 @@ export function ProfilePageContent({
         }
       })
       .catch(() => {
-        removeAuthUser();
-        window.dispatchEvent(new Event("sugarmimo-auth"));
-        router.replace("/login");
+        setError("Não foi possível carregar seu perfil agora. Tente recarregar a página.");
       });
   }, [reapplication, router]);
 
@@ -626,6 +638,16 @@ export function ProfilePageContent({
       controller.abort();
     };
   }, [isEditing, privateViewerDraft, reapplication]);
+
+  if (!user && error) {
+    return (
+      <main className="premium-page-shell grid place-items-center px-5 text-center">
+        <p role="alert" className="premium-surface-card rounded-xl px-6 py-5 font-bold text-luxury-ivory">
+          {error}
+        </p>
+      </main>
+    );
+  }
 
   if (!user && reapplication) {
     return (
