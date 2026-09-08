@@ -287,7 +287,10 @@ export default function RegisterAccountForm() {
           <div>
             <button
               type="button"
-              onClick={() => router.push("/register")}
+              onClick={() => {
+                setRegisterStep("/register");
+                router.push("/register");
+              }}
               className="registration-back-link"
             >
               <ArrowLeft className="h-3.5 w-3.5" />

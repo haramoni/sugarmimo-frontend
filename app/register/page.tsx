@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, type ReactNode, useEffect, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Crown,
@@ -100,6 +100,8 @@ export default function Register() {
   const { clearPassword } = useRegistrationSecret();
   const [identity, setIdentity] = useState<ProfileIdentity | null>(null);
   const [profileType, setProfileType] = useState("");
+  const profileOptionsRef = useRef<HTMLFieldSetElement>(null);
+  const preferencesRef = useRef<HTMLDivElement>(null);
   const [relationshipIntent, setRelationshipIntent] =
     useState<RelationshipIntent>("SUGAR");
   const [adultDeclarationAccepted, setAdultDeclarationAccepted] =
@@ -121,6 +123,24 @@ export default function Register() {
     clearPassword();
     setRegisterStep("/register");
   }, [clearPassword, router]);
+
+  useEffect(() => {
+    if (!identity || !window.matchMedia("(max-width: 767px)").matches) return;
+
+    const nextSection = profileType
+      ? preferencesRef.current
+      : profileOptionsRef.current;
+    const frame = window.requestAnimationFrame(() => {
+      nextSection?.scrollIntoView({
+        block: "start",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "instant"
+          : "smooth",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [identity, profileType]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -148,6 +168,7 @@ export default function Register() {
   }
 
   function chooseIdentity(nextIdentity: ProfileIdentity) {
+    if (nextIdentity === identity) return;
     setIdentity(nextIdentity);
     setProfileType("");
   }
@@ -204,7 +225,10 @@ export default function Register() {
               </fieldset>
 
               {identity ? (
-                <fieldset className="registration-choice-fieldset registration-reveal-section">
+                <fieldset
+                  ref={profileOptionsRef}
+                  className="registration-choice-fieldset registration-reveal-section scroll-mt-6"
+                >
                   <legend className="registration-label">
                     Como você quer participar?
                   </legend>
@@ -248,7 +272,10 @@ export default function Register() {
               )}
 
               {profileType ? (
-                <div className="registration-reveal-section registration-fields-stack">
+                <div
+                  ref={preferencesRef}
+                  className="registration-reveal-section registration-fields-stack scroll-mt-6"
+                >
                   <div className="registration-field">
                     <label htmlFor="interest" className="registration-label">
                       Quero conhecer

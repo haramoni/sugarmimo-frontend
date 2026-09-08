@@ -7,9 +7,10 @@ import { KeyRound, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getResetToken } from "./reset-token";
 
 export function ResetPasswordForm() {
-  const token = useSyncExternalStore(subscribeToHash, readResetToken, () => "");
+  const token = useSyncExternalStore(subscribeToHash, readResetToken, () => null);
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [error, setError] = useState("");
@@ -72,6 +73,13 @@ export function ResetPasswordForm() {
           O link funciona uma única vez. Ao concluir, as sessões antigas da sua
           conta serão encerradas.
         </p>
+
+        {token === "" && !success ? (
+          <p role="alert" className="mt-6 text-sm text-[#f0a5b3]">
+            Este link de recuperação está incompleto. Abra o link completo do
+            e-mail ou <Link href="/login" className="underline">solicite um novo link em “Esqueceu sua senha?”</Link>.
+          </p>
+        ) : null}
 
         <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
           <div className="space-y-2">
@@ -158,13 +166,14 @@ export function ResetPasswordForm() {
 }
 
 function readResetToken() {
-  return (
-    new URLSearchParams(window.location.hash.replace(/^#/, "")).get("token") ??
-    ""
-  );
+  return getResetToken(window.location);
 }
 
 function subscribeToHash(onChange: () => void) {
   window.addEventListener("hashchange", onChange);
-  return () => window.removeEventListener("hashchange", onChange);
+  window.addEventListener("popstate", onChange);
+  return () => {
+    window.removeEventListener("hashchange", onChange);
+    window.removeEventListener("popstate", onChange);
+  };
 }
