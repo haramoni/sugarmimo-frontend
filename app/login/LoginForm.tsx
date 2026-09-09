@@ -18,6 +18,7 @@ import {
   shouldShowPendingApproval,
 } from "../perfil/ProfileApprovalGuard";
 import { AccountModerationDialog } from "../components/AccountModerationDialog";
+import { LOGIN_PROMOTION_SESSION_KEY } from "../components/LoginPromotionDialog";
 
 const REAPPLICATION_ROUTE = "/register/reapply";
 
@@ -106,6 +107,17 @@ export function LoginForm() {
 
       if (result.user.gender?.trim().toLowerCase() === "sugar-baby-woman") {
         window.sessionStorage.setItem("sugarmimo-chat-online-toast", "1");
+      }
+
+      if (result.user.role?.trim().toUpperCase() === "SUGAR_DADDY") {
+        try {
+          window.sessionStorage.setItem(
+            LOGIN_PROMOTION_SESSION_KEY,
+            String(result.user.id ?? result.user.username ?? "provider"),
+          );
+        } catch {
+          // Login must keep working when session storage is unavailable.
+        }
       }
 
       window.location.replace("/inicio");

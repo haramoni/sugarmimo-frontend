@@ -29,9 +29,9 @@ const checkoutPlans: Record<
     name: "Básico",
     prices: {
       monthly: {
-        total: "199",
+        total: "129",
         cycle: "Mensal · 1 mês",
-        monthlyEquivalent: "R$ 199/mês",
+        monthlyEquivalent: "R$ 129/mês",
       },
       quarterly: {
         total: "499",

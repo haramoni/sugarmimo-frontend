@@ -25,6 +25,7 @@ import { PrivacyPolicyAcceptanceDialog } from "@/app/components/PrivacyPolicyAcc
 import { CURRENT_PRIVACY_POLICY_VERSION } from "@/app/privacy/privacy-policy";
 import { AccountModerationDialog } from "@/app/components/AccountModerationDialog";
 import { SecurityIncidentNoticeDialog } from "@/app/components/SecurityIncidentNoticeDialog";
+import { LoginPromotionDialog } from "@/app/components/LoginPromotionDialog";
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -286,6 +287,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const needsSecurityIncidentAcknowledgement = Boolean(
     securityIncidentNotice && !isMaintenancePage && !isAdminPage,
   );
+  const canShowLoginPromotion = Boolean(
+    user?.role?.trim().toUpperCase() === "SUGAR_DADDY" &&
+      pathname === "/inicio" &&
+      !isMaintenancePage &&
+      !isAdminPage &&
+      !needsModerationAcknowledgement &&
+      !needsSecurityIncidentAcknowledgement &&
+      !needsPrivacyPolicyAcceptance &&
+      !areSecurityNoticesLoading,
+  );
+  const promotionUserKey = user
+    ? String(user.id ?? user.username ?? "provider")
+    : null;
 
   return (
     <AuthContext.Provider value={value}>
@@ -326,6 +340,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await logout();
           router.replace("/login");
         }}
+      />
+      <LoginPromotionDialog
+        canOpen={canShowLoginPromotion}
+        userKey={promotionUserKey}
       />
     </AuthContext.Provider>
   );

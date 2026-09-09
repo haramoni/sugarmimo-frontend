@@ -24,6 +24,7 @@ type PlanId = "member" | "premium" | "elite";
 
 type Price = {
   total: string;
+  originalTotal?: string;
   suffix: string;
   monthlyEquivalent: string;
   saving?: string;
@@ -60,9 +61,11 @@ const plans: Plan[] = [
     benefits: ["Badge Membro exclusivo"],
     prices: {
       monthly: {
-        total: "199",
+        total: "129",
+        originalTotal: "199",
         suffix: "/ 1 mês",
-        monthlyEquivalent: "R$ 199/mês",
+        monthlyEquivalent: "R$ 129/mês",
+        saving: "Promoção de lançamento",
       },
       quarterly: {
         total: "499",
@@ -233,6 +236,8 @@ export function PlansShowcase() {
                           cycle.id === "semiannual"
                             ? styles.mobileRecommended
                             : ""
+                        } ${
+                          price.originalTotal ? styles.mobilePromotion : ""
                         } ${isSelected ? styles.mobileSelected : ""}`}
                         aria-label={`Escolher plano ${plan.name} ${cycle.label.toLowerCase()} por R$ ${price.total}`}
                         data-checkout-href={`/checkout/assinatura?plano=${plan.id}&periodo=${cycle.id}`}
@@ -241,6 +246,11 @@ export function PlansShowcase() {
                         }
                       >
                         <span className={styles.mobileCycle}>
+                          {price.originalTotal ? (
+                            <small className={styles.mobilePromoBadge}>
+                              Oferta especial
+                            </small>
+                          ) : null}
                           {cycle.id === "semiannual" ? (
                             <small className={styles.mobileBestLabel}>
                               Melhor🔥
@@ -251,6 +261,11 @@ export function PlansShowcase() {
                         </span>
 
                         <span className={styles.mobilePrice}>
+                          {price.originalTotal ? (
+                            <del className={styles.mobileOriginalPrice}>
+                              R$ {price.originalTotal}
+                            </del>
+                          ) : null}
                           <span>
                             <small>R$</small>
                             <strong>{price.total}</strong>
@@ -343,6 +358,8 @@ export function PlansShowcase() {
                         type="button"
                         aria-pressed={isSelected}
                         className={`${styles.priceCell} ${styles[plan.id]} ${
+                          price.originalTotal ? styles.promotion : ""
+                        } ${
                           isSelected ? styles.selected : ""
                         }`}
                         aria-label={`Escolher plano ${plan.name} ${cycle.label.toLowerCase()} por R$ ${price.total}`}
@@ -354,6 +371,16 @@ export function PlansShowcase() {
                         <span className={styles.savingLabel}>
                           {price.saving ?? "Plano mensal"}
                         </span>
+                        {price.originalTotal ? (
+                          <>
+                            <del className={styles.originalPrice}>
+                              De R$ {price.originalTotal}
+                            </del>
+                            <span className={styles.promoPriceLead}>
+                              Agora por
+                            </span>
+                          </>
+                        ) : null}
                         <span className={styles.priceMain}>
                           <small>R$</small>
                           <strong>{price.total}</strong>

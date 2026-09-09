@@ -238,7 +238,7 @@
   display: block;
   overflow: hidden;
   color: color-mix(in srgb, var(--plan-color) 78%, #877f76);
-  font-size: 0.48rem;
+  font-size: 0.58rem;
   font-weight: 900;
   letter-spacing: 0.11em;
   text-overflow: ellipsis;
@@ -278,7 +278,7 @@
 .mobilePlanDescription {
   margin-top: 0.8rem;
   color: #8e887f;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   line-height: 1.55;
 }
 
@@ -329,6 +329,32 @@
   transform: translateY(-1px);
 }
 
+.mobilePromotion {
+  border-color: rgb(224 47 58 / 72%);
+  background:
+    radial-gradient(circle at 82% 18%, rgb(218 167 78 / 20%), transparent 38%),
+    linear-gradient(135deg, rgb(123 8 19 / 24%), rgb(14 10 8 / 92%) 58%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 235 197 / 10%),
+    0 10px 30px rgb(144 8 18 / 18%);
+}
+
+.mobilePromoBadge {
+  width: fit-content;
+  margin-bottom: 0.28rem;
+  border: 1px solid rgb(255 198 125 / 58%);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #b50e1d, #e0353d);
+  padding: 0.24rem 0.42rem;
+  color: #fff6e8;
+  font-size: 0.48rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  line-height: 1;
+  text-transform: uppercase;
+  box-shadow: 0 5px 14px rgb(189 17 30 / 30%);
+}
+
 .mobileSelected {
   box-shadow:
     inset 0 0 0 1px var(--plan-color),
@@ -354,14 +380,14 @@
 
 .mobileCycle strong {
   font-family: var(--font-playfair), Georgia, serif;
-  font-size: 0.92rem;
+  font-size: 1.05rem;
   font-weight: 500;
 }
 
 .mobileCycle > small:not(.mobileBestLabel) {
   margin-top: 0.1rem;
   color: #6f6961;
-  font-size: 0.5rem;
+  font-size: 0.6rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -385,6 +411,16 @@
   text-align: right;
 }
 
+.mobileOriginalPrice {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: #a39b91;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-decoration-color: #df2530;
+  text-decoration-thickness: 2px;
+}
+
 .mobilePrice > span {
   display: flex;
   align-items: baseline;
@@ -393,7 +429,7 @@
 }
 
 .mobilePrice > span small {
-  font-size: 0.56rem;
+  font-size: 0.66rem;
   font-weight: 900;
 }
 
@@ -409,7 +445,7 @@
   overflow: hidden;
   margin-top: 0.22rem;
   color: #716b63;
-  font-size: 0.43rem;
+  font-size: 0.52rem;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
@@ -472,7 +508,7 @@
   position: relative;
   z-index: 3;
   display: flex;
-  min-height: 118px;
+  min-height: 132px;
   flex-direction: column;
   justify-content: center;
   padding: 1.35rem;
@@ -480,7 +516,7 @@
 }
 
 .periodHeader small {
-  font-size: 0.6rem;
+  font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -490,7 +526,7 @@
   margin-top: 0.2rem;
   color: #d8c9b3;
   font-family: var(--font-playfair), serif;
-  font-size: 1.35rem;
+  font-size: 1.55rem;
   font-weight: 500;
 }
 
@@ -517,7 +553,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.85rem;
-  min-height: 118px;
+  min-height: 132px;
   overflow: hidden;
   background:
     radial-gradient(
@@ -573,7 +609,7 @@
 .planHeader small {
   display: block;
   color: color-mix(in srgb, var(--plan-color) 70%, #8e877f);
-  font-size: 0.54rem;
+  font-size: 0.68rem;
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -583,7 +619,7 @@
   display: block;
   margin-top: 0.05rem;
   font-family: var(--font-playfair), serif;
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 500;
 }
 
@@ -614,7 +650,7 @@
   position: relative;
   z-index: 2;
   display: flex;
-  min-height: 148px;
+  min-height: 168px;
   flex-direction: column;
   justify-content: center;
   padding: 1.25rem;
@@ -624,14 +660,14 @@
 .periodCell strong {
   color: #eee2d1;
   font-family: var(--font-playfair), serif;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: 500;
 }
 
 .periodCell small {
   margin-top: 0.2rem;
   color: #716b63;
-  font-size: 0.62rem;
+  font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -656,7 +692,7 @@
 .priceCell {
   position: relative;
   display: flex;
-  min-height: 148px;
+  min-height: 168px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -749,12 +785,88 @@
   transform: scale(1.015);
 }
 
+.promotion {
+  border: 1px solid rgb(221 49 60 / 52%);
+  background:
+    radial-gradient(circle at 50% -15%, rgb(222 174 87 / 24%), transparent 42%),
+    radial-gradient(circle at 100% 100%, rgb(155 11 24 / 26%), transparent 48%),
+    linear-gradient(145deg, #20130f, #130e0c 64%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 235 197 / 12%),
+    inset 0 0 34px rgb(158 12 25 / 10%);
+}
+
+.promotion::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 22%,
+    rgb(255 238 203 / 6%) 43%,
+    transparent 62%
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.promotion > span {
+  position: relative;
+  z-index: 1;
+}
+
+.promotion .savingLabel {
+  border: 1px solid rgb(255 202 132 / 58%);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #aa0918, #e02c38);
+  padding: 0.38rem 0.7rem;
+  color: #fff8ec;
+  letter-spacing: 0.11em;
+  box-shadow:
+    0 7px 20px rgb(169 8 22 / 32%),
+    inset 0 1px 0 rgb(255 255 255 / 18%);
+}
+
 .savingLabel {
   color: color-mix(in srgb, var(--plan-color) 82%, #7a746c);
-  font-size: 0.5rem;
+  font-size: 0.62rem;
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+.originalPrice {
+  margin-top: 0.38rem;
+  color: #d0c5b8;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-decoration-color: #df2530;
+  text-decoration-thickness: 2px;
+}
+
+.promoPriceLead {
+  margin-top: 0.2rem;
+  color: #d7a957;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.promotion .priceMain {
+  margin-top: 0.16rem;
+  color: #fff0d1;
+  text-shadow: 0 0 22px rgb(218 166 78 / 28%);
+}
+
+.promotion .priceMain strong {
+  font-size: clamp(2.7rem, 3.6vw, 3.25rem);
+  font-weight: 600;
+}
+
+.promotion .priceEquivalent {
+  color: #b9ab98;
 }
 
 .priceMain {
@@ -765,13 +877,13 @@
 }
 
 .priceMain small {
-  font-size: 0.68rem;
+  font-size: 0.8rem;
   font-weight: 900;
 }
 
 .priceMain strong {
   font-family: var(--font-playfair), Georgia, serif;
-  font-size: clamp(1.85rem, 3vw, 2.45rem);
+  font-size: clamp(2.1rem, 3vw, 2.7rem);
   font-weight: 500;
   line-height: 1;
 }
@@ -779,14 +891,14 @@
 .priceSuffix {
   margin-top: 0.15rem;
   color: #827c73;
-  font-size: 0.58rem;
+  font-size: 0.68rem;
   font-weight: 700;
 }
 
 .priceEquivalent {
   margin-top: 0.26rem;
   color: #6e6962;
-  font-size: 0.54rem;
+  font-size: 0.64rem;
   text-transform: uppercase;
 }
 
@@ -800,7 +912,7 @@
   background: color-mix(in srgb, var(--plan-color) 9%, transparent);
   padding: 0.28rem 0.6rem;
   color: var(--plan-color);
-  font-size: 0.49rem;
+  font-size: 0.6rem;
   font-weight: 900;
   letter-spacing: 0.06em;
   text-transform: uppercase;
