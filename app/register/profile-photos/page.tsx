@@ -45,6 +45,7 @@ import {
 import { RegistrationFormShell } from "../RegistrationFormShell";
 import { useRegistrationSecret } from "../RegistrationSecretProvider";
 import { useRegistrationCompletion } from "./useRegistrationCompletion";
+import { FormFieldMessage, FormProgress } from "../../components/FormFeedback";
 
 type ProfilePhoto = {
   file: File;
@@ -98,6 +99,14 @@ export default function ProfilePhotosPage() {
   const canAddPhotos = remainingSlots > 0;
   const allPhotosConfirmed =
     photos.length > 0 && photos.every((photo) => photo.rightsConfirmed);
+  const issues = [
+    { id: "profile-photos", label: "Adicionar uma foto", message: photosRequired && !photos.length ? "Adicione pelo menos uma foto do perfil." : undefined },
+    ...photos.map((photo, index) => ({
+      id: `photo-rights-${index}`,
+      label: `Autorização da foto ${index + 1}`,
+      message: !photo.rightsConfirmed ? "Confirme a autorização de uso desta foto." : undefined,
+    })),
+  ];
 
   useEffect(() => {
     const savedPayload = localStorage.getItem(REGISTER_PAYLOAD_KEY);
@@ -235,6 +244,7 @@ export default function ProfilePhotosPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isProcessingPhotos || isLoadingReview || isSubmitting) return;
 
     if (!validatePhotosForCompletion()) {
       return;
@@ -308,6 +318,7 @@ export default function ProfilePhotosPage() {
   }
 
   async function finalizeRegistration() {
+    if (isSubmitting) return;
     if (!receiptConfirmed || !validatePhotosForCompletion()) {
       setReceiptError(
         "Confirme que revisou o resumo antes de finalizar o cadastro.",
@@ -391,7 +402,7 @@ export default function ProfilePhotosPage() {
           </div>
         }
       >
-        <form className="registration-standard-form" onSubmit={handleSubmit}>
+        <form className="registration-standard-form" onSubmit={handleSubmit} noValidate>
           <div className="registration-section-heading">
             <span>06</span>
             <div>
@@ -435,7 +446,7 @@ export default function ProfilePhotosPage() {
             </div>
           </div>
 
-          <div className="registration-photo-grid">
+          <div id="profile-photos" className="registration-photo-grid">
             {photos.map((photo, index) => (
               <div key={photo.previewUrl} className="registration-photo-item">
                 <div className="registration-photo-preview">
@@ -482,6 +493,8 @@ export default function ProfilePhotosPage() {
                 >
                   <Checkbox
                     id={`photo-rights-${index}`}
+                    aria-invalid={!photo.rightsConfirmed}
+                    aria-describedby={!photo.rightsConfirmed ? `photo-rights-${index}-message` : undefined}
                     checked={photo.rightsConfirmed}
                     onCheckedChange={(checked) =>
                       setPhotoRightsConfirmed(
@@ -497,6 +510,7 @@ export default function ProfilePhotosPage() {
                     utilizá-la.
                   </span>
                 </label>
+                <FormFieldMessage id={`photo-rights-${index}`} message={issues[index + 1].message} />
               </div>
             ))}
 
@@ -520,6 +534,7 @@ export default function ProfilePhotosPage() {
               ))}
           </div>
 
+          <FormFieldMessage id="profile-photos" message={issues[0].message} />
           <div className="registration-photo-progress">
             <div className="flex items-center justify-between text-sm font-bold text-[#d8cfc2]">
               <span>
@@ -536,11 +551,15 @@ export default function ProfilePhotosPage() {
           </div>
 
           {error && (
-            <p className="registration-status-message registration-status-error">
+            <p role="alert" className="registration-status-message registration-status-error">
               {error}
             </p>
           )}
 
+          <FormProgress issues={issues} readyMessage="Você já pode revisar e concluir o cadastro." busyMessage={
+            isProcessingPhotos ? "Preparando suas fotos..." :
+            isLoadingReview ? "Preparando o resumo do cadastro..." : undefined
+          } />
           <div className="registration-form-actions">
             <Button
               type="button"
@@ -689,6 +708,8 @@ export default function ProfilePhotosPage() {
 
               <label className="registration-review-confirm flex cursor-pointer items-start gap-3">
                 <Checkbox
+                  id="receipt-confirmed"
+                  aria-describedby={!receiptConfirmed ? "receipt-confirmed-message" : undefined}
                   checked={receiptConfirmed}
                   onCheckedChange={(checked) => {
                     setReceiptConfirmed(checked === true);
@@ -701,6 +722,7 @@ export default function ProfilePhotosPage() {
                   cadastro.
                 </span>
               </label>
+              <FormFieldMessage id="receipt-confirmed" message={!receiptConfirmed ? "Confirme a revisão do resumo para finalizar." : undefined} />
 
               {receiptError ? (
                 <p className="registration-review-error">{receiptError}</p>

@@ -22,6 +22,8 @@ import {
 } from "../register-flow";
 import { RegisterStepDots } from "../RegisterStepDots";
 import { useRegistrationSecret } from "../RegistrationSecretProvider";
+import { FormFieldMessage, FormProgress, focusFormField } from "../../components/FormFeedback";
+import { getBirthDateError, getRegistrationAccessErrors, normalizePhone } from "../../lib/form-validation";
 
 type IbgeState = {
   id: number;
@@ -62,6 +64,8 @@ export default function RegisterAccountForm() {
     useState<AvailabilityCheck | null>(null);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState("");
+  const [availabilityAttempt, setAvailabilityAttempt] = useState(0);
   const [username, setUsername] = useState(() =>
     sanitizeUsername(savedPayload.username),
   );
@@ -72,29 +76,59 @@ export default function RegisterAccountForm() {
   const [birthYear, setBirthYear] = useState(savedPayload.birthYear);
   const [country, setCountry] = useState(savedPayload.country || "brasil");
   const [source, setSource] = useState(savedPayload.source);
+  const [states, setStates] = useState<IbgeState[]>([]);
+  const [cities, setCities] = useState<IbgeCity[]>([]);
+  const [state, setState] = useState(savedPayload.state);
+  const [city, setCity] = useState(savedPayload.city);
+  const [locationError, setLocationError] = useState("");
+  const [locationAttempt, setLocationAttempt] = useState(0);
   const normalizedUsername = username.trim();
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedAccountPhone = normalizePhone(accountPhone);
   const clientErrors = useMemo(
     () =>
-      getValidationErrors({
+      getRegistrationAccessErrors({
         username: normalizedUsername,
         email: normalizedEmail,
-        accountPhone: normalizedAccountPhone,
+        accountPhone,
         password,
       }),
-    [normalizedAccountPhone, normalizedEmail, normalizedUsername, password],
+    [accountPhone, normalizedEmail, normalizedUsername, password],
   );
   const fieldErrors = {
     username: clientErrors.username ?? availabilityErrors.username,
     email: clientErrors.email ?? availabilityErrors.email,
     accountPhone: clientErrors.accountPhone,
     password: clientErrors.password,
+    birthDate: getBirthDateError(birthDay, birthMonth, birthYear),
+    country: !country ? "Selecione o país." : undefined,
+    state: !state ? "Selecione o estado." : undefined,
+    city: !city ? (state ? "Selecione a cidade." : "Selecione primeiro o estado e depois a cidade.") : undefined,
+    source: !source ? "Selecione onde conheceu a SugarMimo." : undefined,
   };
-  const hasFieldErrors = Object.values(fieldErrors).some(Boolean);
+  const issues = [
+    { id: "username", label: "Nome de usuário", message: fieldErrors.username },
+    { id: "email", label: "E-mail", message: fieldErrors.email },
+    { id: "account-phone", label: "Celular", message: fieldErrors.accountPhone },
+    { id: "password", label: "Senha", message: fieldErrors.password },
+    { id: "birth-date", label: "Nascimento", message: fieldErrors.birthDate },
+    { id: "country", label: "País", message: fieldErrors.country },
+    { id: "state", label: "Estado", message: fieldErrors.state },
+    { id: "city", label: "Cidade", message: fieldErrors.city },
+    { id: "source", label: "Como nos conheceu", message: fieldErrors.source },
+  ];
+  const firstIssue = issues.find((issue) => issue.message);
+  const availabilityConfirmed = availabilityCheck?.username === normalizedUsername &&
+    availabilityCheck?.email === normalizedEmail &&
+    availabilityCheck.usernameAvailable === true && availabilityCheck.emailAvailable === true;
+  const canContinue = !firstIssue && availabilityConfirmed && !isCheckingAvailability && !isSubmitting;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!canContinue) {
+      if (firstIssue) focusFormField(firstIssue.id);
+      return;
+    }
 
     const stepOne = JSON.parse(
       localStorage.getItem(REGISTER_STEP_ONE_KEY) ?? "{}",
@@ -103,21 +137,6 @@ export default function RegisterAccountForm() {
       localStorage.getItem(REGISTER_PAYLOAD_KEY) ?? "{}",
     );
     delete currentPayload.password;
-    const validationErrors = getValidationErrors({
-      username: normalizedUsername,
-      email: normalizedEmail,
-      accountPhone: normalizedAccountPhone,
-      password,
-      showRequired: true,
-    });
-
-    if (Object.values(validationErrors).some(Boolean)) {
-      setError(
-        Object.values(validationErrors).find(Boolean) ??
-          "Confira os dados informados.",
-      );
-      return;
-    }
 
     setError("");
     setIsSubmitting(true);
@@ -178,11 +197,6 @@ export default function RegisterAccountForm() {
     }
   }
 
-  const [states, setStates] = useState<IbgeState[]>([]);
-  const [cities, setCities] = useState<IbgeCity[]>([]);
-  const [state, setState] = useState(savedPayload.state);
-  const [city, setCity] = useState(savedPayload.city);
-
   useEffect(() => {
     if (!localStorage.getItem(REGISTER_STEP_ONE_KEY)) {
       router.replace("/register");
@@ -193,24 +207,32 @@ export default function RegisterAccountForm() {
   }, [router]);
 
   useEffect(() => {
+    const controller = new AbortController();
     fetch(
       "https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome",
+      { signal: controller.signal },
     )
-      .then((res) => res.json())
-      .then(setStates);
-  }, []);
+      .then((res) => { if (!res.ok) throw new Error(); return res.json(); })
+      .then((result: IbgeState[]) => { if (!controller.signal.aborted) setStates(result); })
+      .catch(() => { if (!controller.signal.aborted) setLocationError("Não foi possível carregar os estados. Tente novamente."); });
+    return () => controller.abort();
+  }, [locationAttempt]);
 
   useEffect(() => {
     if (!state) {
       return;
     }
 
+    const controller = new AbortController();
     fetch(
       `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${state}/municipios?orderBy=nome`,
+      { signal: controller.signal },
     )
-      .then((res) => res.json())
-      .then(setCities);
-  }, [state]);
+      .then((res) => { if (!res.ok) throw new Error(); return res.json(); })
+      .then((result: IbgeCity[]) => { if (!controller.signal.aborted) setCities(result); })
+      .catch(() => { if (!controller.signal.aborted) setLocationError("Não foi possível carregar as cidades. Tente novamente."); });
+    return () => controller.abort();
+  }, [state, locationAttempt]);
 
   useEffect(() => {
     if (
@@ -232,7 +254,9 @@ export default function RegisterAccountForm() {
           normalizedEmail,
           controller.signal,
         );
+        if (controller.signal.aborted) return;
 
+        setAvailabilityError("");
         setAvailabilityCheck({
           username: normalizedUsername,
           email: normalizedEmail,
@@ -247,15 +271,15 @@ export default function RegisterAccountForm() {
             ? undefined
             : "Este e-mail já está sendo usado.",
         }));
-      } catch (availabilityError) {
-        if (availabilityError instanceof DOMException) {
+      } catch {
+        if (controller.signal.aborted) {
           return;
         }
 
-        setError("Não foi possível validar o usuário e o e-mail agora.");
+        setAvailabilityError("Não foi possível validar o usuário e o e-mail agora. Tente novamente.");
         setAvailabilityCheck(null);
       } finally {
-        setIsCheckingAvailability(false);
+        if (!controller.signal.aborted) setIsCheckingAvailability(false);
       }
     }, 450);
 
@@ -268,6 +292,7 @@ export default function RegisterAccountForm() {
     clientErrors.username,
     normalizedEmail,
     normalizedUsername,
+    availabilityAttempt,
   ]);
 
   function handleStateChange(value: string) {
@@ -316,7 +341,8 @@ export default function RegisterAccountForm() {
           </div>
         </header>
 
-        <form className="registration-account-form" onSubmit={handleSubmit}>
+        <form className="registration-account-form" onSubmit={handleSubmit} noValidate aria-busy={isSubmitting}>
+          <fieldset disabled={isSubmitting} className="contents">
           <section className="registration-form-section">
             <div className="registration-section-heading">
               <span>01</span>
@@ -341,6 +367,11 @@ export default function RegisterAccountForm() {
                   id="username"
                   name="username"
                   type="text"
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  aria-invalid={Boolean(fieldErrors.username)}
+                  aria-describedby={fieldErrors.username ? "username-message" : undefined}
                   required
                   minLength={2}
                   maxLength={30}
@@ -373,7 +404,10 @@ export default function RegisterAccountForm() {
 
                     setUsername(sanitizeUsername(event.target.value));
                     setError("");
+                    if (sanitizeUsername(event.target.value) === normalizedUsername) return;
                     setAvailabilityCheck(null);
+                    setIsCheckingAvailability(false);
+                    setAvailabilityError("");
                     setAvailabilityErrors((currentErrors) => ({
                       ...currentErrors,
                       username: undefined,
@@ -384,7 +418,7 @@ export default function RegisterAccountForm() {
                 />
                 </div>
 
-                <FieldMessage message={fieldErrors.username} />
+                <FormFieldMessage id="username" message={fieldErrors.username} />
               </div>
 
               <div className="registration-field">
@@ -401,12 +435,21 @@ export default function RegisterAccountForm() {
                   id="email"
                   name="email"
                   type="email"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  inputMode="email"
+                  aria-invalid={Boolean(fieldErrors.email)}
+                  aria-describedby={fieldErrors.email ? "email-message" : undefined}
                   required
                   value={email}
                   onChange={(event) => {
                     setEmail(event.target.value);
                     setError("");
+                    if (event.target.value.trim().toLowerCase() === normalizedEmail) return;
                     setAvailabilityCheck(null);
+                    setIsCheckingAvailability(false);
+                    setAvailabilityError("");
                     setAvailabilityErrors((currentErrors) => ({
                       ...currentErrors,
                       email: undefined,
@@ -417,7 +460,7 @@ export default function RegisterAccountForm() {
                 />
                 </div>
 
-                <FieldMessage message={fieldErrors.email} />
+                <FormFieldMessage id="email" message={fieldErrors.email} />
               </div>
 
               <div className="registration-field">
@@ -436,6 +479,8 @@ export default function RegisterAccountForm() {
                   type="tel"
                   inputMode="tel"
                   autoComplete="tel"
+                  aria-invalid={Boolean(fieldErrors.accountPhone)}
+                  aria-describedby={fieldErrors.accountPhone ? "account-phone-message" : undefined}
                   required
                   maxLength={24}
                   value={accountPhone}
@@ -448,7 +493,7 @@ export default function RegisterAccountForm() {
                 />
                 </div>
 
-                <FieldMessage message={fieldErrors.accountPhone} />
+                <FormFieldMessage id="account-phone" message={fieldErrors.accountPhone} />
               </div>
 
               <div className="registration-field">
@@ -461,6 +506,9 @@ export default function RegisterAccountForm() {
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  aria-invalid={Boolean(fieldErrors.password)}
+                  aria-describedby={fieldErrors.password ? "password-requirements password-message" : "password-requirements"}
                   required
                   value={password}
                   onChange={(event) => {
@@ -476,6 +524,7 @@ export default function RegisterAccountForm() {
                   variant="ghost"
                   size="icon"
                   aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
+                  aria-pressed={showPassword}
                   onClick={() => setShowPassword((value) => !value)}
                     className="registration-password-toggle"
                 >
@@ -487,12 +536,12 @@ export default function RegisterAccountForm() {
                 </Button>
                 </div>
 
-                <p className="registration-helper">
+                <p id="password-requirements" className="registration-helper">
                   Mínimo de 8 caracteres, com maiúscula, minúscula, número e
                   caractere especial.
                 </p>
 
-                <FieldMessage message={fieldErrors.password} />
+                <FormFieldMessage id="password" message={fieldErrors.password} />
               </div>
             </div>
           </section>
@@ -510,9 +559,9 @@ export default function RegisterAccountForm() {
               <div className="registration-field">
                 <p className="registration-label">Data de nascimento</p>
 
-                <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <div id="birth-date" className="grid grid-cols-3 gap-2 sm:gap-3">
                 <Select value={birthDay} onValueChange={setBirthDay} required>
-                    <SelectTrigger className="registration-select-trigger">
+                    <SelectTrigger aria-label="Dia de nascimento" aria-invalid={Boolean(fieldErrors.birthDate)} aria-describedby={fieldErrors.birthDate ? "birth-date-message" : undefined} className="registration-select-trigger">
                     <SelectValue placeholder="Dia" />
                   </SelectTrigger>
                   <SelectContent className="registration-select-content">
@@ -529,7 +578,7 @@ export default function RegisterAccountForm() {
                   onValueChange={setBirthMonth}
                   required
                 >
-                    <SelectTrigger className="registration-select-trigger">
+                    <SelectTrigger aria-label="Mês de nascimento" aria-invalid={Boolean(fieldErrors.birthDate)} aria-describedby={fieldErrors.birthDate ? "birth-date-message" : undefined} className="registration-select-trigger">
                     <SelectValue placeholder="Mês" />
                   </SelectTrigger>
                   <SelectContent className="registration-select-content">
@@ -549,7 +598,7 @@ export default function RegisterAccountForm() {
                 </Select>
 
                 <Select value={birthYear} onValueChange={setBirthYear} required>
-                    <SelectTrigger className="registration-select-trigger">
+                    <SelectTrigger aria-label="Ano de nascimento" aria-invalid={Boolean(fieldErrors.birthDate)} aria-describedby={fieldErrors.birthDate ? "birth-date-message" : undefined} className="registration-select-trigger">
                     <SelectValue placeholder="Ano" />
                   </SelectTrigger>
                   <SelectContent className="registration-select-content">
@@ -565,29 +614,31 @@ export default function RegisterAccountForm() {
                   </SelectContent>
                 </Select>
                 </div>
+                <FormFieldMessage id="birth-date" message={fieldErrors.birthDate} />
               </div>
 
               <div className="registration-location-grid">
                 <div className="registration-field">
-                  <Label className="registration-label">País</Label>
+                  <Label htmlFor="country" className="registration-label">País</Label>
                   <Select value={country} onValueChange={setCountry} required>
-                    <SelectTrigger className="registration-select-trigger">
+                    <SelectTrigger id="country" aria-invalid={Boolean(fieldErrors.country)} aria-describedby={fieldErrors.country ? "country-message" : undefined} className="registration-select-trigger">
                       <SelectValue placeholder="Selecione o país" />
                     </SelectTrigger>
                     <SelectContent className="registration-select-content">
                       <SelectItem value="brasil">Brasil</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormFieldMessage id="country" message={fieldErrors.country} />
                 </div>
 
                 <div className="registration-field">
-                  <Label className="registration-label">Estado</Label>
+                  <Label htmlFor="state" className="registration-label">Estado</Label>
                   <Select
                     value={state}
                     onValueChange={handleStateChange}
                     required
                   >
-                    <SelectTrigger className="registration-select-trigger">
+                    <SelectTrigger id="state" aria-invalid={Boolean(fieldErrors.state)} aria-describedby={fieldErrors.state ? "state-message" : undefined} className="registration-select-trigger">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent className="registration-select-content">
@@ -598,18 +649,19 @@ export default function RegisterAccountForm() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormFieldMessage id="state" message={fieldErrors.state} />
                 </div>
               </div>
 
               <div className="registration-field">
-                <Label className="registration-label">Cidade</Label>
+                <Label htmlFor="city" className="registration-label">Cidade</Label>
                 <Select
                   value={city}
                   onValueChange={setCity}
                   required
                   disabled={!state}
                 >
-                  <SelectTrigger className="registration-select-trigger">
+                  <SelectTrigger id="city" aria-invalid={Boolean(fieldErrors.city)} aria-describedby={fieldErrors.city ? "city-message" : undefined} className="registration-select-trigger">
                     <SelectValue placeholder="Selecione uma opção" />
                   </SelectTrigger>
                   <SelectContent className="registration-select-content">
@@ -620,14 +672,15 @@ export default function RegisterAccountForm() {
                     ))}
                   </SelectContent>
                 </Select>
+                <FormFieldMessage id="city" message={fieldErrors.city} />
               </div>
 
               <div className="registration-field">
-                <Label className="registration-label">
+                <Label htmlFor="source" className="registration-label">
                   Onde ouviu sobre a SugarMimo?
                 </Label>
                 <Select value={source} onValueChange={setSource} required>
-                  <SelectTrigger className="registration-select-trigger">
+                  <SelectTrigger id="source" aria-invalid={Boolean(fieldErrors.source)} aria-describedby={fieldErrors.source ? "source-message" : undefined} className="registration-select-trigger">
                     <SelectValue placeholder="Selecione uma opção" />
                   </SelectTrigger>
                   <SelectContent className="registration-select-content">
@@ -637,42 +690,48 @@ export default function RegisterAccountForm() {
                     <SelectItem value="evento">Evento</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormFieldMessage id="source" message={fieldErrors.source} />
               </div>
             </div>
           </section>
 
           <div className="registration-account-actions">
-            <StatusMessage
-              error={error}
-              isCheckingAvailability={isCheckingAvailability}
-            />
+            <div className="min-w-0 flex-1 space-y-3">
+              <FormProgress issues={issues} busyMessage={
+                isSubmitting ? "Validando seus dados..." :
+                !firstIssue && !availabilityConfirmed
+                  ? (availabilityError ? "Valide o usuário e e-mail para continuar." : "Conferindo a disponibilidade do usuário e e-mail...") : undefined
+              } />
+              <StatusMessage error={error || availabilityError} isCheckingAvailability={isCheckingAvailability} />
+              {availabilityError && (
+                <Button type="button" variant="outline" onClick={() => {
+                  setAvailabilityError("");
+                  setAvailabilityAttempt((attempt) => attempt + 1);
+                }}>Tentar validar novamente</Button>
+              )}
+              {locationError && (
+                <div className="space-y-2">
+                  <p role="alert" className="form-field-message">{locationError}</p>
+                  <Button type="button" variant="outline" onClick={() => {
+                    setLocationError("");
+                    setLocationAttempt((attempt) => attempt + 1);
+                  }}>Recarregar localização</Button>
+                </div>
+              )}
+            </div>
 
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={!canContinue}
               className="registration-submit"
             >
               {isSubmitting ? "Validando..." : "Continuar Cadastro"}
             </Button>
           </div>
+          </fieldset>
         </form>
       </div>
     </main>
-  );
-}
-
-function FieldMessage({ message }: { message?: string }) {
-  if (!message) {
-    return null;
-  }
-
-  return (
-    <p
-      aria-live="polite"
-      className="registration-field-error"
-    >
-      {message}
-    </p>
   );
 }
 
@@ -719,62 +778,13 @@ async function checkAccountAvailability(
     .json()
     .catch(() => null)) as AvailabilityResponse | null;
 
-  if (!response.ok || !availability) {
+  if (!response.ok || !availability ||
+    typeof availability.usernameAvailable !== "boolean" ||
+    typeof availability.emailAvailable !== "boolean") {
     throw new Error("Não foi possível validar seus dados. Tente novamente.");
   }
 
   return availability;
-}
-
-function getValidationErrors({
-  username,
-  email,
-  accountPhone,
-  password,
-  showRequired = false,
-}: {
-  username: string;
-  email: string;
-  accountPhone: string;
-  password: string;
-  showRequired?: boolean;
-}) {
-  const errors: FieldErrors = {};
-
-  if (showRequired && !username) {
-    errors.username = "Informe um nome de usuário.";
-  } else if (username && username.length < 2) {
-    errors.username = "O nome de usuário deve ter pelo menos 2 caracteres.";
-  } else if (username.length > 30) {
-    errors.username = "O nome de usuário deve ter no máximo 30 caracteres.";
-  } else if (username && !/^[A-Za-z0-9._-]+$/.test(username)) {
-    errors.username =
-      "Use apenas letras, números, ponto, hífen ou sublinhado, sem espaços.";
-  }
-
-  if (showRequired && !email) {
-    errors.email = "Informe um e-mail.";
-  } else if (email && !isValidEmail(email)) {
-    errors.email = "Informe um e-mail válido.";
-  }
-
-  if (showRequired && !accountPhone) {
-    errors.accountPhone = "Informe o celular usado para controle da conta.";
-  } else if (accountPhone && !/^\+?\d{10,15}$/.test(accountPhone)) {
-    errors.accountPhone = "Informe um celular válido, incluindo o DDD.";
-  }
-
-  const passwordError = getPasswordError(password, showRequired);
-
-  if (passwordError) {
-    errors.password = passwordError;
-  }
-
-  return errors;
-}
-
-function isValidEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function sanitizeUsername(value: string) {
@@ -783,39 +793,6 @@ function sanitizeUsername(value: string) {
   }
 
   return value.replace(/[^A-Za-z0-9._-]/g, "").slice(0, 30);
-}
-
-function normalizePhone(value: string) {
-  const digits = value.replace(/\D/g, "");
-  return value.trim().startsWith("+") ? `+${digits}` : digits;
-}
-
-function getPasswordError(password: string, showRequired = false) {
-  if (!password) {
-    return showRequired ? "Informe uma senha." : undefined;
-  }
-
-  if (password.length < 8) {
-    return "A senha deve ter no mínimo 8 caracteres.";
-  }
-
-  if (!/[A-Z]/.test(password)) {
-    return "A senha deve ter pelo menos uma letra maiúscula.";
-  }
-
-  if (!/[a-z]/.test(password)) {
-    return "A senha deve ter pelo menos uma letra minúscula.";
-  }
-
-  if (!/\d/.test(password)) {
-    return "A senha deve ter pelo menos um número.";
-  }
-
-  if (!/[^A-Za-z\d]/.test(password)) {
-    return "A senha deve ter pelo menos um caractere especial.";
-  }
-
-  return undefined;
 }
 
 function getSavedPayload() {
@@ -845,7 +822,7 @@ function getSavedPayload() {
     username: String(payload.username ?? ""),
     email: String(payload.email ?? ""),
     accountPhone: String(payload.accountPhone ?? ""),
-    birthDay,
+    birthDay: birthDay ? String(Number(birthDay)) : "",
     birthMonth,
     birthYear,
     country: String(payload.country ?? "brasil"),

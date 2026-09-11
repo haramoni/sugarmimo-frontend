@@ -19,6 +19,12 @@ import {
 } from "../perfil/ProfileApprovalGuard";
 import { AccountModerationDialog } from "../components/AccountModerationDialog";
 import { LOGIN_PROMOTION_SESSION_KEY } from "../components/LoginPromotionDialog";
+import {
+  FormFieldMessage,
+  FormProgress,
+  focusFormField,
+} from "../components/FormFeedback";
+import { getLoginErrors } from "../lib/form-validation";
 
 const REAPPLICATION_ROUTE = "/register/reapply";
 
@@ -27,6 +33,10 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const fieldErrors = getLoginErrors(identifier, password);
+  const canSubmit = !fieldErrors.identifier && !fieldErrors.password;
   const [moderationNotice, setModerationNotice] =
     useState<ModerationNotice | null>(null);
   const [moderationNextRoute, setModerationNextRoute] = useState<string | null>(
@@ -35,10 +45,20 @@ export function LoginForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError("");
-    setIsSubmitting(true);
+    if (isSubmitting) return;
 
     const formData = new FormData(event.currentTarget);
+    const loginIdentifier = String(formData.get("identifier") ?? "").trim();
+    const loginPassword = String(formData.get("password") ?? "");
+    const validation = getLoginErrors(loginIdentifier, loginPassword);
+    if (validation.identifier || validation.password) {
+      setIdentifier(loginIdentifier);
+      setPassword(loginPassword);
+      focusFormField(validation.identifier ? "username" : "password");
+      return;
+    }
+    setError("");
+    setIsSubmitting(true);
 
     try {
       const response = await fetch("/api/auth/login", {
@@ -47,8 +67,8 @@ export function LoginForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          identifier: String(formData.get("identifier") ?? ""),
-          password: String(formData.get("password") ?? ""),
+          identifier: loginIdentifier,
+          password: loginPassword,
         }),
       });
 
@@ -161,7 +181,11 @@ export function LoginForm() {
         </CardHeader>
 
         <CardContent className="px-7 pb-8 pt-4">
-          <form className="space-y-5" onSubmit={handleSubmit}>
+          <form
+            className="login-form space-y-5"
+            onSubmit={handleSubmit}
+            noValidate
+          >
             <div className="space-y-2">
               <Label
                 htmlFor="username"
@@ -173,9 +197,25 @@ export function LoginForm() {
                 id="username"
                 name="identifier"
                 type="text"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                enterKeyHint="next"
+                value={identifier}
+                onChange={(event) => {
+                  setIdentifier(event.target.value);
+                  setError("");
+                }}
+                aria-describedby={
+                  fieldErrors.identifier ? "username-message" : undefined
+                }
                 required
-                placeholder="Digite seu nome de usuário ou e-mail"
+                placeholder="Seu usuário ou e-mail"
                 className="h-12 rounded-xl border-[#e1bd8a]/18 bg-[#080808] px-4 text-[#f4ecdf] placeholder:text-[#6f6c67] focus-visible:border-[#e1bd8a]/60 focus-visible:ring-[#e1bd8a]/20"
+              />
+              <FormFieldMessage
+                id="username"
+                message={fieldErrors.identifier}
               />
             </div>
 
@@ -192,6 +232,16 @@ export function LoginForm() {
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  enterKeyHint="go"
+                  value={password}
+                  onChange={(event) => {
+                    setPassword(event.target.value);
+                    setError("");
+                  }}
+                  aria-describedby={
+                    fieldErrors.password ? "password-message" : undefined
+                  }
                   required
                   placeholder="Digite sua senha"
                   className="h-12 rounded-xl border-[#e1bd8a]/18 bg-[#080808] px-4 pr-11 text-[#f4ecdf] placeholder:text-[#6f6c67] focus-visible:border-[#e1bd8a]/60 focus-visible:ring-[#e1bd8a]/20"
@@ -204,6 +254,7 @@ export function LoginForm() {
                   className="absolute right-0 top-0 h-full px-3 text-[#969189] hover:bg-transparent hover:text-[#e1bd8a]"
                   onClick={() => setShowPassword((value) => !value)}
                   aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  aria-pressed={showPassword}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -212,6 +263,7 @@ export function LoginForm() {
                   )}
                 </Button>
               </div>
+              <FormFieldMessage id="password" message={fieldErrors.password} />
             </div>
 
             {error && (
@@ -223,10 +275,28 @@ export function LoginForm() {
               </p>
             )}
 
+            <FormProgress
+              issues={[
+                {
+                  id: "username",
+                  label: "Usuário ou e-mail",
+                  message: fieldErrors.identifier,
+                },
+                {
+                  id: "password",
+                  label: "Senha",
+                  message: fieldErrors.password,
+                },
+              ]}
+              readyMessage="Campos preenchidos. Você já pode entrar."
+              busyMessage={
+                isSubmitting ? "Conferindo seus dados de acesso..." : undefined
+              }
+            />
             <Button
               className="h-12 w-full rounded-full bg-[linear-gradient(135deg,#f3d7aa_0%,#e1bd8a_50%,#9c7443_125%)] text-xs font-extrabold uppercase tracking-[0.2em] text-[#080808] shadow-[0_12px_34px_rgba(225,189,138,0.2)] transition hover:-translate-y-0.5 hover:opacity-100"
               type="submit"
-              disabled={isSubmitting}
+              disabled={!canSubmit || isSubmitting}
             >
               {isSubmitting ? "Entrando..." : "Entrar"}
             </Button>

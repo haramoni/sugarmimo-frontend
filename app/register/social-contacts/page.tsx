@@ -28,6 +28,8 @@ import { Label } from "@/components/ui/label";
 import { REGISTER_PAYLOAD_KEY, setRegisterStep } from "../register-flow";
 import { RegistrationFormShell } from "../RegistrationFormShell";
 import { useRegistrationSecret } from "../RegistrationSecretProvider";
+import { FormFieldMessage, FormProgress, focusFormField } from "../../components/FormFeedback";
+import { getPhoneError } from "../../lib/form-validation";
 
 type ContactChannel = "whatsapp" | "telegram" | "instagram";
 
@@ -51,6 +53,12 @@ export default function SocialContactsPage() {
     getSavedVisibleContacts,
   );
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(true);
+  const issues = [
+    { id: "whatsapp", label: "Celular/WhatsApp", message: getPhoneError(whatsapp) },
+    { id: "telegram", label: "Telegram", message: telegram.trim() && !/^@?[A-Za-z0-9_]+$/.test(telegram.trim()) ? "Informe apenas o usuário do Telegram, sem espaços ou links." : undefined },
+    { id: "instagram", label: "Instagram", message: instagram.trim() && !/^@?[A-Za-z0-9._]+$/.test(instagram.trim()) ? "Informe apenas o usuário do Instagram, sem espaços ou links." : undefined },
+  ];
+  const firstIssue = issues.find((issue) => issue.message);
 
   useEffect(() => {
     const savedPayload = localStorage.getItem(REGISTER_PAYLOAD_KEY);
@@ -103,6 +111,7 @@ export default function SocialContactsPage() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (firstIssue) { focusFormField(firstIssue.id); return; }
 
     const currentPayload = JSON.parse(
       localStorage.getItem(REGISTER_PAYLOAD_KEY) ?? "{}",
@@ -171,7 +180,7 @@ export default function SocialContactsPage() {
         backLabel="Voltar para preferências"
         size="standard"
       >
-        <form className="registration-standard-form" onSubmit={handleSubmit}>
+        <form className="registration-standard-form" onSubmit={handleSubmit} noValidate>
           <div className="registration-section-heading">
             <span>05</span>
             <div>
@@ -182,6 +191,8 @@ export default function SocialContactsPage() {
 
           <div className="registration-form-grid registration-contact-grid">
             <ContactField
+              id="whatsapp"
+              message={issues[0].message || undefined}
               icon={MessageCircle}
               label="Celular/WhatsApp para contato"
               description="Este número só poderá ser exibido se você liberar o canal WhatsApp abaixo."
@@ -193,16 +204,20 @@ export default function SocialContactsPage() {
             />
 
             <ContactField
+              id="telegram"
+              message={issues[1].message || undefined}
               icon={Send}
-              label="Telegram"
+              label="Telegram (opcional)"
               value={telegram}
               onChange={(value) => updateContact("telegram", value)}
               placeholder="Ex.: seuusuario"
             />
 
             <ContactField
+              id="instagram"
+              message={issues[2].message || undefined}
               icon={AtSign}
-              label="Instagram"
+              label="Instagram (opcional)"
               value={instagram}
               onChange={(value) => updateContact("instagram", value)}
               placeholder="Ex.: seuusuario"
@@ -250,6 +265,7 @@ export default function SocialContactsPage() {
             </div>
           </div>
 
+          <FormProgress issues={issues} />
           <div className="registration-form-actions">
             <Button
               type="button"
@@ -261,7 +277,7 @@ export default function SocialContactsPage() {
               Voltar
             </Button>
 
-            <Button type="submit" className="registration-submit">
+            <Button type="submit" disabled={Boolean(firstIssue)} className="registration-submit">
               Salvar e Continuar
             </Button>
           </div>
@@ -272,6 +288,8 @@ export default function SocialContactsPage() {
 }
 
 type ContactFieldProps = {
+  id: string;
+  message?: string;
   icon: LucideIcon;
   label: string;
   description?: string;
@@ -283,6 +301,8 @@ type ContactFieldProps = {
 };
 
 function ContactField({
+  id,
+  message,
   icon: Icon,
   label,
   description,
@@ -294,13 +314,21 @@ function ContactField({
 }: ContactFieldProps) {
   return (
     <div className="registration-field">
-      <Label className="registration-label">{label}</Label>
+      <Label htmlFor={id} className="registration-label">{label}</Label>
       {description ? (
         <p className="registration-helper">{description}</p>
       ) : null}
       <div className="registration-control">
         <Icon className="registration-control-icon" />
         <Input
+          id={id}
+          name={id}
+          autoComplete={type === "tel" ? "tel" : "off"}
+          inputMode={type === "tel" ? "tel" : "text"}
+          autoCapitalize="none"
+          spellCheck={false}
+          aria-invalid={Boolean(message)}
+          aria-describedby={message ? `${id}-message` : undefined}
           type={type}
           value={value}
           required={required}
@@ -310,6 +338,7 @@ function ContactField({
           className="registration-input pl-10"
         />
       </div>
+      <FormFieldMessage id={id} message={message} />
     </div>
   );
 }

@@ -29,6 +29,7 @@ import {
 } from "./register-flow";
 import { RegistrationFormShell } from "./RegistrationFormShell";
 import { useRegistrationSecret } from "./RegistrationSecretProvider";
+import { FormFieldMessage, FormProgress, focusFormField } from "../components/FormFeedback";
 import {
   relationshipIntentOptions,
   type RelationshipIntent,
@@ -100,6 +101,7 @@ export default function Register() {
   const { clearPassword } = useRegistrationSecret();
   const [identity, setIdentity] = useState<ProfileIdentity | null>(null);
   const [profileType, setProfileType] = useState("");
+  const [interest, setInterest] = useState("");
   const profileOptionsRef = useRef<HTMLFieldSetElement>(null);
   const preferencesRef = useRef<HTMLDivElement>(null);
   const [relationshipIntent, setRelationshipIntent] =
@@ -110,6 +112,16 @@ export default function Register() {
   const [privacyNoticeAcknowledged, setPrivacyNoticeAcknowledged] =
     useState(false);
   const [marketingConsent, setMarketingConsent] = useState(false);
+  const issues = [
+    { id: "identity", label: "Sua identidade", message: !identity ? "Selecione como você se identifica." : undefined },
+    { id: identity ? "profile-type" : "identity", label: "Tipo de perfil", message: identity && !profileType ? "Escolha como quer participar." : undefined },
+    { id: "interest", label: "Quero conhecer", message: profileType && !interest ? "Escolha quem você quer conhecer." : undefined },
+    { id: "adult-declaration", label: "Maioridade", message: !adultDeclarationAccepted ? "Confirme a declaração de maioridade." : undefined },
+    { id: "terms-acceptance", label: "Termos de Uso", message: !termsAccepted ? "Leia e aceite os Termos de Uso." : undefined },
+    { id: "privacy-awareness", label: "Privacidade", message: !privacyNoticeAcknowledged ? "Confirme a leitura da Política de Privacidade." : undefined },
+  ];
+  const firstIssue = issues.find((issue) => issue.message);
+  const canContinue = Boolean(identity && profileType && interest && !firstIssue);
 
   useEffect(() => {
     captureReferralFromUrl();
@@ -145,10 +157,10 @@ export default function Register() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!identity || !profileType) return;
-
-    const formData = new FormData(event.currentTarget);
-    const interest = String(formData.get("interest") ?? "");
+    if (!canContinue) {
+      if (firstIssue) focusFormField(firstIssue.id);
+      return;
+    }
 
     localStorage.setItem(
       "sugarmimo:register-step-one",
@@ -171,6 +183,7 @@ export default function Register() {
     if (nextIdentity === identity) return;
     setIdentity(nextIdentity);
     setProfileType("");
+    setInterest("");
   }
 
   return (
@@ -184,7 +197,7 @@ export default function Register() {
       backLabel="Voltar para o início"
       size="wide"
     >
-      <form className="registration-standard-form" onSubmit={handleSubmit}>
+      <form className="registration-standard-form" onSubmit={handleSubmit} noValidate>
         <div className="registration-profile-setup-grid">
           <section className="registration-form-section registration-profile-section">
             <div className="registration-section-heading">
@@ -196,7 +209,7 @@ export default function Register() {
             </div>
 
             <div className="registration-fields-stack">
-              <fieldset className="registration-choice-fieldset">
+              <fieldset id="identity" className="registration-choice-fieldset" aria-describedby={!identity ? "identity-message" : undefined}>
                 <legend className="sr-only">Como você se identifica?</legend>
                 <div className="registration-identity-grid">
                   {IDENTITY_OPTIONS.map((option) => {
@@ -222,11 +235,14 @@ export default function Register() {
                     );
                   })}
                 </div>
+                <FormFieldMessage id="identity" message={issues[0].message} />
               </fieldset>
 
               {identity ? (
                 <fieldset
                   ref={profileOptionsRef}
+                  id="profile-type"
+                  aria-describedby={!profileType ? "profile-type-message" : undefined}
                   className="registration-choice-fieldset registration-reveal-section scroll-mt-6"
                 >
                   <legend className="registration-label">
@@ -263,6 +279,7 @@ export default function Register() {
                       );
                     })}
                   </div>
+                  <FormFieldMessage id="profile-type" message={issues[1].message} />
                 </fieldset>
               ) : (
                 <div className="registration-next-step-hint">
@@ -282,11 +299,14 @@ export default function Register() {
                     </label>
                     <Select
                       name="interest"
-                      defaultValue=""
+                      value={interest}
+                      onValueChange={setInterest}
                       required
                     >
                       <SelectTrigger
                         id="interest"
+                        aria-invalid={!interest}
+                        aria-describedby={!interest ? "interest-message" : undefined}
                         className="registration-select-trigger"
                       >
                         <SelectValue placeholder="Escolha uma preferência" />
@@ -297,6 +317,7 @@ export default function Register() {
                         <SelectItem value="both">Todos</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormFieldMessage id="interest" message={issues[2].message} />
                     <p className="registration-helper">
                       Essa preferência não altera o tipo do seu perfil.
                     </p>
@@ -446,16 +467,11 @@ export default function Register() {
           </p>
         </div>
 
+        <FormProgress issues={issues} />
         <div className="registration-form-actions">
           <Button
             type="submit"
-            disabled={
-              !identity ||
-              !profileType ||
-              !adultDeclarationAccepted ||
-              !termsAccepted ||
-              !privacyNoticeAcknowledged
-            }
+            disabled={!canContinue}
             className="registration-submit"
           >
             Continuar cadastro
@@ -489,6 +505,8 @@ function ConsentCheckbox({
         checked={checked}
         onCheckedChange={(value) => onCheckedChange(value === true)}
         required={required}
+        aria-invalid={required && !checked}
+        aria-describedby={required && !checked ? `${id}-message` : undefined}
         className="mt-0.5 shrink-0"
       />
       <label
@@ -497,6 +515,9 @@ function ConsentCheckbox({
       >
         {children}
         {required ? <span className="sr-only"> Campo obrigatório.</span> : null}
+        {required && !checked ? (
+          <span id={`${id}-message`} className="form-field-message mt-1">Confirmação obrigatória.</span>
+        ) : null}
       </label>
     </div>
   );

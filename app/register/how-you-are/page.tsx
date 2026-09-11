@@ -16,6 +16,8 @@ import {
 import { REGISTER_PAYLOAD_KEY, setRegisterStep } from "../register-flow";
 import { RegistrationFormShell } from "../RegistrationFormShell";
 import { useRegistrationSecret } from "../RegistrationSecretProvider";
+import { RegistrationSelect } from "../RegistrationSelect";
+import { FormFieldMessage, FormProgress, focusFormField } from "../../components/FormFeedback";
 import {
   bodyTypes,
   describeForProfile,
@@ -60,6 +62,14 @@ export default function HowYouArePage() {
   const [hairColor, setHairColor] = useState(() => getSavedValue("hairColor"));
   const [eyeColor, setEyeColor] = useState(() => getSavedValue("eyeColor"));
   const [heightCm, setHeightCm] = useState(() => getSavedValue("heightCm"));
+  const issues = [
+    { id: "body-type", label: "Tipo de corpo", message: !bodyType ? "Selecione uma opção." : undefined },
+    { id: "ethnicity", label: "Tom de pele", message: !ethnicity ? "Selecione uma opção." : undefined },
+    { id: "hair-color", label: "Cabelo", message: !hairColor ? "Selecione uma opção." : undefined },
+    { id: "eye-color", label: "Cor dos olhos", message: !eyeColor ? "Selecione uma opção." : undefined },
+    { id: "height", label: "Altura", message: !heightCm ? "Selecione sua altura." : undefined },
+  ];
+  const firstIssue = issues.find((issue) => issue.message);
 
   useEffect(() => {
     if (!localStorage.getItem(REGISTER_PAYLOAD_KEY) || !password) {
@@ -73,6 +83,7 @@ export default function HowYouArePage() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (firstIssue) { focusFormField(firstIssue.id); return; }
 
     const currentPayload = JSON.parse(
       localStorage.getItem(REGISTER_PAYLOAD_KEY) ?? "{}",
@@ -105,7 +116,7 @@ export default function HowYouArePage() {
       backLabel="Voltar para a conta"
       size="standard"
     >
-      <form className="registration-standard-form" onSubmit={handleSubmit}>
+      <form className="registration-standard-form" onSubmit={handleSubmit} noValidate>
         <div className="registration-section-heading">
           <span>03</span>
           <div>
@@ -115,7 +126,8 @@ export default function HowYouArePage() {
         </div>
 
         <div className="registration-form-grid">
-          <ProfileSelect
+          <RegistrationSelect
+            id="body-type"
             label="Tipo de corpo"
             value={bodyType}
             onValueChange={setBodyType}
@@ -123,7 +135,8 @@ export default function HowYouArePage() {
             options={optionsForProfile(bodyTypes, profileType)}
           />
 
-          <ProfileSelect
+          <RegistrationSelect
+            id="ethnicity"
             label="Tom de pele"
             value={ethnicity}
             onValueChange={setEthnicity}
@@ -131,7 +144,8 @@ export default function HowYouArePage() {
             options={optionsForProfile(ethnicities, profileType)}
           />
 
-          <ProfileSelect
+          <RegistrationSelect
+            id="hair-color"
             label="Cabelo"
             value={hairColor}
             onValueChange={setHairColor}
@@ -139,7 +153,8 @@ export default function HowYouArePage() {
             options={hairColors}
           />
 
-          <ProfileSelect
+          <RegistrationSelect
+            id="eye-color"
             label="Cor dos olhos"
             value={eyeColor}
             onValueChange={setEyeColor}
@@ -148,9 +163,9 @@ export default function HowYouArePage() {
           />
 
           <div className="registration-field registration-field-wide">
-            <Label className="registration-label">Sua altura</Label>
+            <Label htmlFor="height" className="registration-label">Sua altura</Label>
             <Select value={heightCm} onValueChange={setHeightCm} required>
-              <SelectTrigger className="registration-select-trigger">
+              <SelectTrigger id="height" className="registration-select-trigger" aria-invalid={!heightCm} aria-describedby={!heightCm ? "height-message" : undefined}>
                 <SelectValue placeholder="Selecione uma opção" />
               </SelectTrigger>
               <SelectContent className="registration-select-content">
@@ -161,9 +176,11 @@ export default function HowYouArePage() {
                 ))}
               </SelectContent>
             </Select>
+            <FormFieldMessage id="height" message={issues[4].message} />
           </div>
         </div>
 
+        <FormProgress issues={issues} />
         <div className="registration-form-actions">
             <Button
               type="button"
@@ -177,6 +194,7 @@ export default function HowYouArePage() {
 
             <Button
               type="submit"
+              disabled={Boolean(firstIssue)}
               className="registration-submit"
             >
               Salvar e Continuar
@@ -184,40 +202,6 @@ export default function HowYouArePage() {
           </div>
       </form>
     </RegistrationFormShell>
-  );
-}
-
-type ProfileSelectProps = {
-  label: string;
-  value: string;
-  onValueChange: (value: string) => void;
-  placeholder: string;
-  options: string[];
-};
-
-function ProfileSelect({
-  label,
-  value,
-  onValueChange,
-  placeholder,
-  options,
-}: ProfileSelectProps) {
-  return (
-    <div className="registration-field">
-      <Label className="registration-label">{label}</Label>
-      <Select value={value} onValueChange={onValueChange} required>
-        <SelectTrigger className="registration-select-trigger">
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent className="registration-select-content">
-          {options.map((option) => (
-            <SelectItem key={option} value={option}>
-              {option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
   );
 }
 

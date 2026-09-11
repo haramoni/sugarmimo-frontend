@@ -5,14 +5,8 @@ import { ArrowLeft, SlidersHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { RegistrationSelect } from "../RegistrationSelect";
+import { FormProgress, focusFormField } from "../../components/FormFeedback";
 import {
   REGISTER_PAYLOAD_KEY,
   setRegisterStep,
@@ -80,6 +74,14 @@ export default function AlmostTherePage() {
   const [occupation, setOccupation] = useState(() =>
     describeForProfile(getSavedValue("occupation"), profileType),
   );
+  const issues = [
+    { id: "smoke", label: "Você fuma?", message: !smoke ? "Selecione uma opção." : undefined },
+    { id: "drink", label: "Você bebe?", message: !drink ? "Selecione uma opção." : undefined },
+    { id: "relationship", label: "Estado civil", message: !relationship ? "Selecione uma opção." : undefined },
+    { id: "children", label: "Filhos", message: !children ? "Selecione uma opção." : undefined },
+    { id: "education", label: "Escolaridade", message: !education ? "Selecione uma opção." : undefined },
+  ];
+  const firstIssue = issues.find((issue) => issue.message);
 
   useEffect(() => {
     if (!localStorage.getItem(REGISTER_PAYLOAD_KEY) || !password) {
@@ -93,6 +95,7 @@ export default function AlmostTherePage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (firstIssue) { focusFormField(firstIssue.id); return; }
 
     const currentPayload = JSON.parse(
       localStorage.getItem(REGISTER_PAYLOAD_KEY) ?? "{}",
@@ -133,7 +136,7 @@ export default function AlmostTherePage() {
       backLabel="Voltar para aparência"
       size="standard"
     >
-      <form className="registration-standard-form" onSubmit={handleSubmit}>
+      <form className="registration-standard-form" onSubmit={handleSubmit} noValidate>
         <div className="registration-section-heading">
           <span>04</span>
           <div>
@@ -143,7 +146,8 @@ export default function AlmostTherePage() {
         </div>
 
         <div className="registration-form-grid">
-          <ProfileSelect
+          <RegistrationSelect
+            id="smoke"
             label="Você fuma?"
             value={smoke}
             onValueChange={setSmoke}
@@ -151,7 +155,8 @@ export default function AlmostTherePage() {
             options={smokeOptions}
           />
 
-          <ProfileSelect
+          <RegistrationSelect
+            id="drink"
             label="Você bebe?"
             value={drink}
             onValueChange={setDrink}
@@ -159,7 +164,8 @@ export default function AlmostTherePage() {
             options={drinkOptions}
           />
 
-          <ProfileSelect
+          <RegistrationSelect
+            id="relationship"
             label="Estado civil"
             value={relationship}
             onValueChange={setRelationship}
@@ -167,7 +173,8 @@ export default function AlmostTherePage() {
             options={optionsForProfile(relationshipOptions, profileType)}
           />
 
-          <ProfileSelect
+          <RegistrationSelect
+            id="children"
             label="Tem filhos?"
             value={children}
             onValueChange={setChildren}
@@ -175,7 +182,8 @@ export default function AlmostTherePage() {
             options={childrenOptions}
           />
 
-          <ProfileSelect
+          <RegistrationSelect
+            id="education"
             label="Escolaridade"
             value={education}
             onValueChange={setEducation}
@@ -183,7 +191,8 @@ export default function AlmostTherePage() {
             options={educationOptions}
           />
 
-          <ProfileSelect
+          <RegistrationSelect
+            id="occupation"
             label="Profissão (opcional)"
             value={occupation}
             onValueChange={setOccupation}
@@ -193,6 +202,7 @@ export default function AlmostTherePage() {
           />
         </div>
 
+        <FormProgress issues={issues} />
         <div className="registration-form-actions">
             <Button
               type="button"
@@ -206,6 +216,7 @@ export default function AlmostTherePage() {
 
             <Button
               type="submit"
+              disabled={Boolean(firstIssue)}
               className="registration-submit"
             >
               Salvar e Continuar
@@ -213,42 +224,6 @@ export default function AlmostTherePage() {
           </div>
       </form>
     </RegistrationFormShell>
-  );
-}
-
-type ProfileSelectProps = {
-  label: string;
-  value: string;
-  onValueChange: (value: string) => void;
-  placeholder: string;
-  options: string[];
-  required?: boolean;
-};
-
-function ProfileSelect({
-  label,
-  value,
-  onValueChange,
-  placeholder,
-  options,
-  required = true,
-}: ProfileSelectProps) {
-  return (
-    <div className="registration-field">
-      <Label className="registration-label">{label}</Label>
-      <Select value={value} onValueChange={onValueChange} required={required}>
-        <SelectTrigger className="registration-select-trigger">
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent className="registration-select-content">
-          {options.map((option) => (
-            <SelectItem key={option} value={option}>
-              {option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
   );
 }
 
