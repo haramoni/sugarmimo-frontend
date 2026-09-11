@@ -260,7 +260,8 @@ export default function ProfileCard({
           {isBasicMember ||
           isPremiumMember ||
           isEliteMember ||
-          (!isActiveVariant && (isNewProfile || isBoosted)) ? (
+          isBoosted ||
+          (!isActiveVariant && isNewProfile) ? (
             <div
               className={[
                 "absolute top-3 flex items-center gap-2",
@@ -269,7 +270,7 @@ export default function ProfileCard({
                   : "right-3",
               ].join(" ")}
             >
-              {isBoosted && !isActiveVariant ? (
+              {isBoosted ? (
                 <span
                   aria-label="Perfil com Boost ativo"
                   title="Perfil com Boost ativo"

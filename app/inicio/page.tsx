@@ -320,13 +320,12 @@ export default function InicioPage() {
                 <h1 className="mt-1 font-serif text-3xl font-semibold text-luxury-champagne sm:text-4xl">
                   {targetLabel}
                 </h1>
-                <div className="mt-2 max-w-2xl text-sm font-medium leading-6 text-luxury-muted">
+                <div className="mt-2 max-w-3xl text-sm font-medium leading-6 text-luxury-muted">
                   <p>
-                    Até 20 perfis compatíveis que estiveram ativos nos últimos 7
-                    dias.
-                  </p>
-                  <p>
-                    A ordem muda regularmente para todos ganharem visibilidade.
+                    Descubra as pessoas mais ativas da comunidade SugarMimo.
+                    Aqui você encontra perfis que estão interagindo e se
+                    conectando com frequência, aumentando suas chances de
+                    encontrar alguém especial.
                   </p>
                 </div>
               </div>
@@ -359,7 +358,7 @@ export default function InicioPage() {
             <StatePanel
               icon={Sparkles}
               title="Novas pessoas em breve"
-              description="Nenhum perfil compatível esteve ativo nos últimos 7 dias."
+              description="Nenhum perfil compatível está disponível no momento."
               variant="luxuryDark"
             />
           ) : (
@@ -423,7 +422,7 @@ export default function InicioPage() {
                       aria-hidden="true"
                       className="h-3.5 w-3.5 text-luxury-gold"
                     />
-                    Todos os perfis ativos foram carregados.
+                    Todos os perfis disponíveis foram carregados.
                     <Sparkles
                       aria-hidden="true"
                       className="h-3.5 w-3.5 text-luxury-gold"

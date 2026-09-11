@@ -96,8 +96,8 @@ import {
   smokeOptions,
 } from "./perfiloptions";
 
-const MAX_PUBLIC_PHOTOS = 6;
-const MAX_PRIVATE_PHOTOS = 6;
+const MAX_PUBLIC_PHOTOS = 3;
+const MAX_PRIVATE_PHOTOS = 3;
 const MAX_INTERESTS = 3;
 
 const heights = Array.from({ length: 111 }, (_, index) => 120 + index);
@@ -1502,13 +1502,14 @@ export function ProfilePageContent({
                       Gallery
                     </h2>
                     <p className="rounded-sm border border-gold/25 bg-gold/8 px-3 py-2 text-xs font-semibold leading-5 text-black-jewel/68">
-                      Fotos novas, públicas ou privadas, ficam visíveis somente
+                      Você pode manter até 3 fotos públicas e 3 privadas. Fotos
+                      novas, públicas ou privadas, ficam visíveis somente
                       para você e para a equipe de moderação até serem
                       aprovadas. Durante a edição, use “Definir como principal”
                       para escolher a foto que aparece primeiro no seu perfil.
                     </p>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                      {publicPhotos.slice(1, 6).map((photo, index) => (
+                      {publicPhotos.slice(1).map((photo, index) => (
                         <GalleryTile
                           key={`${photo.id ?? photo.fileName ?? "photo"}-${index}`}
                           photo={photo}
@@ -1521,7 +1522,7 @@ export function ProfilePageContent({
                       {publicPhotos.length < MAX_PUBLIC_PHOTOS ? (
                         <button
                           type="button"
-                          aria-label={`Adicionar fotos públicas. Máximo de ${MAX_PHOTO_SIZE_LABEL} por imagem.`}
+                          aria-label={`Adicionar fotos públicas. Máximo de ${MAX_PUBLIC_PHOTOS} fotos e ${MAX_PHOTO_SIZE_LABEL} por imagem.`}
                           onClick={() => fileInputRef.current?.click()}
                           className="flex aspect-[1.18/1] min-h-24 flex-col items-center justify-center gap-2 rounded-sm border-2 border-dashed border-emerald/45 bg-[color-mix(in_srgb,var(--emerald)_5%,white)] px-2 text-center text-emerald transition hover:bg-[color-mix(in_srgb,var(--emerald)_11%,white)]"
                         >
@@ -1849,13 +1850,14 @@ function PrivatePhotosSection({
           </h2>
           <p className="mt-1 text-xs font-semibold text-black-jewel/62">
             Somente os perfis autorizados abaixo poderão visualizar estas fotos.
+            Máximo de {MAX_PRIVATE_PHOTOS} fotos privadas.
           </p>
         </div>
         {isEditing && photos.length < MAX_PRIVATE_PHOTOS ? (
           <Button
             type="button"
             onClick={onAddPhotos}
-            aria-label={`Adicionar fotos privadas. Máximo de ${MAX_PHOTO_SIZE_LABEL} por imagem.`}
+            aria-label={`Adicionar fotos privadas. Máximo de ${MAX_PRIVATE_PHOTOS} fotos e ${MAX_PHOTO_SIZE_LABEL} por imagem.`}
             className="h-auto min-h-10 rounded-full bg-gold px-4 py-2 font-extrabold text-white hover:bg-gold/85"
           >
             <ImagePlus className="h-4 w-4" />
@@ -1886,7 +1888,7 @@ function PrivatePhotosSection({
           type="button"
           onClick={onAddPhotos}
           disabled={!isEditing}
-          aria-label={`Adicionar fotos privadas. Máximo de ${MAX_PHOTO_SIZE_LABEL} por imagem.`}
+          aria-label={`Adicionar fotos privadas. Máximo de ${MAX_PRIVATE_PHOTOS} fotos e ${MAX_PHOTO_SIZE_LABEL} por imagem.`}
           className="flex min-h-24 w-full flex-col items-center justify-center gap-2 rounded-sm border-2 border-dashed border-gold/40 bg-white/55 px-3 text-center text-sm font-bold text-gold disabled:cursor-default"
         >
           <Lock className="h-5 w-5" />

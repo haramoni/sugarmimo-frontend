@@ -591,7 +591,7 @@ export function ChatClient() {
                         </span>
                       </span>
                       <span className="mt-1 flex items-center gap-2">
-                        <span className="min-w-0 flex-1 truncate text-xs text-black/52">
+                        <span className="min-w-0 max-w-40 flex-1 truncate text-xs text-black/52">
                           {conversation.blocked
                             ? "Conversa bloqueada"
                             : (conversation.lastMessage?.body ??

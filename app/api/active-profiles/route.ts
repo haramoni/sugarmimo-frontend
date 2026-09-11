@@ -1,19 +1,25 @@
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 import { API_URL, clearSessionCookie, getSessionToken } from "../auth/_cookies";
 import { matchPhotoUrl } from "@/app/lib/photo-delivery";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const token = await getSessionToken();
 
   if (!token) {
     return NextResponse.json({ message: "Não autenticado." }, { status: 401 });
   }
 
-  const response = await fetch(`${API_URL}/auth/active-profiles`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  }).catch(() => null);
+  const page = request.nextUrl.searchParams.get("page") ?? "1";
+  const limit = request.nextUrl.searchParams.get("limit") ?? "20";
+  const backendParams = new URLSearchParams({ page, limit });
+  const response = await fetch(
+    `${API_URL}/auth/active-profiles?${backendParams}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    },
+  ).catch(() => null);
 
   if (!response) {
     return NextResponse.json(
@@ -37,9 +43,7 @@ export async function GET() {
             photos: Array.isArray(profile.photos)
               ? profile.photos.map((photo: { id?: string }) => ({
                   ...photo,
-                  dataUrl: photo.id
-                    ? matchPhotoUrl(photo.id, "card")
-                    : "",
+                  dataUrl: photo.id ? matchPhotoUrl(photo.id, "card") : "",
                 }))
               : [],
           }),
