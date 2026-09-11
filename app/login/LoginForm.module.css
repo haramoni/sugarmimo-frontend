@@ -1,0 +1,5 @@
+.input:is(:autofill, :-webkit-autofill) {
+  -webkit-text-fill-color: #f4ecdf;
+  caret-color: #f4ecdf;
+  box-shadow: 0 0 0 1000px #080808 inset;
+}

@@ -516,7 +516,7 @@ function ConsentCheckbox({
         {children}
         {required ? <span className="sr-only"> Campo obrigatório.</span> : null}
         {required && !checked ? (
-          <span id={`${id}-message`} className="form-field-message mt-1">Confirmação obrigatória.</span>
+          <FormFieldMessage id={id} as="span" message="Confirmação obrigatória." />
         ) : null}
       </label>
     </div>

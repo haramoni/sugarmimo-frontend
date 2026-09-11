@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, CrownIcon, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -25,6 +25,7 @@ import {
   focusFormField,
 } from "../components/FormFeedback";
 import { getLoginErrors } from "../lib/form-validation";
+import styles from "./LoginForm.module.css";
 
 const REAPPLICATION_ROUTE = "/register/reapply";
 
@@ -35,6 +36,28 @@ export function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const identifierRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const syncFields = useCallback(() => {
+    setIdentifier(identifierRef.current?.value ?? "");
+    setPassword(passwordRef.current?.value ?? "");
+  }, []);
+
+  useEffect(() => {
+    // Saved credentials can be filled before hydration or without input events.
+    // Keep the DOM values intact and use them as the source for validation.
+    syncFields();
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") syncFields();
+    }, 500);
+    window.addEventListener("pageshow", syncFields);
+    document.addEventListener("visibilitychange", syncFields);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("pageshow", syncFields);
+      document.removeEventListener("visibilitychange", syncFields);
+    };
+  }, [syncFields]);
   const fieldErrors = getLoginErrors(identifier, password);
   const canSubmit = !fieldErrors.identifier && !fieldErrors.password;
   const [moderationNotice, setModerationNotice] =
@@ -182,8 +205,11 @@ export function LoginForm() {
 
         <CardContent className="px-7 pb-8 pt-4">
           <form
-            className="login-form space-y-5"
+            className="space-y-5"
             onSubmit={handleSubmit}
+            onInput={() => { syncFields(); setError(""); }}
+            onChange={() => { syncFields(); setError(""); }}
+            onFocus={syncFields}
             noValidate
           >
             <div className="space-y-2">
@@ -201,17 +227,14 @@ export function LoginForm() {
                 autoCapitalize="none"
                 spellCheck={false}
                 enterKeyHint="next"
-                value={identifier}
-                onChange={(event) => {
-                  setIdentifier(event.target.value);
-                  setError("");
-                }}
+                ref={identifierRef}
+                defaultValue=""
                 aria-describedby={
                   fieldErrors.identifier ? "username-message" : undefined
                 }
                 required
                 placeholder="Seu usuário ou e-mail"
-                className="h-12 rounded-xl border-[#e1bd8a]/18 bg-[#080808] px-4 text-[#f4ecdf] placeholder:text-[#6f6c67] focus-visible:border-[#e1bd8a]/60 focus-visible:ring-[#e1bd8a]/20"
+                className={`${styles.input} h-12 rounded-xl border-[#e1bd8a]/18 bg-[#080808] px-4 text-[#f4ecdf] placeholder:text-[#6f6c67] focus-visible:border-[#e1bd8a]/60 focus-visible:ring-[#e1bd8a]/20`}
               />
               <FormFieldMessage
                 id="username"
@@ -234,17 +257,14 @@ export function LoginForm() {
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   enterKeyHint="go"
-                  value={password}
-                  onChange={(event) => {
-                    setPassword(event.target.value);
-                    setError("");
-                  }}
+                  ref={passwordRef}
+                  defaultValue=""
                   aria-describedby={
                     fieldErrors.password ? "password-message" : undefined
                   }
                   required
                   placeholder="Digite sua senha"
-                  className="h-12 rounded-xl border-[#e1bd8a]/18 bg-[#080808] px-4 pr-11 text-[#f4ecdf] placeholder:text-[#6f6c67] focus-visible:border-[#e1bd8a]/60 focus-visible:ring-[#e1bd8a]/20"
+                  className={`${styles.input} h-12 rounded-xl border-[#e1bd8a]/18 bg-[#080808] px-4 pr-11 text-[#f4ecdf] placeholder:text-[#6f6c67] focus-visible:border-[#e1bd8a]/60 focus-visible:ring-[#e1bd8a]/20`}
                 />
 
                 <Button
@@ -288,7 +308,7 @@ export function LoginForm() {
                   message: fieldErrors.password,
                 },
               ]}
-              readyMessage="Campos preenchidos. Você já pode entrar."
+              readyMessage="Campos preenchidos"
               busyMessage={
                 isSubmitting ? "Conferindo seus dados de acesso..." : undefined
               }

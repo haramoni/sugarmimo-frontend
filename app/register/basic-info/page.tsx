@@ -711,7 +711,7 @@ export default function RegisterAccountForm() {
               )}
               {locationError && (
                 <div className="space-y-2">
-                  <p role="alert" className="form-field-message">{locationError}</p>
+                  <div role="alert"><FormFieldMessage id="location-error" message={locationError} /></div>
                   <Button type="button" variant="outline" onClick={() => {
                     setLocationError("");
                     setLocationAttempt((attempt) => attempt + 1);

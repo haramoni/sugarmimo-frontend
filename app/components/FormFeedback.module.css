@@ -1,0 +1,47 @@
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  color: #f0a5b3;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.progress {
+  min-width: 0;
+  border: 1px solid rgba(225, 189, 138, 0.18);
+  border-radius: 0.85rem;
+  background: rgba(225, 189, 138, 0.05);
+  padding: 0.85rem 1rem;
+  color: #e1bd8a;
+  font-size: 0.8rem;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1.5;
+}
+
+.items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin-top: 0.5rem;
+  list-style: none;
+}
+
+.items button {
+  min-height: 2rem;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.items button:focus-visible {
+  outline: 2px solid #e1bd8a;
+  outline-offset: 3px;
+  border-radius: 0.15rem;
+}

@@ -1,0 +1,17 @@
+.theme :global(.registration-control):has([aria-invalid="true"]),
+.theme :global(.registration-select-trigger)[aria-invalid="true"] {
+  border-color: rgba(240, 165, 179, 0.6) !important;
+}
+
+.theme :global(.registration-consent-row):has([aria-invalid="true"]),
+.theme :global(.registration-photo-consent):has([aria-invalid="true"]) {
+  border-radius: 0.5rem;
+  outline: 1px solid rgba(240, 165, 179, 0.35);
+  outline-offset: 4px;
+}
+
+@media (max-width: 767px) {
+  .theme :global(.registration-input) {
+    font-size: 1rem;
+  }
+}

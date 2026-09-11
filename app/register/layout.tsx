@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { RegistrationSecretProvider } from "./RegistrationSecretProvider";
+import styles from "./RegistrationForm.module.css";
 
 export const metadata: Metadata = {
   title: "Criar perfil | SugarMimo",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 export default function RegisterLayout({ children }: { children: ReactNode }) {
   return (
     <RegistrationSecretProvider>
-      <div className="registration-theme">{children}</div>
+      <div className={`registration-theme ${styles.theme}`}>{children}</div>
     </RegistrationSecretProvider>
   );
 }
