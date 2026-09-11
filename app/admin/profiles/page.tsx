@@ -1202,32 +1202,6 @@ export default function AdminProfilesPage() {
                   ) : null}
 
                   <div className="flex flex-wrap gap-2 border-t border-black/8 pt-4">
-                    {profile.role === "SUGAR_BABY" &&
-                    ["PENDING", "WAITING", "REJECTED"].includes(
-                      profile.approvalStatus,
-                    ) ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={busyId === profile.id}
-                        onClick={() => void approveProfile(profile)}
-                        className="h-9 rounded-lg border-[var(--emerald)]/25 text-xs font-bold text-[var(--emerald)] hover:bg-[var(--emerald)]/8"
-                      >
-                        <ShieldCheck className="h-4 w-4" /> Aprovar
-                      </Button>
-                    ) : null}
-                    {profile.role === "SUGAR_BABY" &&
-                    ["PENDING", "WAITING"].includes(profile.approvalStatus) ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={busyId === profile.id}
-                        onClick={() => void rejectProfile(profile)}
-                        className="h-9 rounded-lg border-[var(--ruby)]/25 text-xs font-bold text-[var(--ruby)] hover:bg-[var(--ruby)]/8"
-                      >
-                        <XCircle className="h-4 w-4" /> Rejeitar
-                      </Button>
-                    ) : null}
                     {canManageWatch ? (
                       <Button
                         type="button"

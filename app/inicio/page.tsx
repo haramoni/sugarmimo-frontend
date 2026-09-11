@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import ProfileCard from "../buscar/components/ProfileCard";
+import BoostCarousel from "./BoostCarousel";
 import StatePanel from "../buscar/components/StatePanel";
 import type { PublicProfile, PublicProfilePage } from "../buscar/types";
 import { useAuth } from "../components/AuthProvider";
@@ -25,7 +26,7 @@ import {
 } from "../perfil/ProfileApprovalGuard";
 
 const PAGE_SIZE = 20;
-const HOME_STATE_KEY = "sugarmimo:inicio-active-state";
+const HOME_STATE_KEY = "sugarmimo:inicio-active-state:v2";
 
 type SavedHomeState = {
   page: number;
@@ -300,6 +301,12 @@ export default function InicioPage() {
         />
 
         <section className="relative z-10 mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-9 lg:px-8">
+          {canView ? (
+            <BoostCarousel
+              key={user.id}
+              viewerId={user.id ?? user.username ?? ""}
+            />
+          ) : null}
           <header className="relative mb-7 overflow-hidden rounded-xl border border-luxury-gold/65 bg-[linear-gradient(135deg,var(--luxury-surface-raised)_0%,var(--luxury-night)_58%,var(--luxury-surface)_100%)] p-5 shadow-[0_0_24px_rgba(213,166,78,0.13),0_24px_64px_rgba(0,0,0,0.34)] sm:p-7">
             <div
               aria-hidden="true"

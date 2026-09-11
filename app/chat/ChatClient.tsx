@@ -7,12 +7,14 @@ import {
   CheckCheck,
   ChevronUp,
   Flag,
+  Images,
   LockKeyhole,
   MessageCircle,
   MoreVertical,
   Search,
   Send,
   ShieldCheck,
+  Trash2,
   UserRound,
   X,
 } from "lucide-react";
@@ -98,6 +100,11 @@ export function ChatClient() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [blockOpen, setBlockOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [privatePhotosOpen, setPrivatePhotosOpen] = useState(false);
+  const [sharingPrivatePhotos, setSharingPrivatePhotos] = useState(false);
+  const [privatePhotosShared, setPrivatePhotosShared] = useState(false);
   const [messageAccess, setMessageAccess] = useState<MessageAccess | null>(
     null,
   );
@@ -521,6 +528,71 @@ export function ChatClient() {
     }
   }
 
+  async function deleteConversation() {
+    if (!selectedId || deleting) {
+      return;
+    }
+    const conversationId = selectedId;
+    setDeleting(true);
+    setError("");
+    const response = await fetch(
+      `/api/chat/conversations/${encodeURIComponent(conversationId)}`,
+      { method: "DELETE" },
+    ).catch(() => null);
+    if (!response?.ok) {
+      const result = await response?.json().catch(() => null);
+      setError(result?.message ?? "Não foi possível excluir a conversa.");
+      setDeleting(false);
+      setDeleteOpen(false);
+      return;
+    }
+    setConversations((current) =>
+      current.filter((conversation) => conversation.id !== conversationId),
+    );
+    setMessages([]);
+    setSelectedId(null);
+    setDeleteOpen(false);
+    setDeleting(false);
+    window.dispatchEvent(new Event("sugarmimo-chat-updated"));
+  }
+
+  async function sharePrivatePhotos() {
+    if (!selectedId || sharingPrivatePhotos) {
+      return;
+    }
+    setSharingPrivatePhotos(true);
+    setError("");
+    const response = await fetch(
+      `/api/chat/conversations/${encodeURIComponent(selectedId)}/private-photos`,
+      { method: "POST" },
+    ).catch(() => null);
+    if (!response?.ok) {
+      const result = await response?.json().catch(() => null);
+      setError(
+        result?.message ?? "Não foi possível liberar suas fotos privadas.",
+      );
+      setSharingPrivatePhotos(false);
+      setPrivatePhotosOpen(false);
+      return;
+    }
+    const result = (await response.json()) as {
+      message?: ChatMessage;
+    };
+    const notificationMessage = result.message;
+    if (notificationMessage) {
+      setMessages((current) =>
+        deduplicateMessages([...current, notificationMessage]),
+      );
+      window.setTimeout(
+        () => bottomRef.current?.scrollIntoView({ behavior: "smooth" }),
+        20,
+      );
+    }
+    void loadConversations();
+    setPrivatePhotosShared(true);
+    setSharingPrivatePhotos(false);
+  }
+
   return (
     <main className="chat-luxury-page min-h-screen text-[var(--black)]">
       <Navbar />
@@ -694,6 +766,21 @@ export function ChatClient() {
                         <button
                           type="button"
                           onClick={() => {
+                            setPrivatePhotosShared(false);
+                            setPrivatePhotosOpen(true);
+                            setMenuOpen(false);
+                          }}
+                          role="menuitem"
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-[var(--emerald)]/5"
+                        >
+                          <span className="grid h-8 w-8 place-items-center rounded-full bg-[var(--emerald)]/8 text-[var(--emerald)]">
+                            <Images className="h-4 w-4" />
+                          </span>
+                          Liberar fotos privadas
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
                             setReportOpen(true);
                             setMenuOpen(false);
                           }}
@@ -718,6 +805,20 @@ export function ChatClient() {
                             <Ban className="h-4 w-4" />
                           </span>
                           Bloquear perfil
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDeleteOpen(true);
+                            setMenuOpen(false);
+                          }}
+                          role="menuitem"
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold text-[var(--ruby)] hover:bg-[var(--ruby)]/5"
+                        >
+                          <span className="grid h-8 w-8 place-items-center rounded-full bg-[var(--ruby)]/8">
+                            <Trash2 className="h-4 w-4" />
+                          </span>
+                          Excluir conversa
                         </button>
                       </div>
                     ) : null}
@@ -1003,6 +1104,104 @@ export function ChatClient() {
                 className="rounded-xl bg-[var(--ruby)] px-4 py-3 text-sm font-bold text-white"
               >
                 Bloquear
+              </button>
+            </div>
+          </div>
+        </ModalShell>
+      ) : null}
+
+      {privatePhotosOpen && selected ? (
+        <ModalShell
+          onClose={() => {
+            if (!sharingPrivatePhotos) setPrivatePhotosOpen(false);
+          }}
+          ariaLabel="Liberar fotos privadas"
+        >
+          <div className="text-center">
+            <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[var(--emerald)]/10 text-[var(--emerald)]">
+              {privatePhotosShared ? (
+                <Check className="h-5 w-5" />
+              ) : (
+                <Images className="h-5 w-5" />
+              )}
+            </span>
+            <h2 className="mt-4 font-serif text-2xl font-semibold">
+              {privatePhotosShared
+                ? "Fotos privadas liberadas"
+                : `Liberar fotos para ${selected.otherMember.username}?`}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-black/55">
+              {privatePhotosShared
+                ? `${selected.otherMember.username} já pode ver suas fotos privadas no seu perfil.`
+                : "A pessoa poderá ver todas as suas fotos privadas atuais e as que você adicionar depois. Você pode remover essa permissão no seu perfil."}
+            </p>
+            {privatePhotosShared ? (
+              <button
+                type="button"
+                onClick={() => setPrivatePhotosOpen(false)}
+                className="mt-6 w-full rounded-xl bg-[var(--emerald)] px-4 py-3 text-sm font-bold text-white"
+              >
+                Concluir
+              </button>
+            ) : (
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPrivatePhotosOpen(false)}
+                  disabled={sharingPrivatePhotos}
+                  className="rounded-xl border border-black/12 px-4 py-3 text-sm font-bold disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void sharePrivatePhotos()}
+                  disabled={sharingPrivatePhotos}
+                  className="rounded-xl bg-[var(--emerald)] px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
+                >
+                  {sharingPrivatePhotos ? "Liberando…" : "Liberar fotos"}
+                </button>
+              </div>
+            )}
+          </div>
+        </ModalShell>
+      ) : null}
+
+      {deleteOpen && selected ? (
+        <ModalShell
+          onClose={() => {
+            if (!deleting) setDeleteOpen(false);
+          }}
+          ariaLabel="Excluir conversa"
+        >
+          <div className="text-center">
+            <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[var(--ruby)]/10 text-[var(--ruby)]">
+              <Trash2 className="h-5 w-5" />
+            </span>
+            <h2 className="mt-4 font-serif text-2xl font-semibold">
+              Excluir conversa com {selected.otherMember.username}?
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-black/55">
+              A conversa e o histórico serão removidos somente para você. Se
+              vocês conversarem novamente, apenas as novas mensagens serão
+              exibidas.
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteOpen(false)}
+                disabled={deleting}
+                className="rounded-xl border border-black/12 px-4 py-3 text-sm font-bold disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => void deleteConversation()}
+                disabled={deleting}
+                className="rounded-xl bg-[var(--ruby)] px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
+              >
+                {deleting ? "Excluindo…" : "Excluir conversa"}
               </button>
             </div>
           </div>

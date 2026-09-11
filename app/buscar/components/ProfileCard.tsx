@@ -254,7 +254,7 @@ export default function ProfileCard({
           ) : isActiveVariant ? (
             <span
               aria-label="Perfil ativo recentemente"
-              title="Ativo nos últimos 7 dias"
+              title="Perfil ativo recentemente"
               className={styles.activeStatus}
             >
               <Activity aria-hidden="true" />

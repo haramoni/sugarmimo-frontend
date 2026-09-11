@@ -520,7 +520,9 @@ export function ProfilePageContent({
         }
       })
       .catch(() => {
-        setError("Não foi possível carregar seu perfil agora. Tente recarregar a página.");
+        setError(
+          "Não foi possível carregar seu perfil agora. Tente recarregar a página.",
+        );
       });
   }, [reapplication, router]);
 
@@ -642,7 +644,10 @@ export function ProfilePageContent({
   if (!user && error) {
     return (
       <main className="premium-page-shell grid place-items-center px-5 text-center">
-        <p role="alert" className="premium-surface-card rounded-xl px-6 py-5 font-bold text-luxury-ivory">
+        <p
+          role="alert"
+          className="premium-surface-card rounded-xl px-6 py-5 font-bold text-luxury-ivory"
+        >
           {error}
         </p>
       </main>
@@ -1503,10 +1508,10 @@ export function ProfilePageContent({
                     </h2>
                     <p className="rounded-sm border border-gold/25 bg-gold/8 px-3 py-2 text-xs font-semibold leading-5 text-black-jewel/68">
                       Você pode manter até 3 fotos públicas e 3 privadas. Fotos
-                      novas, públicas ou privadas, ficam visíveis somente
-                      para você e para a equipe de moderação até serem
-                      aprovadas. Durante a edição, use “Definir como principal”
-                      para escolher a foto que aparece primeiro no seu perfil.
+                      novas, públicas ou privadas, ficam visíveis somente para
+                      você e para a equipe de moderação até serem aprovadas.
+                      Durante a edição, use “Definir como principal” para
+                      escolher a foto que aparece primeiro no seu perfil.
                     </p>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                       {publicPhotos.slice(1).map((photo, index) => (
@@ -1729,18 +1734,13 @@ export function ProfilePageContent({
                               )}
                             </span>
                             <span className="min-w-0 flex-1">
-                              <span className="block text-sm text-black font-black leading-tight sm:text-base">
+                              <span className="block text-sm text-black font-black leading-tight sm:text-base text-center">
                                 {isProcessingPhotos
                                   ? "Preparando fotos..."
                                   : isSaving
                                     ? "Enviando cadastro..."
-                                    : "Corrigir e reenviar cadastro"}
+                                    : "Enviar Cadastro"}
                               </span>
-                              {!isProcessingPhotos && !isSaving ? (
-                                <span className="mt-1 block text-[11px] font-light text-black leading-4">
-                                  Clique aqui para finalizar
-                                </span>
-                              ) : null}
                             </span>
                           </Button>
                         </div>

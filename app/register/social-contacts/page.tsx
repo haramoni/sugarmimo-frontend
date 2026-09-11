@@ -206,7 +206,6 @@ export default function SocialContactsPage() {
               value={instagram}
               onChange={(value) => updateContact("instagram", value)}
               placeholder="Ex.: seuusuario"
-              required
             />
           </div>
 
