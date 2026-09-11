@@ -51,7 +51,10 @@ export default function ProfileCard({
   const [isPinned, setIsPinned] = useState(Boolean(profile.isPinned));
   const [isUpdatingPin, setIsUpdatingPin] = useState(false);
   const [pinError, setPinError] = useState("");
+  const [failedPhotoUrl, setFailedPhotoUrl] = useState<string | null>(null);
   const photo = getProfilePhoto(profile);
+  const visiblePhoto =
+    photo?.dataUrl && photo.dataUrl !== failedPhotoUrl ? photo : null;
   const providerPlaceholder = getProviderProfilePlaceholder(
     profile.role,
     profile.gender,
@@ -205,15 +208,16 @@ export default function ProfileCard({
             isEliteMember ? styles.elitePhoto : "",
           ].join(" ")}
         >
-          {photo ? (
+          {visiblePhoto ? (
             // This authenticated endpoint already serves the optimized WebP variant.
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={photo.dataUrl}
+              src={visiblePhoto.dataUrl}
               alt={`Foto de ${profile.username ?? "perfil"}`}
               loading={eager ? "eager" : "lazy"}
               fetchPriority={eager ? "high" : "auto"}
               decoding="async"
+              onError={() => setFailedPhotoUrl(visiblePhoto.dataUrl)}
               className={[
                 "block h-full w-full object-cover",
                 isPremiereMember ? styles.premiereImage : "",
