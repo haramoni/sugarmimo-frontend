@@ -11,6 +11,9 @@ export async function GET(request: Request) {
 
   if (search) backendParams.set("search", search);
   if (role) backendParams.set("role", role);
+  if (searchParams.get("activationOnly") === "true") {
+    backendParams.set("activationOnly", "true");
+  }
 
   return forwardAdminRequest(
     `/admin/boost-users?${backendParams.toString()}`,

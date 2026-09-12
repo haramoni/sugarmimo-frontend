@@ -17,14 +17,16 @@ import {
   Zap,
 } from "lucide-react";
 import Image from "next/image";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Tabs } from "radix-ui";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { profileIdentityLabel } from "@/app/lib/profileIdentity";
 
 const PAGE_SIZE = 12;
+type BoostTab = "credits" | "manual";
 
 type BoostUser = {
   id: string;
@@ -50,6 +52,9 @@ type BoostUsersPage = {
 
 export default function AdminBoostsPage() {
   const router = useRouter();
+  const [tab, setTab] = useState<BoostTab>("credits");
+  const manualActivation = tab === "manual";
+  const loadController = useRef<AbortController | null>(null);
   const [profiles, setProfiles] = useState<BoostUser[]>([]);
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -62,10 +67,13 @@ export default function AdminBoostsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("");
-  const [currentTime] = useState(() => Date.now());
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
 
   const loadProfiles = useCallback(
     async (requestedPage: number) => {
+      loadController.current?.abort();
+      const controller = new AbortController();
+      loadController.current = controller;
       setIsLoading(true);
       setError("");
 
@@ -75,12 +83,18 @@ export default function AdminBoostsPage() {
           pageSize: String(PAGE_SIZE),
         });
         if (search) params.set("search", search);
-        if (role) params.set("role", role);
+        if (manualActivation) {
+          params.set("activationOnly", "true");
+        } else if (role) {
+          params.set("role", role);
+        }
 
         const response = await fetch(`/api/admin/boost-users?${params}`, {
           cache: "no-store",
+          signal: controller.signal,
         });
         const result = await response.json().catch(() => null);
+        if (controller.signal.aborted) return;
 
         if (response.status === 401 || response.status === 403) {
           router.push("/admin/login");
@@ -97,21 +111,50 @@ export default function AdminBoostsPage() {
         setPage(data.pagination?.page ?? requestedPage);
         setTotalItems(data.pagination?.totalItems ?? 0);
         setHasNextPage(Boolean(data.pagination?.hasNextPage));
+        setCurrentTime(Date.now());
       } catch (loadError) {
-        setError(toMessage(loadError));
+        if (!controller.signal.aborted) {
+          setProfiles([]);
+          setError(toMessage(loadError));
+        }
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) setIsLoading(false);
       }
     },
-    [role, router, search],
+    [manualActivation, role, router, search],
   );
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => void loadProfiles(1), 0);
-    return () => window.clearTimeout(timeoutId);
+    return () => {
+      window.clearTimeout(timeoutId);
+      loadController.current?.abort();
+    };
   }, [loadProfiles]);
 
+  useEffect(() => {
+    const intervalId = window.setInterval(
+      () => setCurrentTime(Date.now()),
+      30_000,
+    );
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  function changeTab(value: string) {
+    if (updatingId || (value !== "credits" && value !== "manual")) return;
+    loadController.current?.abort();
+    setTab(value);
+    setProfiles([]);
+    setPage(1);
+    setTotalItems(0);
+    setHasNextPage(false);
+    setIsLoading(true);
+    setError("");
+    setFeedback("");
+  }
+
   async function grantBoosts(profile: BoostUser, forcedQuantity?: number) {
+    if (updatingId) return;
     const quantity = forcedQuantity ?? quantities[profile.id] ?? 1;
     setUpdatingId(profile.id);
     setError("");
@@ -148,6 +191,44 @@ export default function AdminBoostsPage() {
       );
     } catch (grantError) {
       setError(toMessage(grantError));
+    } finally {
+      setUpdatingId("");
+    }
+  }
+
+  async function activateBoost(profile: BoostUser) {
+    if (updatingId) return;
+    setUpdatingId(profile.id);
+    setError("");
+    setFeedback("");
+
+    try {
+      const response = await fetch(
+        `/api/admin/boost-users/${encodeURIComponent(profile.id)}/activate`,
+        { method: "PATCH" },
+      );
+      const result = await response.json().catch(() => null);
+
+      if (response.status === 401 || response.status === 403) {
+        router.push("/admin/login");
+        return;
+      }
+      if (!response.ok) {
+        throw new Error(result?.message ?? "Não foi possível ativar o Boost.");
+      }
+
+      setProfiles((current) =>
+        current.map((item) =>
+          item.id === profile.id
+            ? { ...item, boostedUntil: result.boostedUntil }
+            : item,
+        ),
+      );
+      setFeedback(
+        `Boost ativado para ${profile.username}! O perfil ficará em destaque por 24 horas, até ${formatDate(new Date(result.boostedUntil))}.`,
+      );
+    } catch (activationError) {
+      setError(toMessage(activationError));
     } finally {
       setUpdatingId("");
     }
@@ -191,7 +272,7 @@ export default function AdminBoostsPage() {
               size="icon"
               aria-label="Atualizar lista"
               title="Atualizar lista"
-              disabled={isLoading}
+              disabled={isLoading || Boolean(updatingId)}
               onClick={() => void loadProfiles(page)}
             >
               <RefreshCw className="h-4 w-4" />
@@ -209,7 +290,11 @@ export default function AdminBoostsPage() {
         </div>
       </header>
 
-      <section className="mx-auto max-w-6xl space-y-5 px-5 py-8">
+      <Tabs.Root
+        value={tab}
+        onValueChange={changeTab}
+        className="mx-auto max-w-6xl space-y-5 px-5 py-8"
+      >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-bold">
@@ -217,218 +302,296 @@ export default function AdminBoostsPage() {
               Gerenciar Boosts
             </h1>
             <p className="max-w-2xl text-sm text-black/60">
-              Forneça Boosts para Sugar Babies, Sugar Daddies e Sugar Mommies.
-              Cada ativação consome uma unidade e mantém o perfil em destaque
-              por 24 horas.
+              Forneça créditos de Boost ou ative manualmente o destaque de uma
+              Sugar Baby por 24 horas.
             </p>
           </div>
           <span className="text-sm font-bold text-[var(--gold)]">
-            {totalItems} usuário(s)
+            {isLoading
+              ? "Carregando..."
+              : `${totalItems} ${manualActivation ? "Sugar Baby(s)" : "usuário(s)"}`}
           </span>
         </div>
 
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px]">
-          <form
-            onSubmit={submitSearch}
-            className="flex items-center gap-2 border border-[var(--platinum)] bg-white p-3 shadow-[0_8px_24px_rgba(20,17,14,0.05)]"
-          >
-            <div className="relative min-w-0 flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-black/40" />
-              <Input
-                value={searchDraft}
-                onChange={(event) => setSearchDraft(event.target.value)}
-                placeholder="Buscar por username ou e-mail"
-                className="h-11 rounded-sm border-[var(--platinum)] pl-9 pr-9"
-              />
-              {searchDraft ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchDraft("");
-                    setSearch("");
-                  }}
-                  aria-label="Limpar pesquisa"
-                  className="absolute right-2 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-black/45 hover:bg-black/5"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              ) : null}
-            </div>
+        <Tabs.List
+          aria-label="Gerenciar Boosts"
+          className="grid grid-cols-2 gap-2 border-b border-[var(--platinum)] pb-3 sm:flex"
+        >
+          <Tabs.Trigger value="credits" disabled={Boolean(updatingId)} asChild>
             <Button
-              type="submit"
-              className="h-11 rounded-sm bg-[var(--gold)] font-bold text-white hover:bg-[color:color-mix(in_srgb,var(--gold)_86%,black)]"
+              variant="outline"
+              className="h-auto min-h-11 whitespace-normal rounded-sm px-2 text-xs font-bold data-[state=active]:border-[var(--gold)] data-[state=active]:bg-[var(--gold)] data-[state=active]:text-white sm:px-3 sm:text-sm"
             >
-              Buscar
+              <Plus className="h-4 w-4" />
+              Fornecer créditos
             </Button>
-          </form>
-
-          <label className="flex flex-col justify-center border border-[var(--platinum)] bg-white px-3 py-2 text-xs font-bold text-black/55">
-            Tipo de perfil
-            <select
-              value={role}
-              onChange={(event) => setRole(event.target.value)}
-              className="mt-1 h-8 bg-white text-sm font-semibold text-black outline-none"
+          </Tabs.Trigger>
+          <Tabs.Trigger value="manual" disabled={Boolean(updatingId)} asChild>
+            <Button
+              variant="outline"
+              className="h-auto min-h-11 whitespace-normal rounded-sm px-2 text-xs font-bold data-[state=active]:border-[var(--gold)] data-[state=active]:bg-[var(--gold)] data-[state=active]:text-white sm:px-3 sm:text-sm"
             >
-              <option value="">Todos</option>
-              <option value="SUGAR_BABY">Sugar Babies</option>
-              <option value="SUGAR_DADDY">Sugar Daddies</option>
-              <option value="SUGAR_MOMMY">Sugar Mommies</option>
-              <option value="SUGAR_PROVIDER_LGBTQIA">
-                Sugar Daddy / Mommy LGBTQIA+
-              </option>
-            </select>
-          </label>
-        </div>
+              <Zap className="h-4 w-4" />
+              Ativar manualmente
+            </Button>
+          </Tabs.Trigger>
+        </Tabs.List>
 
-        {feedback ? (
-          <p className="flex items-center gap-2 rounded-sm bg-[color:color-mix(in_srgb,var(--emerald)_12%,white)] px-3 py-2 text-sm font-bold text-[var(--emerald)]">
-            <ShieldCheck className="h-4 w-4" />
-            {feedback}
+        <Tabs.Content value={tab} className="space-y-5">
+          <p className="text-sm text-black/60">
+            {manualActivation
+              ? "Selecione uma Sugar Baby para aparecer nos perfis com Boost ativo por 24 horas, sem consumir créditos. Apenas perfis aprovados, ativos e sem suspensão aparecem aqui."
+              : "Forneça Boosts para Sugar Babies, Sugar Daddies e Sugar Mommies. O usuário poderá ativá-los no próprio perfil; cada ativação consome um crédito e dura 24 horas."}
           </p>
-        ) : null}
-        {error ? (
-          <p className="rounded-sm bg-[color:color-mix(in_srgb,var(--ruby)_12%,white)] px-3 py-2 text-sm font-bold text-[var(--ruby)]">
-            {error}
-          </p>
-        ) : null}
+          <div
+            className={`grid gap-3 ${manualActivation ? "" : "lg:grid-cols-[minmax(0,1fr)_220px]"}`}
+          >
+            <form
+              onSubmit={submitSearch}
+              className="flex items-center gap-2 border border-[var(--platinum)] bg-white p-3 shadow-[0_8px_24px_rgba(20,17,14,0.05)]"
+            >
+              <div className="relative min-w-0 flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-black/40" />
+                <Input
+                  value={searchDraft}
+                  disabled={Boolean(updatingId)}
+                  aria-label="Buscar por username ou e-mail"
+                  onChange={(event) => setSearchDraft(event.target.value)}
+                  placeholder="Buscar por username ou e-mail"
+                  className="h-11 rounded-sm border-[var(--platinum)] pl-9 pr-9"
+                />
+                {searchDraft ? (
+                  <button
+                    type="button"
+                    disabled={Boolean(updatingId)}
+                    onClick={() => {
+                      setSearchDraft("");
+                      setSearch("");
+                    }}
+                    aria-label="Limpar pesquisa"
+                    className="absolute right-2 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-black/45 hover:bg-black/5"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                ) : null}
+              </div>
+              <Button
+                type="submit"
+                disabled={Boolean(updatingId)}
+                className="h-11 rounded-sm bg-[var(--gold)] font-bold text-white hover:bg-[color:color-mix(in_srgb,var(--gold)_86%,black)]"
+              >
+                Buscar
+              </Button>
+            </form>
 
-        {isLoading ? (
-          <div className="flex min-h-40 items-center justify-center gap-2 border border-[var(--platinum)] bg-white font-bold">
-            <Loader2 className="h-5 w-5 animate-spin text-[var(--gold)]" />
-            Carregando usuários...
-          </div>
-        ) : profiles.length === 0 ? (
-          <div className="border border-[var(--platinum)] bg-white p-6 text-sm font-bold">
-            Nenhum usuário encontrado.
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {profiles.map((profile) => {
-              const activeUntil = profile.boostedUntil
-                ? new Date(profile.boostedUntil)
-                : null;
-              const isActive = Boolean(
-                activeUntil && activeUntil.getTime() > currentTime,
-              );
-              const quantity = quantities[profile.id] ?? 1;
-
-              return (
-                <article
-                  key={profile.id}
-                  className="flex flex-col border border-[var(--platinum)] bg-white p-4 shadow-[0_10px_28px_rgba(20,17,14,0.07)]"
+            {!manualActivation && (
+              <label className="flex flex-col justify-center border border-[var(--platinum)] bg-white px-3 py-2 text-xs font-bold text-black/55">
+                Tipo de perfil
+                <select
+                  value={role}
+                  disabled={Boolean(updatingId)}
+                  onChange={(event) => setRole(event.target.value)}
+                  className="mt-1 h-8 bg-white text-sm font-semibold text-black outline-none"
                 >
-                  <div className="flex items-start gap-3">
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[color:color-mix(in_srgb,var(--gold)_14%,white)] text-[var(--gold)]">
-                      <UserRound className="h-5 w-5" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <h2 className="truncate font-bold">{profile.username}</h2>
-                      <p className="truncate text-xs text-black/50">
-                        {profile.email}
-                      </p>
-                      <p className="mt-1 text-xs font-bold text-[var(--emerald)]">
-                        {profileIdentityLabel(profile.role, profile.gender)}
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-[color:color-mix(in_srgb,var(--gold)_15%,white)] px-2.5 py-1 text-xs font-extrabold text-[var(--gold)]">
-                      {profile.boostCredits} saldo
-                    </span>
-                  </div>
-
-                  <div className="my-4 min-h-12 border-y border-[var(--platinum)] py-3 text-xs">
-                    {isActive && activeUntil ? (
-                      <p className="flex items-center gap-1.5 font-bold text-[var(--emerald)]">
-                        <Zap className="h-4 w-4 fill-current" />
-                        Boost ativo até {formatDate(activeUntil)}
-                      </p>
-                    ) : (
-                      <p className="flex items-center gap-1.5 text-black/50">
-                        <Clock3 className="h-4 w-4" />
-                        Sem Boost ativo
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="mt-auto space-y-2">
-                    <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-                      <Input
-                        type="number"
-                        min={1}
-                        max={100}
-                        value={quantity}
-                        aria-label={`Quantidade para ${profile.username}`}
-                        onChange={(event) =>
-                          setQuantities((current) => ({
-                            ...current,
-                            [profile.id]: Math.max(
-                              1,
-                              Math.min(100, Number(event.target.value) || 1),
-                            ),
-                          }))
-                        }
-                        className="h-10 rounded-sm"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={updatingId === profile.id}
-                        onClick={() => void grantBoosts(profile, 1)}
-                        className="h-10 rounded-sm font-bold"
-                      >
-                        +1
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={updatingId === profile.id}
-                        onClick={() => void grantBoosts(profile, 3)}
-                        className="h-10 rounded-sm font-bold"
-                      >
-                        +3
-                      </Button>
-                    </div>
-                    <Button
-                      type="button"
-                      disabled={updatingId === profile.id}
-                      onClick={() => void grantBoosts(profile)}
-                      className="min-h-11 w-full rounded-sm bg-[var(--gold)] font-bold text-white hover:bg-[color:color-mix(in_srgb,var(--gold)_86%,black)]"
-                    >
-                      {updatingId === profile.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Plus className="h-4 w-4" />
-                      )}
-                      Fornecer {quantity} {quantity === 1 ? "Boost" : "Boosts"}
-                    </Button>
-                  </div>
-                </article>
-              );
-            })}
+                  <option value="">Todos</option>
+                  <option value="SUGAR_BABY">Sugar Babies</option>
+                  <option value="SUGAR_DADDY">Sugar Daddies</option>
+                  <option value="SUGAR_MOMMY">Sugar Mommies</option>
+                  <option value="SUGAR_PROVIDER_LGBTQIA">
+                    Sugar Daddy / Mommy LGBTQIA+
+                  </option>
+                </select>
+              </label>
+            )}
           </div>
-        )}
 
-        <div className="flex items-center justify-between border-t border-[var(--platinum)] pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isLoading || page <= 1}
-            onClick={() => void loadProfiles(page - 1)}
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Anterior
-          </Button>
-          <span className="text-sm font-bold text-black/55">Página {page}</span>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isLoading || !hasNextPage}
-            onClick={() => void loadProfiles(page + 1)}
-          >
-            Próxima
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </section>
+          {feedback ? (
+            <p
+              role="status"
+              className="flex items-center gap-2 rounded-sm bg-[color:color-mix(in_srgb,var(--emerald)_12%,white)] px-3 py-2 text-sm font-bold text-[var(--emerald)]"
+            >
+              <ShieldCheck className="h-4 w-4" />
+              {feedback}
+            </p>
+          ) : null}
+          {error ? (
+            <p
+              role="alert"
+              className="rounded-sm bg-[color:color-mix(in_srgb,var(--ruby)_12%,white)] px-3 py-2 text-sm font-bold text-[var(--ruby)]"
+            >
+              {error}
+            </p>
+          ) : null}
+
+          {isLoading ? (
+            <div className="flex min-h-40 items-center justify-center gap-2 border border-[var(--platinum)] bg-white font-bold">
+              <Loader2 className="h-5 w-5 animate-spin text-[var(--gold)]" />
+              Carregando usuários...
+            </div>
+          ) : profiles.length === 0 && !error ? (
+            <div className="border border-[var(--platinum)] bg-white p-6 text-sm font-bold">
+              {manualActivation
+                ? "Nenhuma Sugar Baby aprovada e ativa encontrada."
+                : "Nenhum usuário encontrado."}
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {profiles.map((profile) => {
+                const activeUntil = profile.boostedUntil
+                  ? new Date(profile.boostedUntil)
+                  : null;
+                const isActive = Boolean(
+                  activeUntil && activeUntil.getTime() > currentTime,
+                );
+                const quantity = quantities[profile.id] ?? 1;
+
+                return (
+                  <article
+                    key={profile.id}
+                    className="flex flex-col border border-[var(--platinum)] bg-white p-4 shadow-[0_10px_28px_rgba(20,17,14,0.07)]"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[color:color-mix(in_srgb,var(--gold)_14%,white)] text-[var(--gold)]">
+                        <UserRound className="h-5 w-5" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <h2 className="truncate font-bold">
+                          {profile.username}
+                        </h2>
+                        <p className="truncate text-xs text-black/50">
+                          {profile.email}
+                        </p>
+                        <p className="mt-1 text-xs font-bold text-[var(--emerald)]">
+                          {profileIdentityLabel(profile.role, profile.gender)}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-[color:color-mix(in_srgb,var(--gold)_15%,white)] px-2.5 py-1 text-xs font-extrabold text-[var(--gold)]">
+                        {profile.boostCredits} saldo
+                      </span>
+                    </div>
+
+                    <div className="my-4 min-h-12 border-y border-[var(--platinum)] py-3 text-xs">
+                      {isActive && activeUntil ? (
+                        <p className="flex items-center gap-1.5 font-bold text-[var(--emerald)]">
+                          <Zap className="h-4 w-4 fill-current" />
+                          Boost ativo até {formatDate(activeUntil)}
+                        </p>
+                      ) : (
+                        <p className="flex items-center gap-1.5 text-black/50">
+                          <Clock3 className="h-4 w-4" />
+                          Sem Boost ativo
+                        </p>
+                      )}
+                    </div>
+
+                    {manualActivation ? (
+                      <Button
+                        type="button"
+                        disabled={Boolean(updatingId) || isActive}
+                        onClick={() => void activateBoost(profile)}
+                        aria-label={`Ativar Boost de ${profile.username} por 24 horas`}
+                        className="mt-auto min-h-11 w-full rounded-sm bg-[var(--gold)] font-bold text-white hover:bg-[color:color-mix(in_srgb,var(--gold)_86%,black)]"
+                      >
+                        {updatingId === profile.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Zap className="h-4 w-4" />
+                        )}
+                        {updatingId === profile.id
+                          ? "Ativando..."
+                          : isActive
+                            ? "Boost já ativo"
+                            : "Ativar Boost por 24 horas"}
+                      </Button>
+                    ) : (
+                      <div className="mt-auto space-y-2">
+                        <div className="grid grid-cols-[1fr_auto_auto] gap-2">
+                          <Input
+                            type="number"
+                            min={1}
+                            max={100}
+                            value={quantity}
+                            aria-label={`Quantidade para ${profile.username}`}
+                            onChange={(event) =>
+                              setQuantities((current) => ({
+                                ...current,
+                                [profile.id]: Math.max(
+                                  1,
+                                  Math.min(
+                                    100,
+                                    Number(event.target.value) || 1,
+                                  ),
+                                ),
+                              }))
+                            }
+                            className="h-10 rounded-sm"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={Boolean(updatingId)}
+                            onClick={() => void grantBoosts(profile, 1)}
+                            className="h-10 rounded-sm font-bold"
+                          >
+                            +1
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={Boolean(updatingId)}
+                            onClick={() => void grantBoosts(profile, 3)}
+                            className="h-10 rounded-sm font-bold"
+                          >
+                            +3
+                          </Button>
+                        </div>
+                        <Button
+                          type="button"
+                          disabled={Boolean(updatingId)}
+                          onClick={() => void grantBoosts(profile)}
+                          className="min-h-11 w-full rounded-sm bg-[var(--gold)] font-bold text-white hover:bg-[color:color-mix(in_srgb,var(--gold)_86%,black)]"
+                        >
+                          {updatingId === profile.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Plus className="h-4 w-4" />
+                          )}
+                          Fornecer {quantity}{" "}
+                          {quantity === 1 ? "Boost" : "Boosts"}
+                        </Button>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="flex items-center justify-between border-t border-[var(--platinum)] pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isLoading || Boolean(updatingId) || page <= 1}
+              onClick={() => void loadProfiles(page - 1)}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Anterior
+            </Button>
+            <span className="text-sm font-bold text-black/55">
+              Página {page}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isLoading || Boolean(updatingId) || !hasNextPage}
+              onClick={() => void loadProfiles(page + 1)}
+            >
+              Próxima
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </Tabs.Content>
+      </Tabs.Root>
     </main>
   );
 }
