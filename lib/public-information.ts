@@ -3,7 +3,7 @@
 const publicInformationPaths = new Set([
   "/", "/blog", "/sugar-baby", "/sugar-daddy", "/relacionamento-sugar",
   "/como-funciona", "/seguranca", "/sobre", "/atendimento", "/contato",
-  "/privacy", "/terms", "/manutencao",
+  "/privacy", "/terms", "/manutencao", "/convite",
 ]);
 
 export function isPublicInformationPath(pathname: string) {

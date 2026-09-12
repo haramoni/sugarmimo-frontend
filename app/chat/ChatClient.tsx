@@ -68,6 +68,10 @@ const reportCategories = [
 type MessageAccess = {
   canSend: boolean;
   isTrial: boolean;
+  trialDaysLimit: number | null;
+  trialDaysRemaining: number | null;
+  trialEndsAt: string | null;
+  trialExpired: boolean;
   freeMessagesLimit: number | null;
   freeMessagesUsed: number | null;
   freeMessagesRemaining: number | null;
@@ -446,15 +450,19 @@ export function ChatClient() {
       if (typeof message.freeMessagesRemaining === "number") {
         const remaining = message.freeMessagesRemaining;
         setMessageAccess((current) => ({
-          canSend: remaining > 0,
+          canSend: remaining > 0 && !current?.trialExpired,
           isTrial: true,
+          trialDaysLimit: current?.trialDaysLimit ?? 10,
+          trialDaysRemaining: current?.trialDaysRemaining ?? 0,
+          trialEndsAt: current?.trialEndsAt ?? null,
+          trialExpired: current?.trialExpired ?? false,
           freeMessagesLimit:
             current?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT,
           freeMessagesUsed:
             (current?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT) -
             remaining,
           freeMessagesRemaining: remaining,
-          requiresUpgrade: remaining === 0,
+          requiresUpgrade: remaining === 0 || Boolean(current?.trialExpired),
         }));
         if (remaining === 0) {
           setUpgradeAlertOpen(true);
@@ -893,7 +901,20 @@ export function ChatClient() {
                   {messageAccess?.isTrial ? (
                     <div className="mb-2 rounded-xl border border-[var(--gold)]/25 bg-[var(--gold-soft)]/15 px-3 py-2 text-center text-xs font-semibold text-black/58">
                       <div>
-                        Restam {messageAccess.freeMessagesRemaining ?? 0} de{" "}
+                        {messageAccess.trialExpired ? (
+                          "Seu período de teste de 10 dias terminou."
+                        ) : (
+                          <>
+                            Período de teste: restam{" "}
+                            {messageAccess.trialDaysRemaining ?? 0}{" "}
+                            {(messageAccess.trialDaysRemaining ?? 0) === 1
+                              ? "dia"
+                              : "dias"}
+                            .
+                          </>
+                        )}{" "}
+                        Você ainda tem{" "}
+                        {messageAccess.freeMessagesRemaining ?? 0} de{" "}
                         {messageAccess.freeMessagesLimit ??
                           DEFAULT_FREE_MESSAGE_LIMIT}{" "}
                         mensagens gratuitas.
@@ -973,7 +994,9 @@ export function ChatClient() {
                         <LockKeyhole className="h-4 w-4 shrink-0 text-[var(--gold)]" />
                         {isStandardDaddy && !messageAccess
                           ? "Carregando suas mensagens gratuitas…"
-                          : `Você já enviou as ${messageAccess?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT} mensagens gratuitas. Assine para continuar conversando e acessar contatos.`}
+                          : messageAccess?.trialExpired
+                            ? "Seu período de teste de 10 dias terminou. Assine para continuar conversando e acessar contatos."
+                            : `Você já enviou as ${messageAccess?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT} mensagens gratuitas. Assine para continuar conversando e acessar contatos.`}
                       </div>
                       {messageAccess?.requiresUpgrade ? (
                         <Link
@@ -1047,13 +1070,14 @@ export function ChatClient() {
               <LockKeyhole className="h-6 w-6" />
             </span>
             <h2 className="mt-4 font-serif text-2xl font-semibold">
-              Mensagens gratuitas utilizadas
+              {messageAccess?.trialExpired
+                ? "Período de teste encerrado"
+                : "Mensagens gratuitas utilizadas"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-black/55">
-              Você já enviou suas{" "}
-              {messageAccess?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT}{" "}
-              mensagens gratuitas. Para enviar novas mensagens e voltar a
-              acessar contatos liberados, ative uma assinatura.
+              {messageAccess?.trialExpired
+                ? "Seus 10 dias gratuitos terminaram. Para enviar novas mensagens e voltar a acessar contatos liberados, ative uma assinatura."
+                : `Você já enviou suas ${messageAccess?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT} mensagens gratuitas. Para enviar novas mensagens e voltar a acessar contatos liberados, ative uma assinatura.`}
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <button

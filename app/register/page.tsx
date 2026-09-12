@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, type ReactNode, useEffect, useRef, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
   Crown,
@@ -96,12 +96,30 @@ const PROFILE_OPTIONS: Record<
   ],
 };
 
+function subscribeToInvitationUrl(callback: () => void) {
+  window.addEventListener("popstate", callback);
+  return () => window.removeEventListener("popstate", callback);
+}
+
+function isDaddyInvitation() {
+  return new URLSearchParams(window.location.search).get("perfil") === "sugar-daddy";
+}
+
 export default function Register() {
+  // Keep the generic form prerendered; invitation defaults arrive on hydration.
+  const fromDaddyInvitation = useSyncExternalStore(
+    subscribeToInvitationUrl,
+    isDaddyInvitation,
+    () => false,
+  );
   const router = useRouter();
   const { clearPassword } = useRegistrationSecret();
-  const [identity, setIdentity] = useState<ProfileIdentity | null>(null);
-  const [profileType, setProfileType] = useState("");
-  const [interest, setInterest] = useState("");
+  const [selectedIdentity, setIdentity] = useState<ProfileIdentity>();
+  const [selectedProfileType, setProfileType] = useState<string>();
+  const [selectedInterest, setInterest] = useState<string>();
+  const identity = selectedIdentity ?? (fromDaddyInvitation ? "man" : null);
+  const profileType = selectedProfileType ?? (fromDaddyInvitation ? "sugar-daddy" : "");
+  const interest = selectedInterest ?? (fromDaddyInvitation ? "women" : "");
   const profileOptionsRef = useRef<HTMLFieldSetElement>(null);
   const preferencesRef = useRef<HTMLDivElement>(null);
   const [relationshipIntent, setRelationshipIntent] =
