@@ -1,6 +1,13 @@
 "use client";
 
-import { type FormEvent, type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  type FormEvent,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
 import {
   Crown,
@@ -29,7 +36,11 @@ import {
 } from "./register-flow";
 import { RegistrationFormShell } from "./RegistrationFormShell";
 import { useRegistrationSecret } from "./RegistrationSecretProvider";
-import { FormFieldMessage, FormProgress, focusFormField } from "../components/FormFeedback";
+import {
+  FormFieldMessage,
+  FormProgress,
+  focusFormField,
+} from "../components/FormFeedback";
 import {
   relationshipIntentOptions,
   type RelationshipIntent,
@@ -102,7 +113,9 @@ function subscribeToInvitationUrl(callback: () => void) {
 }
 
 function isDaddyInvitation() {
-  return new URLSearchParams(window.location.search).get("perfil") === "sugar-daddy";
+  return (
+    new URLSearchParams(window.location.search).get("perfil") === "sugar-daddy"
+  );
 }
 
 export default function Register() {
@@ -118,28 +131,60 @@ export default function Register() {
   const [selectedProfileType, setProfileType] = useState<string>();
   const [selectedInterest, setInterest] = useState<string>();
   const identity = selectedIdentity ?? (fromDaddyInvitation ? "man" : null);
-  const profileType = selectedProfileType ?? (fromDaddyInvitation ? "sugar-daddy" : "");
+  const profileType =
+    selectedProfileType ?? (fromDaddyInvitation ? "sugar-daddy" : "");
   const interest = selectedInterest ?? (fromDaddyInvitation ? "women" : "");
   const profileOptionsRef = useRef<HTMLFieldSetElement>(null);
   const preferencesRef = useRef<HTMLDivElement>(null);
   const [relationshipIntent, setRelationshipIntent] =
     useState<RelationshipIntent>("SUGAR");
-  const [adultDeclarationAccepted, setAdultDeclarationAccepted] =
-    useState(false);
+  const [adultDeclarationAccepted] = useState(true);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [privacyNoticeAcknowledged, setPrivacyNoticeAcknowledged] =
-    useState(false);
-  const [marketingConsent, setMarketingConsent] = useState(false);
+  const [privacyNoticeAcknowledged] = useState(true);
   const issues = [
-    { id: "identity", label: "Sua identidade", message: !identity ? "Selecione como você se identifica." : undefined },
-    { id: identity ? "profile-type" : "identity", label: "Tipo de perfil", message: identity && !profileType ? "Escolha como quer participar." : undefined },
-    { id: "interest", label: "Quero conhecer", message: profileType && !interest ? "Escolha quem você quer conhecer." : undefined },
-    { id: "adult-declaration", label: "Maioridade", message: !adultDeclarationAccepted ? "Confirme a declaração de maioridade." : undefined },
-    { id: "terms-acceptance", label: "Termos de Uso", message: !termsAccepted ? "Leia e aceite os Termos de Uso." : undefined },
-    { id: "privacy-awareness", label: "Privacidade", message: !privacyNoticeAcknowledged ? "Confirme a leitura da Política de Privacidade." : undefined },
+    {
+      id: "identity",
+      label: "Sua identidade",
+      message: !identity ? "Selecione como você se identifica." : undefined,
+    },
+    {
+      id: identity ? "profile-type" : "identity",
+      label: "Tipo de perfil",
+      message:
+        identity && !profileType ? "Escolha como quer participar." : undefined,
+    },
+    {
+      id: "interest",
+      label: "Quero conhecer",
+      message:
+        profileType && !interest
+          ? "Escolha quem você quer conhecer."
+          : undefined,
+    },
+    {
+      id: "adult-declaration",
+      label: "Maioridade",
+      message: !adultDeclarationAccepted
+        ? "Confirme a declaração de maioridade."
+        : undefined,
+    },
+    {
+      id: "terms-acceptance",
+      label: "Termos de Uso",
+      message: !termsAccepted ? "Leia e aceite os Termos de Uso." : undefined,
+    },
+    {
+      id: "privacy-awareness",
+      label: "Privacidade",
+      message: !privacyNoticeAcknowledged
+        ? "Confirme a leitura da Política de Privacidade."
+        : undefined,
+    },
   ];
   const firstIssue = issues.find((issue) => issue.message);
-  const canContinue = Boolean(identity && profileType && interest && !firstIssue);
+  const canContinue = Boolean(
+    identity && profileType && interest && !firstIssue,
+  );
 
   useEffect(() => {
     captureReferralFromUrl();
@@ -189,7 +234,6 @@ export default function Register() {
         adultDeclarationAccepted,
         termsAccepted,
         privacyNoticeAcknowledged,
-        marketingConsent,
       }),
     );
 
@@ -209,13 +253,16 @@ export default function Register() {
       currentStep="/register"
       eyebrow="Etapa 1 de 6 · Perfil"
       title="Vamos começar por você"
-      description="Primeiro, diga como você se identifica. Em seguida, escolha de forma simples como quer participar do SugarMimo."
       icon={Sparkles}
       onBack={() => router.push("/")}
       backLabel="Voltar para o início"
       size="wide"
     >
-      <form className="registration-standard-form" onSubmit={handleSubmit} noValidate>
+      <form
+        className="registration-standard-form"
+        onSubmit={handleSubmit}
+        noValidate
+      >
         <div className="registration-profile-setup-grid">
           <section className="registration-form-section registration-profile-section">
             <div className="registration-section-heading">
@@ -227,7 +274,11 @@ export default function Register() {
             </div>
 
             <div className="registration-fields-stack">
-              <fieldset id="identity" className="registration-choice-fieldset" aria-describedby={!identity ? "identity-message" : undefined}>
+              <fieldset
+                id="identity"
+                className="registration-choice-fieldset"
+                aria-describedby={!identity ? "identity-message" : undefined}
+              >
                 <legend className="sr-only">Como você se identifica?</legend>
                 <div className="registration-identity-grid">
                   {IDENTITY_OPTIONS.map((option) => {
@@ -260,7 +311,9 @@ export default function Register() {
                 <fieldset
                   ref={profileOptionsRef}
                   id="profile-type"
-                  aria-describedby={!profileType ? "profile-type-message" : undefined}
+                  aria-describedby={
+                    !profileType ? "profile-type-message" : undefined
+                  }
                   className="registration-choice-fieldset registration-reveal-section scroll-mt-6"
                 >
                   <legend className="registration-label">
@@ -297,14 +350,12 @@ export default function Register() {
                       );
                     })}
                   </div>
-                  <FormFieldMessage id="profile-type" message={issues[1].message} />
+                  <FormFieldMessage
+                    id="profile-type"
+                    message={issues[1].message}
+                  />
                 </fieldset>
-              ) : (
-                <div className="registration-next-step-hint">
-                  Selecione como você se identifica para ver as opções de
-                  perfil.
-                </div>
-              )}
+              ) : null}
 
               {profileType ? (
                 <div
@@ -324,7 +375,9 @@ export default function Register() {
                       <SelectTrigger
                         id="interest"
                         aria-invalid={!interest}
-                        aria-describedby={!interest ? "interest-message" : undefined}
+                        aria-describedby={
+                          !interest ? "interest-message" : undefined
+                        }
                         className="registration-select-trigger"
                       >
                         <SelectValue placeholder="Escolha uma preferência" />
@@ -335,7 +388,10 @@ export default function Register() {
                         <SelectItem value="both">Todos</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormFieldMessage id="interest" message={issues[2].message} />
+                    <FormFieldMessage
+                      id="interest"
+                      message={issues[2].message}
+                    />
                     <p className="registration-helper">
                       Essa preferência não altera o tipo do seu perfil.
                     </p>
@@ -416,16 +472,6 @@ export default function Register() {
               </legend>
 
               <ConsentCheckbox
-                id="adult-declaration"
-                checked={adultDeclarationAccepted}
-                onCheckedChange={setAdultDeclarationAccepted}
-                required
-              >
-                Declaro que tenho 18 anos ou mais e que as informações
-                fornecidas são verdadeiras.
-              </ConsentCheckbox>
-
-              <ConsentCheckbox
                 id="terms-acceptance"
                 checked={termsAccepted}
                 onCheckedChange={setTermsAccepted}
@@ -439,17 +485,8 @@ export default function Register() {
                   className="font-bold underline decoration-gold underline-offset-2"
                 >
                   Termos de Uso
-                </Link>
-                .
-              </ConsentCheckbox>
-
-              <ConsentCheckbox
-                id="privacy-awareness"
-                checked={privacyNoticeAcknowledged}
-                onCheckedChange={setPrivacyNoticeAcknowledged}
-                required
-              >
-                Li e estou ciente da{" "}
+                </Link>{" "}
+                e{" "}
                 <Link
                   href="/privacy"
                   target="_blank"
@@ -458,18 +495,6 @@ export default function Register() {
                 >
                   Política de Privacidade e Proteção de Dados
                 </Link>
-                .
-              </ConsentCheckbox>
-
-              <ConsentCheckbox
-                id="marketing-consent"
-                checked={marketingConsent}
-                onCheckedChange={setMarketingConsent}
-              >
-                Desejo receber comunicações promocionais do SugarMimo.
-                <span className="registration-helper mt-1 block">
-                  Opcional. Você poderá alterar essa preferência depois.
-                </span>
               </ConsentCheckbox>
             </fieldset>
           </section>
@@ -477,11 +502,11 @@ export default function Register() {
 
         <div className="registration-legal-summary">
           <p>
-            O SugarMimo é exclusivo para maiores de 18 anos e poderá solicitar
-            validação de idade. A plataforma não permite atividades ilegais,
-            exploração, comércio sexual ou condutas que coloquem pessoas em
-            risco. Consulte os <Link href="/terms">Termos de Uso</Link> e a{" "}
-            <Link href="/privacy">Política de Privacidade</Link>.
+            Ao continuar, <strong>você declara ter 18 anos</strong> ou mais e
+            concorda com os Termos de Uso e a Política de Privacidade. O Sugar
+            Mimo poderá solicitar a verificação da sua idade a qualquer momento.
+            São estritamente proibidas atividades ilegais, exploração, comércio
+            sexual e quaisquer condutas que coloquem pessoas em risco.
           </p>
         </div>
 
@@ -534,7 +559,11 @@ function ConsentCheckbox({
         {children}
         {required ? <span className="sr-only"> Campo obrigatório.</span> : null}
         {required && !checked ? (
-          <FormFieldMessage id={id} as="span" message="Confirmação obrigatória." />
+          <FormFieldMessage
+            id={id}
+            as="span"
+            message="Confirmação obrigatória."
+          />
         ) : null}
       </label>
     </div>

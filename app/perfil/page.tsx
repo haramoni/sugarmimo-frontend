@@ -922,9 +922,10 @@ export function ProfilePageContent({
     setError("");
 
     try {
-      const normalizedFiles = await Promise.all(
-        filesToAdd.map(normalizeMobilePhoto),
-      );
+      const normalizedFiles: File[] = [];
+      for (const fileToAdd of filesToAdd) {
+        normalizedFiles.push(await normalizeMobilePhoto(fileToAdd));
+      }
 
       if (normalizedFiles.some((file) => !ALLOWED_PHOTO_TYPES.has(file.type))) {
         setError("Envie apenas fotos JPEG, PNG, WebP, AVIF, HEIC ou HEIF.");
@@ -958,15 +959,16 @@ export function ProfilePageContent({
         return;
       }
 
-      const newPhotos = await Promise.all(
-        normalizedFiles.map(async (file, index) => ({
+      const newPhotos: ProfilePhoto[] = [];
+      for (const [index, file] of normalizedFiles.entries()) {
+        newPhotos.push({
           dataUrl: await fileToDataUrl(file),
           fileName: file.name,
           mimeType: file.type,
           sortOrder: categoryPhotos.length + index + 1,
           isPrivate,
-        })),
-      );
+        });
+      }
 
       setPhotos((currentPhotos) => [...currentPhotos, ...newPhotos]);
       setIsEditing(true);
@@ -976,9 +978,11 @@ export function ProfilePageContent({
           `Apenas ${remainingSlots} ${remainingSlots === 1 ? "foto foi adicionada" : "fotos foram adicionadas"}. O limite é de ${categoryLimit} fotos ${isPrivate ? "privadas" : "públicas"}.`,
         );
       }
-    } catch {
+    } catch (photoError) {
       setError(
-        "Não foi possível converter uma foto HEIC/HEIF. Tente escolher outra imagem ou exportá-la como JPEG.",
+        photoError instanceof Error
+          ? photoError.message
+          : "Não foi possível preparar a foto. Salve a imagem na galeria e tente novamente.",
       );
     } finally {
       setIsProcessingPhotos(false);

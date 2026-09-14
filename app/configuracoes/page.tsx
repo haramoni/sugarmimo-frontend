@@ -36,7 +36,6 @@ const consentLabels: Record<string, string> = {
   TERMS_OF_USE: "Termos de Uso",
   PRIVACY_NOTICE: "Política de Privacidade",
   COOKIE_POLICY_NOTICE: "Política de Cookies",
-  MARKETING_COMMUNICATIONS: "Comunicações promocionais",
   PROFILE_PHOTO_RIGHTS_AND_MODERATION: "Direitos e moderação das fotos",
   REGISTRATION_RECEIPT_CONFIRMED: "Confirmação final do cadastro",
 };
@@ -481,7 +480,10 @@ export default function ConfiguracoesPage() {
           </div>
         </article>
 
-        <article id="excluir-conta" className="settings-card settings-danger-card mt-6 scroll-mt-24 rounded-[2rem] border border-[color:color-mix(in_srgb,var(--ruby)_34%,transparent)] bg-[color:color-mix(in_srgb,var(--ruby)_4%,white)] p-6 shadow-[0_22px_55px_rgba(20,17,14,0.06)] sm:p-8">
+        <article
+          id="excluir-conta"
+          className="settings-card settings-danger-card mt-6 scroll-mt-24 rounded-[2rem] border border-[color:color-mix(in_srgb,var(--ruby)_34%,transparent)] bg-[color:color-mix(in_srgb,var(--ruby)_4%,white)] p-6 shadow-[0_22px_55px_rgba(20,17,14,0.06)] sm:p-8"
+        >
           <div className="flex items-start gap-4">
             <span className="settings-danger-icon grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[color:color-mix(in_srgb,var(--ruby)_12%,white)] text-[var(--ruby)]">
               <AlertTriangle className="h-5 w-5" />

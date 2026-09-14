@@ -10,7 +10,7 @@ type RegistrationFormShellProps = {
   currentStep?: string;
   eyebrow: string;
   title: string;
-  description: string;
+  description?: string;
   icon: LucideIcon;
   children: ReactNode;
   onBack?: () => void;
@@ -62,18 +62,6 @@ export function RegistrationFormShell({
             <h1>{title}</h1>
             <p>{description}</p>
           </div>
-
-          {aside === null ? null : (
-            aside ?? (
-              <div className="registration-security-note">
-                <ShieldCheck className="h-5 w-5" />
-                <span>
-                  <strong>Ambiente seguro</strong>
-                  Seus dados são tratados com privacidade
-                </span>
-              </div>
-            )
-          )}
         </header>
 
         <div className="registration-flow-content">{children}</div>

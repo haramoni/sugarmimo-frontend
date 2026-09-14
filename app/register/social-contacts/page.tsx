@@ -28,7 +28,11 @@ import { Label } from "@/components/ui/label";
 import { REGISTER_PAYLOAD_KEY, setRegisterStep } from "../register-flow";
 import { RegistrationFormShell } from "../RegistrationFormShell";
 import { useRegistrationSecret } from "../RegistrationSecretProvider";
-import { FormFieldMessage, FormProgress, focusFormField } from "../../components/FormFeedback";
+import {
+  FormFieldMessage,
+  FormProgress,
+  focusFormField,
+} from "../../components/FormFeedback";
 import { getPhoneError } from "../../lib/form-validation";
 
 type ContactChannel = "whatsapp" | "telegram" | "instagram";
@@ -54,9 +58,27 @@ export default function SocialContactsPage() {
   );
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(true);
   const issues = [
-    { id: "whatsapp", label: "Celular/WhatsApp", message: getPhoneError(whatsapp) },
-    { id: "telegram", label: "Telegram", message: telegram.trim() && !/^@?[A-Za-z0-9_]+$/.test(telegram.trim()) ? "Informe apenas o usuário do Telegram, sem espaços ou links." : undefined },
-    { id: "instagram", label: "Instagram", message: instagram.trim() && !/^@?[A-Za-z0-9._]+$/.test(instagram.trim()) ? "Informe apenas o usuário do Instagram, sem espaços ou links." : undefined },
+    {
+      id: "whatsapp",
+      label: "Celular/WhatsApp",
+      message: getPhoneError(whatsapp),
+    },
+    {
+      id: "telegram",
+      label: "Telegram",
+      message:
+        telegram.trim() && !/^@?[A-Za-z0-9_]+$/.test(telegram.trim())
+          ? "Informe apenas o usuário do Telegram, sem espaços ou links."
+          : undefined,
+    },
+    {
+      id: "instagram",
+      label: "Instagram",
+      message:
+        instagram.trim() && !/^@?[A-Za-z0-9._]+$/.test(instagram.trim())
+          ? "Informe apenas o usuário do Instagram, sem espaços ou links."
+          : undefined,
+    },
   ];
   const firstIssue = issues.find((issue) => issue.message);
 
@@ -111,7 +133,10 @@ export default function SocialContactsPage() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (firstIssue) { focusFormField(firstIssue.id); return; }
+    if (firstIssue) {
+      focusFormField(firstIssue.id);
+      return;
+    }
 
     const currentPayload = JSON.parse(
       localStorage.getItem(REGISTER_PAYLOAD_KEY) ?? "{}",
@@ -174,13 +199,17 @@ export default function SocialContactsPage() {
         currentStep="/register/social-contacts"
         eyebrow="Etapa 5 de 6 · Contatos"
         title="Contatos para exibição"
-        description="Você decide quais canais poderão aparecer para usuários autorizados. O celular da conta continua privado."
+        description="Quais contatos você deseja liberar para Sugar Daddies autorizados? Preencha apenas os canais que deseja manter no perfil."
         icon={MessageCircle}
         onBack={() => router.push("/register/almost-there")}
         backLabel="Voltar para preferências"
         size="standard"
       >
-        <form className="registration-standard-form" onSubmit={handleSubmit} noValidate>
+        <form
+          className="registration-standard-form"
+          onSubmit={handleSubmit}
+          noValidate
+        >
           <div className="registration-section-heading">
             <span>05</span>
             <div>
@@ -277,7 +306,11 @@ export default function SocialContactsPage() {
               Voltar
             </Button>
 
-            <Button type="submit" disabled={Boolean(firstIssue)} className="registration-submit">
+            <Button
+              type="submit"
+              disabled={Boolean(firstIssue)}
+              className="registration-submit"
+            >
               Salvar e Continuar
             </Button>
           </div>
@@ -314,7 +347,9 @@ function ContactField({
 }: ContactFieldProps) {
   return (
     <div className="registration-field">
-      <Label htmlFor={id} className="registration-label">{label}</Label>
+      <Label htmlFor={id} className="registration-label">
+        {label}
+      </Label>
       {description ? (
         <p className="registration-helper">{description}</p>
       ) : null}
@@ -335,7 +370,7 @@ function ContactField({
           maxLength={80}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
-          className="registration-input pl-10"
+          className="registration-input registration-input-with-icon"
         />
       </div>
       <FormFieldMessage id={id} message={message} />

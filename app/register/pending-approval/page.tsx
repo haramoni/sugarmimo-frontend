@@ -8,6 +8,7 @@ import {
   Clock,
   Copy,
   LoaderCircle,
+  LockKeyhole,
   MailCheck,
   QrCode,
   RefreshCw,
@@ -192,16 +193,45 @@ export default function PendingApprovalPage() {
   return (
     <RegistrationFormShell
       eyebrow="Cadastro enviado"
-      title="Seu perfil está em análise"
-      description="Nossa equipe vai revisar suas informações e fotos antes de liberar seu acesso. Você poderá entrar normalmente assim que o perfil for aprovado."
+      title="Cadastro recebido para análise!"
+      description="Seu perfil ainda não está liberado. A equipe revisará suas informações e fotos, e o acesso será permitido somente depois da aprovação."
       icon={MailCheck}
       size="compact"
       aside={null}
     >
       <div className="registration-pending-content">
-        <div className="registration-pending-status">
-          <Clock className="h-4 w-4 text-gold" />
-          Aprovação manual pendente
+        <section className="registration-standard-review-card">
+          <div className="registration-review-card-heading">
+            <span className="registration-review-card-icon">
+              <Clock className="h-5 w-5" />
+            </span>
+            <div>
+              <span className="registration-review-free-badge">
+                Fila normal · gratuita
+              </span>
+              <h2>Você já está na fila de análise</h2>
+            </div>
+          </div>
+          <p>
+            Não é necessário fazer nenhum pagamento. Você pode aguardar
+            normalmente enquanto nossa equipe analisa o cadastro.
+          </p>
+          <p className="registration-manual-review-note">
+            <strong>Análise 100% manual e sem prazo definido.</strong> Não há
+            previsão exata para a aprovação, pois cada cadastro é revisado
+            individualmente pela nossa equipe.
+          </p>
+          <div className="registration-review-access-note">
+            <LockKeyhole className="h-4 w-4 shrink-0" />
+            <span>
+              <strong>Acesso ao perfil:</strong> será liberado somente se o
+              cadastro for aprovado.
+            </span>
+          </div>
+        </section>
+
+        <div className="registration-priority-divider">
+          <span>Quer reduzir o tempo de espera?</span>
         </div>
 
         <div className="registration-priority-card">
@@ -209,18 +239,35 @@ export default function PendingApprovalPage() {
             <span className="registration-priority-icon">
               <Zap className="h-5 w-5" />
             </span>
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-gold">
-                Análise prioritária
-              </p>
+            <div className="min-w-0 flex-1">
+              <div className="registration-priority-label-row">
+                <p>Análise rápida</p>
+                <span>Opcional</span>
+              </div>
               <h2 className="mt-1 text-base font-extrabold text-[#f4ecdf] sm:text-lg">
-                Entre primeiro na fila por {APPROVAL_PRIORITY_PRICE_DISPLAY}
+                Priorize sua análise por {APPROVAL_PRIORITY_PRICE_DISPLAY}
               </h2>
               <p className="mt-1.5 text-xs font-medium leading-5 text-[#aaa49b] sm:text-sm">
-                Gere um PIX exclusivo para o seu perfil. Assim que o pagamento
-                for recebido, sua prioridade será ativada automaticamente.
+                Se preferir, pague via PIX para seu cadastro ser analisado com
+                prioridade. Sem o pagamento, você continua normalmente na fila
+                gratuita.
               </p>
             </div>
+          </div>
+
+          <div className="registration-priority-conditions">
+            <span>
+              <Check className="h-3.5 w-3.5" />
+              Pagamento totalmente opcional
+            </span>
+            <span>
+              <Clock className="h-3.5 w-3.5" />
+              Prioriza somente a análise
+            </span>
+            <span>
+              <LockKeyhole className="h-3.5 w-3.5" />
+              Acesso somente após aprovação
+            </span>
           </div>
 
           {isLoadingPayment ? (
@@ -237,8 +284,9 @@ export default function PendingApprovalPage() {
                 Pagamento confirmado!
               </p>
               <p className="mt-1 text-sm font-semibold leading-6 text-black-jewel/70">
-                Seu perfil já está marcado para análise prioritária. Não é
-                necessário enviar comprovante.
+                Seu perfil já está marcado para análise rápida. Não é necessário
+                enviar comprovante. Aguarde a decisão da equipe para acessar o
+                perfil.
               </p>
             </div>
           ) : null}
@@ -355,7 +403,9 @@ export default function PendingApprovalPage() {
                   ) : (
                     <QrCode className="h-4 w-4" />
                   )}
-                  {isGenerating ? "Gerando PIX..." : "Gerar PIX de R$ 30"}
+                  {isGenerating
+                    ? "Gerando PIX..."
+                    : "Gerar PIX opcional de R$ 30"}
                 </Button>
               </div>
             </form>
@@ -375,19 +425,27 @@ export default function PendingApprovalPage() {
           ) : null}
 
           <p className="mt-3 border-t border-gold/25 pt-2 text-xs font-semibold leading-5 text-black-jewel/65">
-            O pagamento antecipa a análise, mas não garante a aprovação do
-            perfil. Todos continuam sujeitos aos mesmos critérios de segurança e
-            verificação.
+            <strong>Importante:</strong> o PIX antecipa apenas a análise. O
+            pagamento não garante aprovação e não libera o acesso ao perfil.
+            Todos seguem os mesmos critérios de segurança e verificação, e a
+            análise rápida também não possui prazo garantido.
           </p>
         </div>
-        <div className="flex justify-center">
+
+        <div className="registration-pending-login-action">
+          <p>
+            Você poderá entrar na conta depois que receber a aprovação do
+            cadastro.
+          </p>
           <Button
             type="button"
             disabled={isClearingSession}
             onClick={() => void goToLogin()}
-            className="registration-submit mt-4 h-11 w-full"
+            className="registration-submit h-11 w-full"
           >
-            {isClearingSession ? "Limpando acesso..." : "Ir para o login"}
+            {isClearingSession
+              ? "Limpando acesso..."
+              : "Entendi, voltar ao login"}
           </Button>
         </div>
       </div>

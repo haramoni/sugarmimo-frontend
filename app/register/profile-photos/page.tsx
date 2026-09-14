@@ -50,7 +50,6 @@ import { FormFieldMessage, FormProgress } from "../../components/FormFeedback";
 type ProfilePhoto = {
   file: File;
   previewUrl: string;
-  rightsConfirmed: boolean;
 };
 
 type RegistrationPolicies = {
@@ -97,15 +96,15 @@ export default function ProfilePhotosPage() {
 
   const remainingSlots = MAX_PHOTOS - photos.length;
   const canAddPhotos = remainingSlots > 0;
-  const allPhotosConfirmed =
-    photos.length > 0 && photos.every((photo) => photo.rightsConfirmed);
   const issues = [
-    { id: "profile-photos", label: "Adicionar uma foto", message: photosRequired && !photos.length ? "Adicione pelo menos uma foto do perfil." : undefined },
-    ...photos.map((photo, index) => ({
-      id: `photo-rights-${index}`,
-      label: `Autorização da foto ${index + 1}`,
-      message: !photo.rightsConfirmed ? "Confirme a autorização de uso desta foto." : undefined,
-    })),
+    {
+      id: "profile-photos",
+      label: "Adicionar uma foto",
+      message:
+        photosRequired && !photos.length
+          ? "Adicione pelo menos uma foto do perfil."
+          : undefined,
+    },
   ];
 
   useEffect(() => {
@@ -152,9 +151,10 @@ export default function ProfilePhotosPage() {
         return;
       }
 
-      const normalizedFiles = await Promise.all(
-        selectedFiles.map(normalizeMobilePhoto),
-      );
+      const normalizedFiles: File[] = [];
+      for (const selectedFile of selectedFiles.slice(0, remainingSlots)) {
+        normalizedFiles.push(await normalizeMobilePhoto(selectedFile));
+      }
 
       const imageFiles = normalizedFiles.filter((file) =>
         ALLOWED_PHOTO_TYPES.has(file.type),
@@ -174,7 +174,7 @@ export default function ProfilePhotosPage() {
         return;
       }
 
-      if (normalizedFiles.length > remainingSlots) {
+      if (selectedFiles.length > remainingSlots) {
         setError(
           remainingSlots === 0
             ? `Você já atingiu o limite de ${MAX_PHOTOS} fotos.`
@@ -187,13 +187,14 @@ export default function ProfilePhotosPage() {
       const nextPhotos = imageFiles.slice(0, remainingSlots).map((file) => ({
         file,
         previewUrl: URL.createObjectURL(file),
-        rightsConfirmed: false,
       }));
 
       setPhotos((currentPhotos) => [...currentPhotos, ...nextPhotos]);
-    } catch {
+    } catch (photoError) {
       setError(
-        "Não foi possível converter uma foto HEIC/HEIF. Tente escolher outra imagem ou exportá-la como JPEG.",
+        photoError instanceof Error
+          ? photoError.message
+          : "Não foi possível preparar a foto. Salve a imagem na galeria e tente novamente.",
       );
     } finally {
       setIsProcessingPhotos(false);
@@ -212,17 +213,6 @@ export default function ProfilePhotosPage() {
 
       return currentPhotos.filter((photo) => photo.previewUrl !== previewUrl);
     });
-    setError("");
-  }
-
-  function setPhotoRightsConfirmed(previewUrl: string, confirmed: boolean) {
-    setPhotos((currentPhotos) =>
-      currentPhotos.map((photo) =>
-        photo.previewUrl === previewUrl
-          ? { ...photo, rightsConfirmed: confirmed }
-          : photo,
-      ),
-    );
     setError("");
   }
 
@@ -258,7 +248,9 @@ export default function ProfilePhotosPage() {
         cache: "no-store",
       });
       const result = (await response.json().catch(() => null)) as
-        RegistrationPolicies | { message?: string } | null;
+        | RegistrationPolicies
+        | { message?: string }
+        | null;
 
       if (!response.ok || !isRegistrationPolicies(result)) {
         throw new Error(
@@ -297,13 +289,6 @@ export default function ProfilePhotosPage() {
       return false;
     }
 
-    if (photos.length > 0 && !allPhotosConfirmed) {
-      setError(
-        "Confirme a titularidade e a autorização de uso de cada foto antes de finalizar.",
-      );
-      return false;
-    }
-
     const oversizedPhoto = photos.find(
       (photo) => photo.file.size > MAX_PHOTO_BYTES,
     );
@@ -332,14 +317,19 @@ export default function ProfilePhotosPage() {
     const currentPayload = getCurrentRegistrationPayload();
 
     try {
-      const profilePhotos = await Promise.all(
-        photos.map(async (photo) => ({
+      const profilePhotos: Array<{
+        dataUrl: string;
+        fileName: string;
+        mimeType: string;
+      }> = [];
+
+      for (const photo of photos) {
+        profilePhotos.push({
           dataUrl: await fileToDataUrl(photo.file),
           fileName: photo.file.name,
           mimeType: photo.file.type,
-          rightsConfirmed: photo.rightsConfirmed,
-        })),
-      );
+        });
+      }
 
       const payload = {
         ...currentPayload,
@@ -402,7 +392,11 @@ export default function ProfilePhotosPage() {
           </div>
         }
       >
-        <form className="registration-standard-form" onSubmit={handleSubmit} noValidate>
+        <form
+          className="registration-standard-form"
+          onSubmit={handleSubmit}
+          noValidate
+        >
           <div className="registration-section-heading">
             <span>06</span>
             <div>
@@ -423,26 +417,57 @@ export default function ProfilePhotosPage() {
             </div>
 
             <div className="registration-photo-rules">
-              <div className="flex items-start gap-2 font-bold text-[#e9dfd0]">
-                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#e1bd8a]" />
-                <p>
-                  Confirme a autorização e escolha qual será sua foto principal.
-                </p>
+              <div className="registration-photo-rules-heading">
+                <ShieldCheck className="h-5 w-5 shrink-0" />
+                <div>
+                  <h3>Regras das fotos</h3>
+                  <p>Confira antes de enviar para evitar a reprovação.</p>
+                </div>
               </div>
-              <ul className="list-disc space-y-1 pl-5 text-xs font-medium leading-5">
-                <li>
-                  Publique somente imagens suas ou que você esteja autorizado a
-                  usar.
-                </li>
-                <li>É proibido publicar imagens íntimas de terceiros.</li>
-                <li>
-                  É proibido qualquer conteúdo envolvendo menores de 18 anos.
-                </li>
-                <li>
-                  As fotos passam por validação e moderação e podem ser
-                  removidas se violarem as regras.
-                </li>
-              </ul>
+
+              <div className="registration-photo-rules-columns">
+                <section className="registration-photo-rule-group is-accepted">
+                  <h4>Para ser aceita</h4>
+                  <ul>
+                    <li>
+                      Apareça com o rosto visível e reconhecível, principalmente
+                      na foto principal.
+                    </li>
+                    <li>
+                      Use foto recente, nítida, bem iluminada e sem filtros que
+                      escondam seu rosto.
+                    </li>
+                    <li>
+                      Envie apenas fotos suas e autorizadas para publicação.
+                    </li>
+                  </ul>
+                </section>
+
+                <section className="registration-photo-rule-group is-rejected">
+                  <h4>Não será aceita</h4>
+                  <ul>
+                    <li>
+                      Crianças ou adolescentes, mesmo acompanhados ou ao fundo.
+                    </li>
+                    <li>Nudez, atos sexuais ou qualquer imagem íntima.</li>
+                    <li>
+                      Imagem falsa/IA, celebridade, desenho, meme, paisagem,
+                      objeto ou apenas terceiros.
+                    </li>
+                    <li>
+                      Telefone, @, link, QR Code, anúncio ou marca-d’água.
+                    </li>
+                    <li>
+                      Foto borrada, escura, cortada, repetida ou irreconhecível.
+                    </li>
+                  </ul>
+                </section>
+              </div>
+
+              <p className="registration-photo-rules-warning">
+                Fotos fora dessas regras poderão ser recusadas, e o cadastro
+                ficará pendente até o envio de uma nova imagem.
+              </p>
             </div>
           </div>
 
@@ -487,30 +512,6 @@ export default function ProfilePhotosPage() {
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
-                <label
-                  htmlFor={`photo-rights-${index}`}
-                  className="registration-photo-consent"
-                >
-                  <Checkbox
-                    id={`photo-rights-${index}`}
-                    aria-invalid={!photo.rightsConfirmed}
-                    aria-describedby={!photo.rightsConfirmed ? `photo-rights-${index}-message` : undefined}
-                    checked={photo.rightsConfirmed}
-                    onCheckedChange={(checked) =>
-                      setPhotoRightsConfirmed(
-                        photo.previewUrl,
-                        checked === true,
-                      )
-                    }
-                    required
-                    className="mt-0.5 shrink-0"
-                  />
-                  <span>
-                    Confirmo que esta foto é minha ou que tenho autorização para
-                    utilizá-la.
-                  </span>
-                </label>
-                <FormFieldMessage id={`photo-rights-${index}`} message={issues[index + 1].message} />
               </div>
             ))}
 
@@ -551,15 +552,25 @@ export default function ProfilePhotosPage() {
           </div>
 
           {error && (
-            <p role="alert" className="registration-status-message registration-status-error">
+            <p
+              role="alert"
+              className="registration-status-message registration-status-error"
+            >
               {error}
             </p>
           )}
 
-          <FormProgress issues={issues} readyMessage="Você já pode revisar e concluir o cadastro." busyMessage={
-            isProcessingPhotos ? "Preparando suas fotos..." :
-            isLoadingReview ? "Preparando o resumo do cadastro..." : undefined
-          } />
+          <FormProgress
+            issues={issues}
+            readyMessage="Você já pode revisar e concluir o cadastro."
+            busyMessage={
+              isProcessingPhotos
+                ? "Preparando suas fotos..."
+                : isLoadingReview
+                  ? "Preparando o resumo do cadastro..."
+                  : undefined
+            }
+          />
           <div className="registration-form-actions">
             <Button
               type="button"
@@ -572,8 +583,7 @@ export default function ProfilePhotosPage() {
             <Button
               type="submit"
               disabled={
-                (photosRequired && !allPhotosConfirmed) ||
-                (!photosRequired && photos.length > 0 && !allPhotosConfirmed) ||
+                (photosRequired && photos.length === 0) ||
                 isProcessingPhotos ||
                 isLoadingReview ||
                 isSubmitting
@@ -666,14 +676,6 @@ export default function ProfilePhotosPage() {
                       label="Fotos"
                       value={`${photos.length} ${photos.length === 1 ? "foto" : "fotos"}`}
                     />
-                    <ReceiptItem
-                      label="Comunicações promocionais"
-                      value={
-                        registrationSummary.marketingConsent
-                          ? "Aceitas"
-                          : "Não aceitas"
-                      }
-                    />
                   </dl>
                 </section>
 
@@ -699,17 +701,15 @@ export default function ProfilePhotosPage() {
                       version={registrationPolicies.cookieVersion}
                     />
                   </div>
-                  <p className="registration-review-muted mt-3 text-xs leading-5">
-                    A ciência da Política de Cookies não altera sua escolha
-                    sobre cookies opcionais.
-                  </p>
                 </section>
               </div>
 
               <label className="registration-review-confirm flex cursor-pointer items-start gap-3">
                 <Checkbox
                   id="receipt-confirmed"
-                  aria-describedby={!receiptConfirmed ? "receipt-confirmed-message" : undefined}
+                  aria-describedby={
+                    !receiptConfirmed ? "receipt-confirmed-message" : undefined
+                  }
                   checked={receiptConfirmed}
                   onCheckedChange={(checked) => {
                     setReceiptConfirmed(checked === true);
@@ -722,7 +722,14 @@ export default function ProfilePhotosPage() {
                   cadastro.
                 </span>
               </label>
-              <FormFieldMessage id="receipt-confirmed" message={!receiptConfirmed ? "Confirme a revisão do resumo para finalizar." : undefined} />
+              <FormFieldMessage
+                id="receipt-confirmed"
+                message={
+                  !receiptConfirmed
+                    ? "Confirme a revisão do resumo para finalizar."
+                    : undefined
+                }
+              />
 
               {receiptError ? (
                 <p className="registration-review-error">{receiptError}</p>
@@ -760,7 +767,12 @@ function fileToDataUrl(file: File) {
     const reader = new FileReader();
 
     reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error("Não foi possível ler a foto."));
+    reader.onerror = () =>
+      reject(
+        new Error(
+          `Não foi possível preparar a foto “${file.name}”. Remova a imagem e selecione-a novamente.`,
+        ),
+      );
     reader.readAsDataURL(file);
   });
 }

@@ -1189,6 +1189,10 @@ html {
   box-shadow: none !important;
 }
 
+.registration-theme .registration-input.registration-input-with-icon {
+  padding-left: 2.75rem;
+}
+
 .registration-theme .registration-input:focus-visible {
   box-shadow: none !important;
   outline: 0 !important;
@@ -1822,7 +1826,7 @@ html {
   background: rgba(225, 189, 138, 0.035);
   padding: 0.85rem 1rem;
   color: #827c74;
-  font-size: 0.67rem;
+  font-size: 0.7rem;
   line-height: 1.6;
 }
 
@@ -1885,8 +1889,8 @@ html {
 
 .registration-photo-intro-grid {
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
-  gap: 0.9rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.7rem;
 }
 
 .registration-photo-specs,
@@ -1899,17 +1903,26 @@ html {
 
 .registration-photo-specs {
   display: grid;
-  align-content: center;
-  gap: 0.55rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  padding-block: 0.7rem;
   color: #a9a198;
-  font-size: 0.69rem;
+  font-size: 0.67rem;
   font-weight: 700;
 }
 
 .registration-photo-specs span {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
+  min-width: 0;
+  padding-inline: 0.75rem;
+  text-align: center;
+}
+
+.registration-photo-specs span + span {
+  border-left: 1px solid rgba(225, 189, 138, 0.12);
 }
 
 .registration-photo-specs span::before {
@@ -1923,8 +1936,103 @@ html {
 }
 
 .registration-photo-rules {
+  padding: 0.8rem;
   color: #888179;
   font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.registration-photo-rules-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  color: #e1bd8a;
+}
+
+.registration-photo-rules-heading h3 {
+  color: #f1e7d8;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.registration-photo-rules-heading p {
+  margin-top: 0.15rem;
+  color: #918a81;
+  font-size: 0.68rem;
+}
+
+.registration-photo-rules-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.35fr);
+  gap: 0.7rem;
+  margin-top: 0.7rem;
+}
+
+.registration-photo-rule-group {
+  border-radius: 0.7rem;
+  padding: 0.65rem 0.7rem;
+}
+
+.registration-photo-rule-group.is-accepted {
+  border: 1px solid rgba(116, 190, 145, 0.2);
+  background: rgba(116, 190, 145, 0.045);
+}
+
+.registration-photo-rule-group.is-rejected {
+  border: 1px solid rgba(240, 165, 179, 0.2);
+  background: rgba(240, 165, 179, 0.045);
+}
+
+.registration-photo-rule-group h4 {
+  color: #ddd3c6;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.registration-photo-rule-group ul {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 0.45rem;
+}
+
+.registration-photo-rule-group li {
+  position: relative;
+  padding-left: 1.15rem;
+  color: #aaa299;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.registration-photo-rule-group li::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-weight: 900;
+}
+
+.registration-photo-rule-group.is-accepted li::before {
+  content: "✓";
+  color: #74be91;
+}
+
+.registration-photo-rule-group.is-rejected li::before {
+  content: "×";
+  color: #f0a5b3;
+}
+
+.registration-photo-rules-warning {
+  margin-top: 0.65rem;
+  border-left: 2px solid rgba(225, 189, 138, 0.65);
+  padding: 0.15rem 0 0.15rem 0.65rem;
+  color: #c5b8a8;
+  font-size: 0.67rem;
+  font-weight: 700;
   line-height: 1.55;
 }
 
@@ -1968,21 +2076,6 @@ html {
   background: rgba(225, 189, 138, 0.06);
 }
 
-.registration-photo-consent {
-  display: flex;
-  cursor: pointer;
-  align-items: flex-start;
-  gap: 0.5rem;
-  border: 1px solid rgba(225, 189, 138, 0.12);
-  border-radius: 0.75rem;
-  background: rgba(5, 5, 4, 0.42);
-  padding: 0.65rem;
-  color: #a9a198;
-  font-size: 0.65rem;
-  font-weight: 600;
-  line-height: 1.45;
-}
-
 .registration-photo-progress {
   display: grid;
   gap: 0.5rem;
@@ -2010,6 +2103,114 @@ html {
   font-weight: 800;
 }
 
+.registration-standard-review-card {
+  border: 1px solid rgba(116, 190, 145, 0.24);
+  border-radius: 1rem;
+  background: linear-gradient(
+    145deg,
+    rgba(116, 190, 145, 0.075),
+    rgba(5, 5, 4, 0.35)
+  );
+  padding: 1rem;
+  color: #d8cfc2;
+}
+
+.registration-review-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.registration-review-card-icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 9999px;
+  background: rgba(116, 190, 145, 0.14);
+  color: #74be91;
+}
+
+.registration-review-free-badge {
+  display: inline-flex;
+  border: 1px solid rgba(116, 190, 145, 0.3);
+  border-radius: 9999px;
+  background: rgba(116, 190, 145, 0.08);
+  padding: 0.15rem 0.5rem;
+  color: #8fcea7;
+  font-size: 0.61rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.registration-review-card-heading h2 {
+  margin-top: 0.35rem;
+  color: #f4ecdf;
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.registration-standard-review-card > p {
+  margin-top: 0.8rem;
+  color: #aaa49b;
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.registration-standard-review-card > .registration-manual-review-note {
+  border-left: 2px solid rgba(225, 189, 138, 0.65);
+  background: rgba(225, 189, 138, 0.045);
+  padding: 0.55rem 0.7rem;
+  color: #bdb3a7;
+}
+
+.registration-manual-review-note strong {
+  color: #ead9bd;
+}
+
+.registration-review-access-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+  border-radius: 0.65rem;
+  background: rgba(0, 0, 0, 0.22);
+  padding: 0.65rem 0.75rem;
+  color: #cfc5b8;
+  font-size: 0.69rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.registration-review-access-note svg {
+  margin-top: 0.1rem;
+  color: #e1bd8a;
+}
+
+.registration-priority-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #817a71;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.registration-priority-divider::before,
+.registration-priority-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: rgba(225, 189, 138, 0.13);
+}
+
 .registration-priority-card {
   border: 1px solid rgba(225, 189, 138, 0.22);
   border-radius: 1rem;
@@ -2033,6 +2234,77 @@ html {
   border-radius: 9999px;
   background: #e1bd8a;
   color: #090806;
+}
+
+.registration-priority-label-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.registration-priority-label-row p {
+  color: #e1bd8a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.registration-priority-label-row span {
+  border: 1px solid rgba(225, 189, 138, 0.35);
+  border-radius: 9999px;
+  background: rgba(225, 189, 138, 0.09);
+  padding: 0.13rem 0.45rem;
+  color: #f0d2a2;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.registration-priority-conditions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin-top: 0.9rem;
+}
+
+.registration-priority-conditions span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 0;
+  border: 1px solid rgba(225, 189, 138, 0.12);
+  border-radius: 0.55rem;
+  background: rgba(0, 0, 0, 0.16);
+  padding: 0.5rem;
+  color: #bcb2a6;
+  font-size: 0.61rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.registration-priority-conditions svg {
+  flex: 0 0 auto;
+  color: #e1bd8a;
+}
+
+.registration-pending-login-action {
+  display: grid;
+  gap: 0.7rem;
+  justify-items: center;
+}
+
+.registration-pending-login-action p {
+  max-width: 30rem;
+  color: #8f887f;
+  font-size: 0.69rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
 }
 
 [data-slot="dialog-content"].registration-dialog {
@@ -2269,10 +2541,6 @@ body:has([data-slot="dialog-content"].registration-dialog)
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.85rem 1rem;
   padding: 1rem;
-}
-
-.registration-receipt-item:last-child {
-  grid-column: 1 / -1;
 }
 
 .registration-receipt-item dt {
@@ -2536,6 +2804,34 @@ body:has([data-slot="dialog-content"].registration-dialog)
 
   .registration-photo-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .registration-photo-specs,
+  .registration-photo-rules-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .registration-photo-specs {
+    gap: 0.4rem;
+  }
+
+  .registration-photo-specs span {
+    justify-content: flex-start;
+    padding-inline: 0;
+    text-align: left;
+  }
+
+  .registration-photo-specs span + span {
+    border-left: 0;
+  }
+
+  .registration-priority-conditions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .registration-priority-conditions span {
+    justify-content: flex-start;
+    text-align: left;
   }
 
   .registration-contact-grid {

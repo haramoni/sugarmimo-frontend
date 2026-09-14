@@ -14,29 +14,62 @@ export const PHOTO_INPUT_ACCEPT =
   ".jpg,.jpeg,.jpe,.jfif,.png,.webp,.avif,.heic,.heif,image/jpeg,image/pjpeg,image/png,image/x-png,image/webp,image/avif,image/heic,image/heif,image/heic-sequence,image/heif-sequence";
 
 export async function normalizeMobilePhoto(file: File) {
-  if (isHeicPhoto(file)) {
-    const { default: heic2any } = await import("heic2any");
-    const converted = await heic2any({
-      blob: file,
-      toType: "image/jpeg",
-      quality: 0.95,
-    });
-    const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+  const stableFile = await copyPhotoWhileAccessible(file);
 
-    return new File([jpegBlob], replaceFileExtension(file.name, ".jpg"), {
-      type: "image/jpeg",
-      lastModified: file.lastModified,
-    });
+  if (isHeicPhoto(stableFile)) {
+    try {
+      const { default: heic2any } = await import("heic2any");
+      const converted = await heic2any({
+        blob: stableFile,
+        toType: "image/jpeg",
+        quality: 0.95,
+      });
+      const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+
+      return new File(
+        [jpegBlob],
+        replaceFileExtension(stableFile.name, ".jpg"),
+        {
+          type: "image/jpeg",
+          lastModified: stableFile.lastModified,
+        },
+      );
+    } catch {
+      throw new Error(
+        "Não foi possível converter uma foto HEIC/HEIF. Tente escolher outra imagem ou exportá-la como JPEG.",
+      );
+    }
   }
 
-  const inferredType = inferSupportedPhotoType(file);
+  const inferredType = inferSupportedPhotoType(stableFile);
 
-  return inferredType && inferredType !== file.type
-    ? new File([file], file.name, {
+  return inferredType && inferredType !== stableFile.type
+    ? new File([stableFile], stableFile.name, {
         type: inferredType,
-        lastModified: file.lastModified,
+        lastModified: stableFile.lastModified,
       })
-    : file;
+    : stableFile;
+}
+
+async function copyPhotoWhileAccessible(file: File) {
+  try {
+    const contents = await file.arrayBuffer();
+
+    if (contents.byteLength === 0) {
+      throw new Error("empty-photo");
+    }
+
+    // Some Android document providers expose a temporary file reference. Keep
+    // an app-owned Blob copy so it remains readable after the picker closes.
+    return new File([contents], file.name || "foto", {
+      type: file.type,
+      lastModified: file.lastModified,
+    });
+  } catch {
+    throw new Error(
+      `Não foi possível acessar a foto “${file.name || "selecionada"}”. Salve a imagem na galeria e tente novamente.`,
+    );
+  }
 }
 
 function isHeicPhoto(file: File) {

@@ -76,7 +76,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-[var(--background)] text-[var(--foreground)]">
         <AuthProvider>{children}</AuthProvider>
-        <AgeConfirmationDialog />
+        {/* <AgeConfirmationDialog /> */}
         <CookieConsentBanner />
       </body>
     </html>
