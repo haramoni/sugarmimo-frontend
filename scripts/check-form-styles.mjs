@@ -13,7 +13,7 @@ async function getText(url, contentType) {
   return response.text();
 }
 
-async function checkRoute(route) {
+async function getRouteWithCss(route) {
   const html = origin
     ? await getText(new URL(route, origin), "text/html")
     : await readFile(resolve(root, `.next/server/app${route}.html`), "utf8");
@@ -32,6 +32,12 @@ async function checkRoute(route) {
     return readFile(file, "utf8");
   }))).join("\n");
 
+  return { html, css, linkCount: links.length };
+}
+
+async function checkRoute(route) {
+  const { html, css, linkCount } = await getRouteWithCss(route);
+
   for (const marker of ["message", "progress"]) {
     const tags = [...html.matchAll(/<[^>]+>/g)]
       .map(([tag]) => tag)
@@ -44,12 +50,38 @@ async function checkRoute(route) {
       }
     }
   }
-  console.log(`CSS de ${route}: OK (${links.length} arquivos vinculados).`);
+  console.log(`CSS de ${route}: OK (${linkCount} arquivos vinculados).`);
+}
+
+async function checkSelectors(route, selectors) {
+  const { css, linkCount } = await getRouteWithCss(route);
+
+  for (const selector of selectors) {
+    if (!css.includes(selector)) {
+      throw new Error(
+        `${route}: seletor ${selector} ausente do CSS servido. Limpe a pasta .next e gere o build novamente.`,
+      );
+    }
+  }
+
+  console.log(
+    `CSS específico de ${route}: OK (${linkCount} arquivos vinculados).`,
+  );
 }
 
 try {
   await checkRoute("/login");
   await checkRoute("/register");
+  await checkSelectors("/register/profile-photos", [
+    ".registration-photo-rules-heading",
+    ".registration-photo-rules-columns",
+    ".registration-photo-rule-group",
+  ]);
+  await checkSelectors("/register/pending-approval", [
+    ".registration-standard-review-card",
+    ".registration-priority-conditions",
+    ".registration-manual-review-note",
+  ]);
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;
