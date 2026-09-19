@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
+import { site } from "@/lib/site";
+import { InstagramIcon } from "./InstagramIcon";
 
 const footerGroups = [
   {
@@ -118,6 +120,15 @@ export function SiteFooter() {
           </div>
 
           <div className="grid gap-2 text-[#969189]">
+            <a
+              href={site.instagramUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-3 transition hover:text-[#e1bd8a]"
+            >
+              <InstagramIcon className="h-4 w-4 text-[#e1bd8a]" />
+              {site.instagramHandle}
+            </a>
             <a
               href="mailto:contato@sugarmimo.com"
               className="flex items-center gap-3 transition hover:text-[#e1bd8a]"

@@ -15,6 +15,7 @@ import { LandingMotion } from "./components/LandingMotion";
 import WhatsappBubble from "@/components/whatsapp-bubble";
 import { absoluteUrl, site } from "@/lib/site";
 import { GuideLinks } from "./components/seo/GuideLinks";
+import { InstagramIcon } from "./components/ui/InstagramIcon";
 
 export const metadata: Metadata = {
   title: "SugarMimo | Sugar Baby, Sugar Daddy e Relacionamento Sugar",
@@ -188,6 +189,7 @@ export default function Home() {
         description: site.description,
         email: site.email,
         telephone: site.telephone,
+        sameAs: [site.instagramUrl],
         contactPoint: [
           {
             "@type": "ContactPoint",
@@ -248,6 +250,31 @@ export default function Home() {
       />
       <LandingMotion />
       <NavBarMenu />
+
+      <aside
+        aria-label="Novo Instagram oficial da SugarMimo"
+        className="fixed inset-x-0 top-[72px] z-40 border-b border-[#f5d5a3]/25 bg-[linear-gradient(90deg,rgba(83,23,62,0.97),rgba(151,36,85,0.97),rgba(111,45,90,0.97))] px-4 py-2.5 text-white shadow-[0_12px_35px_rgba(0,0,0,0.28)] backdrop-blur-xl"
+      >
+        <div className="mx-auto flex max-w-7xl items-center justify-center gap-2.5 text-center sm:gap-3">
+          <InstagramIcon className="h-5 w-5 shrink-0" />
+          <p className="min-w-0 text-xs font-semibold leading-4 sm:text-sm sm:font-normal sm:leading-5">
+            <span className="sm:hidden">Estamos de perfil novo no Instagram!</span>
+            <span className="hidden sm:inline">
+              <strong className="font-semibold">Nosso Instagram mudou.</strong>{" "}
+              Ajude a comunidade SugarMimo a se reencontrar.
+            </span>
+          </p>
+          <a
+            href={site.instagramUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 rounded-full border border-white/55 bg-white/10 px-3 py-1.5 text-[0.62rem] font-bold uppercase tracking-[0.11em] transition hover:bg-white hover:text-[#651c4f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-4 sm:py-1 sm:text-xs sm:tracking-[0.12em]"
+          >
+            <span className="sm:hidden">Seguir agora</span>
+            <span className="hidden sm:inline">Seguir {site.instagramHandle}</span>
+          </a>
+        </div>
+      </aside>
 
       <section
         id="topo"

@@ -10,6 +10,8 @@ export const site = {
   privacyEmail: "privacidade@sugarmimo.com",
   reportEmail: "denuncia@sugarmimo.com",
   telephone: "+55 11 99775-2731",
+  instagramHandle: "@aliciasugarmimo",
+  instagramUrl: "https://www.instagram.com/aliciasugarmimo/",
   locale: "pt_BR",
   language: "pt-BR",
 } as const;
