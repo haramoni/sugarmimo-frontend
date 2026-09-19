@@ -3,32 +3,15 @@
 import Link from "next/link";
 import { Cookie, ShieldCheck } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
+import { CONSENT_COOKIE, CONSENT_VERSION, CONSENT_EVENT, readConsent, subscribeToConsent } from "@/lib/cookie-consent";
 
-const CONSENT_COOKIE = "sugarmimo_cookie_consent";
-const CONSENT_VERSION = "v1";
 const CONSENT_MAX_AGE_SECONDS = 60 * 60 * 24 * 180;
 
 type ConsentChoice = "accepted" | "rejected";
 
-function subscribeToConsent(callback: () => void) {
-  window.addEventListener("sugarmimo-cookie-consent", callback);
-  return () => window.removeEventListener("sugarmimo-cookie-consent", callback);
-}
-
 function hasSavedChoice() {
-  const expectedValues = [
-    `${CONSENT_VERSION}.accepted`,
-    `${CONSENT_VERSION}.rejected`,
-  ];
-  const savedValue = document.cookie
-    .split("; ")
-    .find((cookie) => cookie.startsWith(`${CONSENT_COOKIE}=`))
-    ?.split("=")
-    .slice(1)
-    .join("=");
-
-  return savedValue ? expectedValues.includes(decodeURIComponent(savedValue)) : false;
+  return readConsent() !== null;
 }
 
 function saveChoice(choice: ConsentChoice) {
@@ -39,12 +22,14 @@ function saveChoice(choice: ConsentChoice) {
   )}; Max-Age=${CONSENT_MAX_AGE_SECONDS}; Path=/; SameSite=Lax${secure}`;
 
   window.dispatchEvent(
-    new CustomEvent("sugarmimo-cookie-consent", { detail: { choice } }),
+    new CustomEvent(CONSENT_EVENT, { detail: { choice } }),
   );
+  if (choice === "rejected") void fetch("/api/metrics", { method: "DELETE" }).catch(() => undefined);
 }
 
 export function CookieConsentBanner() {
   const pathname = usePathname();
+  const [editing, setEditing] = useState(false);
   const isVisible = useSyncExternalStore(
     subscribeToConsent,
     () => !hasSavedChoice(),
@@ -53,9 +38,17 @@ export function CookieConsentBanner() {
 
   function handleChoice(choice: ConsentChoice) {
     saveChoice(choice);
+    setEditing(false);
   }
 
-  if (!isVisible || pathname === "/manutencao") return null;
+  if (pathname === "/manutencao" || pathname.startsWith("/admin")) return null;
+  if (!isVisible && !editing) {
+    return pathname === "/privacy" ? (
+      <button type="button" onClick={() => setEditing(true)} className="fixed bottom-4 left-4 z-[100] rounded-lg border border-gold/30 bg-white px-4 py-3 text-sm font-bold text-espresso shadow-lg">
+        Preferências de cookies
+      </button>
+    ) : null;
+  }
 
   return (
     <section
@@ -85,11 +78,12 @@ export function CookieConsentBanner() {
             id="cookie-consent-description"
             className="max-w-3xl text-xs font-medium leading-5 text-black-jewel/68 sm:text-sm sm:leading-6"
           >
-            Usamos cookies essenciais para autenticação e segurança. No momento,
-            não utilizamos cookies publicitários ou analíticos. Você pode aceitar
-            o uso descrito ou recusar cookies opcionais. Saiba mais na{" "}
+            Usamos cookies essenciais para autenticação e segurança. Com sua autorização,
+            usamos cookies de análise para contar visitas e cliques nos principais links,
+            sem registrar o conteúdo das conversas ou dos formulários. Você pode recusar
+            ou mudar sua escolha na página de privacidade. Saiba mais na{" "}
             <Link
-              href="/privacy#pagina-8"
+              href="/privacy#metricas"
               className="font-extrabold text-emerald underline decoration-emerald/35 underline-offset-3 transition hover:text-cognac"
             >
               Política de Privacidade

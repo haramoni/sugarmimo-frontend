@@ -25,6 +25,20 @@ export async function GET(request: Request) {
   const country = searchParams.get("country")?.trim();
   const state = searchParams.get("state")?.trim();
   const city = searchParams.get("city")?.trim();
+  const advancedFilterKeys = [
+    "bodyType",
+    "ethnicity",
+    "hairColor",
+    "eyeColor",
+    "minHeight",
+    "maxHeight",
+    "smoke",
+    "drink",
+    "relationship",
+    "children",
+    "education",
+    "occupation",
+  ] as const;
   const backendParams = new URLSearchParams();
 
   backendParams.set("page", page);
@@ -76,6 +90,13 @@ export async function GET(request: Request) {
 
   if (city) {
     backendParams.set("city", city);
+  }
+
+  for (const key of advancedFilterKeys) {
+    const value = searchParams.get(key)?.trim();
+    if (value) {
+      backendParams.set(key, value);
+    }
   }
 
   const response = await fetch(

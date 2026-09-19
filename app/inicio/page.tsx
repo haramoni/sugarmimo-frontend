@@ -321,9 +321,6 @@ export default function InicioPage() {
                 <Activity className="h-6 w-6" />
               </span>
               <div>
-                <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-luxury-gold">
-                  Comunidade ativa
-                </p>
                 <h1 className="mt-1 font-serif text-3xl font-semibold text-luxury-champagne sm:text-4xl">
                   {targetLabel}
                 </h1>

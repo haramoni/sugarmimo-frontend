@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ChartNoAxesCombined,
   ClipboardList,
   Crown,
   Flag,
@@ -41,6 +42,7 @@ const navigation = [
     label: "Logs de atividade",
     icon: ClipboardList,
   },
+  { href: "/admin/metrics", label: "Métricas", icon: ChartNoAxesCombined },
 ];
 
 export function AdminSidebar({ children }: { children: ReactNode }) {

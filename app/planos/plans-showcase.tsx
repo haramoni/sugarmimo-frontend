@@ -156,26 +156,6 @@ export function PlansShowcase() {
 
   return (
     <div className={styles.pageShell}>
-      <section className={styles.hero} aria-labelledby="plans-title">
-        <div className={styles.heroGlow} aria-hidden="true" />
-        <div className={styles.heroContent}>
-          <div className={styles.kicker}>
-            <span />
-            <Sparkles aria-hidden="true" />
-            Clube SugarMimo
-            <span />
-          </div>
-
-          <h1 id="plans-title">
-            Planos de <em>assinatura</em>
-          </h1>
-          <p className={styles.heroText}>
-            Compare todos os valores, escolha seu nível de destaque e selecione
-            o período ideal para você.
-          </p>
-        </div>
-      </section>
-
       <section
         className={styles.pricingSection}
         aria-labelledby="pricing-title"
@@ -359,9 +339,7 @@ export function PlansShowcase() {
                         aria-pressed={isSelected}
                         className={`${styles.priceCell} ${styles[plan.id]} ${
                           price.originalTotal ? styles.promotion : ""
-                        } ${
-                          isSelected ? styles.selected : ""
-                        }`}
+                        } ${isSelected ? styles.selected : ""}`}
                         aria-label={`Escolher plano ${plan.name} ${cycle.label.toLowerCase()} por R$ ${price.total}`}
                         data-checkout-href={`/checkout/assinatura?plano=${plan.id}&periodo=${cycle.id}`}
                         onClick={() =>

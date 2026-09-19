@@ -33,6 +33,10 @@ import LocationFilter, {
   type LocationFilterValue,
   type SearchCoordinates,
 } from "./components/LocationFilter";
+import AdvancedProfileFilters, {
+  type AdvancedProfileFilterValue,
+  EMPTY_ADVANCED_PROFILE_FILTERS,
+} from "./components/AdvancedProfileFilters";
 import type { PublicProfile, PublicProfilePage } from "./types";
 import {
   getRelationshipIntentLabel,
@@ -91,6 +95,8 @@ type SavedSearchState = {
   maxAge: string;
   gender: string;
   relationshipMode: RelationshipMode;
+  advancedDraft: AdvancedProfileFilterValue;
+  advancedFilters: AdvancedProfileFilterValue;
   locationDraft: LocationFilterValue;
   locationFilter: LocationFilterValue;
   page: number;
@@ -114,6 +120,14 @@ export default function BuscarPage() {
   const [gender, setGender] = useState("");
   const [relationshipMode, setRelationshipMode] =
     useState<RelationshipMode>("COMPATIBLE");
+  const [advancedDraft, setAdvancedDraft] =
+    useState<AdvancedProfileFilterValue>({
+      ...EMPTY_ADVANCED_PROFILE_FILTERS,
+    });
+  const [advancedFilters, setAdvancedFilters] =
+    useState<AdvancedProfileFilterValue>({
+      ...EMPTY_ADVANCED_PROFILE_FILTERS,
+    });
   const [locationDraft, setLocationDraft] = useState<LocationFilterValue>({
     ...DEFAULT_LOCATION_FILTER,
   });
@@ -171,6 +185,11 @@ export default function BuscarPage() {
       : user?.lookingFor?.trim().toLowerCase() === "men"
         ? "Sugar Daddies ativos"
         : "Sugar Daddies e Mommies ativos";
+  const targetProfileType = isDaddy
+    ? compatibleGenderDraft || "sugar-baby-woman"
+    : user?.lookingFor?.trim().toLowerCase() === "women"
+      ? "sugar-daddy-woman"
+      : "sugar-daddy-man";
   const targetLabel =
     relationshipMode === "TRADITIONAL"
       ? "Conexões tradicionais"
@@ -196,6 +215,8 @@ export default function BuscarPage() {
         setMaxAge(savedState.maxAge);
         setGender(savedState.gender);
         setRelationshipMode(savedState.relationshipMode);
+        setAdvancedDraft(savedState.advancedDraft);
+        setAdvancedFilters(savedState.advancedFilters);
         setLocationDraft(savedState.locationDraft);
         setLocationFilter(savedState.locationFilter);
         setPage(savedState.page);
@@ -233,6 +254,8 @@ export default function BuscarPage() {
         maxAge,
         gender: compatibleGender,
         relationshipMode,
+        advancedDraft,
+        advancedFilters,
         locationDraft,
         locationFilter,
         page,
@@ -254,6 +277,8 @@ export default function BuscarPage() {
     genderDraft,
     compatibleGender,
     compatibleGenderDraft,
+    advancedDraft,
+    advancedFilters,
     relationshipMode,
     locationDraft,
     locationFilter,
@@ -390,6 +415,7 @@ export default function BuscarPage() {
             maxAge,
             gender: isDaddy ? compatibleGender : "",
             relationshipMode,
+            advanced: advancedFilters,
             coordinates,
             location: locationFilter,
           },
@@ -441,6 +467,7 @@ export default function BuscarPage() {
     return () => controller.abort();
   }, [
     canSearch,
+    advancedFilters,
     compatibleGender,
     coordinates,
     gender,
@@ -493,9 +520,15 @@ export default function BuscarPage() {
     }
 
     if (
-      locationDraft.mode === "OTHER" &&
-      !locationDraft.stateCode
+      advancedDraft.minHeight &&
+      advancedDraft.maxHeight &&
+      Number(advancedDraft.minHeight) > Number(advancedDraft.maxHeight)
     ) {
+      setError("A altura mínima não pode ser maior que a altura máxima.");
+      return;
+    }
+
+    if (locationDraft.mode === "OTHER" && !locationDraft.stateCode) {
       setError("Escolha ao menos o estado para buscar em outra localidade.");
       return;
     }
@@ -509,6 +542,7 @@ export default function BuscarPage() {
     setMinAge(nextMinAge);
     setMaxAge(nextMaxAge);
     setGender(compatibleGenderDraft);
+    setAdvancedFilters({ ...advancedDraft });
     setLocationFilter({ ...locationDraft });
   }
 
@@ -528,6 +562,7 @@ export default function BuscarPage() {
         maxAge,
         gender: isDaddy ? compatibleGender : "",
         relationshipMode,
+        advanced: advancedFilters,
         coordinates,
         location: locationFilter,
       });
@@ -553,6 +588,7 @@ export default function BuscarPage() {
     }
   }, [
     compatibleGender,
+    advancedFilters,
     coordinates,
     hasMore,
     isLoading,
@@ -631,6 +667,28 @@ export default function BuscarPage() {
 
               <form className="mt-5 space-y-3" onSubmit={handleSubmit}>
                 <div className="space-y-2">
+                  <label className="block text-sm font-bold text-luxury-ivory">
+                    Procurar:
+                  </label>
+                  <div className="flex min-w-0 gap-2">
+                    <Input
+                      value={searchDraft}
+                      onChange={(event) => setSearchDraft(event.target.value)}
+                      placeholder="Ex: Sao Paulo"
+                      className="h-11 min-w-0 rounded-md border-luxury-gold/40 bg-luxury-black/72 text-luxury-ivory placeholder:text-luxury-muted/65 focus-visible:border-luxury-champagne focus-visible:ring-luxury-gold/20"
+                    />
+                    <Button
+                      type="submit"
+                      size="icon"
+                      disabled={!isLocationDraftValid}
+                      aria-label="Buscar perfis"
+                      className="h-11 w-11 shrink-0 rounded-md border border-luxury-gold/60 bg-luxury-black text-luxury-champagne hover:bg-luxury-gold hover:text-luxury-ink"
+                    >
+                      <Search className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <label
                     htmlFor="relationship-mode"
                     className="block text-sm font-bold text-luxury-ivory"
@@ -664,7 +722,7 @@ export default function BuscarPage() {
                           value="COMPATIBLE"
                           className="rounded-md text-luxury-ivory focus:bg-luxury-gold/18 focus:text-luxury-champagne data-[state=checked]:text-luxury-champagne"
                         >
-                          Sugar e tradicional
+                          Sugar e Tradicional
                         </SelectItem>
                         <SelectItem
                           value="SUGAR"
@@ -676,7 +734,7 @@ export default function BuscarPage() {
                           value="TRADITIONAL"
                           className="rounded-md text-luxury-ivory focus:bg-luxury-gold/18 focus:text-luxury-champagne data-[state=checked]:text-luxury-champagne"
                         >
-                          Somente tradicional
+                          Somente Tradicional
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -686,47 +744,6 @@ export default function BuscarPage() {
                     </div>
                   )}
                 </div>
-
-                <label className="block text-sm font-bold text-luxury-ivory">
-                  Nome, cidade ou estado
-                </label>
-                <div className="flex min-w-0 gap-2">
-                  <Input
-                    value={searchDraft}
-                    onChange={(event) => setSearchDraft(event.target.value)}
-                    placeholder="Ex: Sao Paulo"
-                    className="h-11 min-w-0 rounded-md border-luxury-gold/40 bg-luxury-black/72 text-luxury-ivory placeholder:text-luxury-muted/65 focus-visible:border-luxury-champagne focus-visible:ring-luxury-gold/20"
-                  />
-                  <Button
-                    type="submit"
-                    size="icon"
-                    disabled={!isLocationDraftValid}
-                    aria-label="Buscar perfis"
-                    className="h-11 w-11 shrink-0 rounded-md border border-luxury-gold/60 bg-luxury-black text-luxury-champagne hover:bg-luxury-gold hover:text-luxury-ink"
-                  >
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-bold text-luxury-ivory">
-                    Faixa etária
-                  </label>
-                  <AgeRangeFilter
-                    minAge={minAgeDraft}
-                    maxAge={maxAgeDraft}
-                    onMinAgeChange={setMinAgeDraft}
-                    onMaxAgeChange={setMaxAgeDraft}
-                  />
-                </div>
-
-                <LocationFilter
-                  value={locationDraft}
-                  onChange={setLocationDraft}
-                  locationStatus={locationStatus}
-                  onRetryLocation={requestLocation}
-                />
-
                 {isDaddy ? (
                   <div className="space-y-2">
                     <label
@@ -766,6 +783,31 @@ export default function BuscarPage() {
                     </Select>
                   </div>
                 ) : null}
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-luxury-ivory">
+                    Faixa etária
+                  </label>
+                  <AgeRangeFilter
+                    minAge={minAgeDraft}
+                    maxAge={maxAgeDraft}
+                    onMinAgeChange={setMinAgeDraft}
+                    onMaxAgeChange={setMaxAgeDraft}
+                  />
+                </div>
+
+                <LocationFilter
+                  value={locationDraft}
+                  onChange={setLocationDraft}
+                  locationStatus={locationStatus}
+                  onRetryLocation={requestLocation}
+                />
+
+                <AdvancedProfileFilters
+                  value={advancedDraft}
+                  onChange={setAdvancedDraft}
+                  targetProfileType={targetProfileType}
+                />
 
                 <Button
                   type="submit"
@@ -828,6 +870,8 @@ export default function BuscarPage() {
                             maxAge,
                             gender: compatibleGender,
                             relationshipMode,
+                            advancedDraft,
+                            advancedFilters,
                             locationDraft,
                             locationFilter,
                             page,
@@ -887,6 +931,7 @@ async function fetchMatchPage(
     maxAge: string;
     gender: string;
     relationshipMode: RelationshipMode;
+    advanced: AdvancedProfileFilterValue;
     coordinates: SearchCoordinates | null;
     location: LocationFilterValue;
   },
@@ -914,6 +959,11 @@ async function fetchMatchPage(
   }
 
   params.set("relationshipMode", filters.relationshipMode);
+  for (const [key, value] of Object.entries(filters.advanced)) {
+    if (value) {
+      params.set(key, value);
+    }
+  }
   params.set("locationMode", filters.location.mode);
   if (
     filters.location.mode === "NEARBY" ||
@@ -984,6 +1034,8 @@ function readSavedSearchState(): SavedSearchState | null {
         parsed.relationshipMode === "TRADITIONAL"
           ? parsed.relationshipMode
           : "COMPATIBLE",
+      advancedDraft: normalizeSavedAdvancedFilters(parsed.advancedDraft),
+      advancedFilters: normalizeSavedAdvancedFilters(parsed.advancedFilters),
       locationDraft: normalizeSavedLocationFilter(parsed.locationDraft),
       locationFilter: normalizeSavedLocationFilter(parsed.locationFilter),
       page: Number(parsed.page),
@@ -1001,6 +1053,24 @@ function readSavedSearchState(): SavedSearchState | null {
   } catch {
     return null;
   }
+}
+
+function normalizeSavedAdvancedFilters(
+  value: unknown,
+): AdvancedProfileFilterValue {
+  if (!value || typeof value !== "object") {
+    return { ...EMPTY_ADVANCED_PROFILE_FILTERS };
+  }
+
+  const candidate = value as Partial<AdvancedProfileFilterValue>;
+  return Object.fromEntries(
+    Object.keys(EMPTY_ADVANCED_PROFILE_FILTERS).map((key) => [
+      key,
+      typeof candidate[key as keyof AdvancedProfileFilterValue] === "string"
+        ? candidate[key as keyof AdvancedProfileFilterValue]
+        : "",
+    ]),
+  ) as AdvancedProfileFilterValue;
 }
 
 function normalizeSavedLocationFilter(value: unknown): LocationFilterValue {

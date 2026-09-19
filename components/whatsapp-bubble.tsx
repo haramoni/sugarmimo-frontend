@@ -141,6 +141,7 @@ export default function WhatsappBubble() {
     <a
       ref={bubbleRef}
       href={whatsappUrl}
+      data-metric-action="whatsapp_support"
       target="_blank"
       rel="noreferrer"
       aria-label="Conversar com a SugarMimo pelo WhatsApp"

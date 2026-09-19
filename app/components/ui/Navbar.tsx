@@ -163,7 +163,7 @@ export function Navbar() {
           />
         </Link>
 
-        <div className="order-3 col-span-2 flex w-full justify-center gap-1 overflow-x-auto rounded-full border border-[#b98a38]/60 bg-[#050504]/96 p-1 text-xs font-bold text-[#aaa39a] shadow-[0_16px_42px_rgba(0,0,0,0.3),inset_0_0_0_1px_rgba(225,189,138,0.03)] backdrop-blur-2xl sm:justify-center sm:gap-1.5 sm:p-1.5 sm:text-sm xl:order-none xl:col-span-1 xl:w-auto">
+        <div className="text-2xl order-3 col-span-2 flex w-full justify-center gap-1 overflow-x-auto rounded-full border border-[#b98a38]/60 bg-[#050504]/96 p-1 font-bold text-[#aaa39a] shadow-[0_16px_42px_rgba(0,0,0,0.3),inset_0_0_0_1px_rgba(225,189,138,0.03)] backdrop-blur-2xl sm:justify-center sm:gap-1.5 sm:p-1.5 sm:text-sm xl:order-none xl:col-span-1 xl:w-auto">
           {loggedMenuItems.map((item) => {
             const active = isActivePath(pathname, item.href);
             const isPlansCallout = item.href === "/planos";
@@ -182,9 +182,9 @@ export function Navbar() {
                       ? active
                         ? "border border-[#f3d58e] bg-[linear-gradient(180deg,rgba(185,138,56,0.42),rgba(78,47,17,0.82))] text-[#ffe29b] shadow-[0_0_20px_rgba(225,189,138,0.4),0_8px_20px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,241,202,0.2)]"
                         : "border border-[#b98a38]/65 bg-[linear-gradient(180deg,rgba(185,138,56,0.22),rgba(63,39,15,0.64))] text-[#e7c579] shadow-[0_0_14px_rgba(213,166,78,0.2),inset_0_1px_0_rgba(255,237,191,0.12)] hover:-translate-y-0.5 hover:border-[#e7c579] hover:bg-[#b98a38]/28 hover:text-[#ffe4a1]"
-                    : active
-                      ? "bg-[linear-gradient(180deg,#f8dda0_0%,#dfb767_58%,#c9923d_100%)] text-[#1a1209] shadow-[0_0_18px_rgba(225,189,138,0.58),0_8px_20px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,249,224,0.72)]"
-                      : "hover:bg-[#b98a38]/12 hover:text-[#e7c579]",
+                      : active
+                        ? "bg-[linear-gradient(180deg,#f8dda0_0%,#dfb767_58%,#c9923d_100%)] text-[#1a1209] shadow-[0_0_18px_rgba(225,189,138,0.58),0_8px_20px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,249,224,0.72)]"
+                        : "hover:bg-[#b98a38]/12 hover:text-[#e7c579]",
                 ].join(" ")}
               >
                 <span className="relative z-10">{item.label}</span>

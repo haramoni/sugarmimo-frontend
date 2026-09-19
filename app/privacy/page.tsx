@@ -72,6 +72,12 @@ export default function PrivacyPage() {
         </aside>
 
         <article className={styles.document} aria-label="Texto integral da política">
+          <section id="metricas" className={styles.documentPage} aria-label="Medição de uso e cookies de análise">
+            <h2 className="mb-4 text-xl font-bold">Medição de uso e cookies de análise</h2>
+            <p className="mb-4 leading-7">Ao aceitar os cookies opcionais, você permite que a SugarMimo conte visitas e cliques nos links de cadastro, entrada, planos, pagamento e atendimento. A medição usa categorias de página e de origem do acesso, sem guardar endereços completos, buscas, dados de formulários, conteúdo de mensagens ou identificadores dos perfis visitados.</p>
+            <p className="mb-4 leading-7">Os cookies de análise identificam um navegador por até 90 dias desde a última atividade e uma sessão por 30 minutos de inatividade. Esses identificadores não são associados à sua conta. Os dados ficam na infraestrutura da SugarMimo e os relatórios administrativos apresentam resultados agregados.</p>
+            <p className="leading-7">Você pode recusar os cookies opcionais e continuar usando o site. Use o botão “Preferências de cookies” nesta página para mudar sua escolha. Ao recusar, a coleta de análise para e seus cookies de análise são removidos. Os registros operacionais de cadastro, segurança e pagamento são independentes dessa escolha.</p>
+          </section>
           {policyPages.map((pageText, index) => (
             <section
               key={index}

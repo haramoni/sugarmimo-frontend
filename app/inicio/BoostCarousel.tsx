@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Activity,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-  Sparkles,
-  Zap,
-} from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ProfileCard from "../buscar/components/ProfileCard";
 import type { PublicProfilePage } from "../buscar/types";
@@ -52,105 +45,109 @@ export default function BoostCarousel({ viewerId }: { viewerId: string }) {
   }
 
   return (
-    <section
-      aria-labelledby="boost-title"
-      aria-roledescription="carrossel"
-      className="mb-9 border-b border-luxury-gold/30 pb-8"
-    >
-      <div className="mb-5 flex items-center justify-between gap-4 flex-col">
-        <div className="relative mb-7 min-w-full">
-          <header className="relative overflow-hidden rounded-xl border border-luxury-gold/65 bg-[linear-gradient(135deg,var(--luxury-surface-raised)_0%,var(--luxury-night)_58%,var(--luxury-surface)_100%)] p-5 pr-16 shadow-[0_0_24px_rgba(213,166,78,0.13),0_24px_64px_rgba(0,0,0,0.34)] sm:p-7 sm:pr-20">
-            <div
-              aria-hidden="true"
-              className="absolute -right-8 top-0 h-full w-52 bg-[radial-gradient(circle_at_center,color-mix(in_srgb,var(--luxury-gold)_18%,transparent),transparent_62%)] opacity-60"
-            />
+    <>
+      {result?.items.length ? (
+        <section
+          aria-labelledby="boost-title"
+          aria-roledescription="carrossel"
+          className="mb-8 border-b border-luxury-gold/30 pb-7"
+        >
+          <div className="mb-4">
+            <div className="relative min-w-full">
+              <header className="relative overflow-hidden rounded-xl border border-luxury-gold/65 bg-[linear-gradient(135deg,var(--luxury-surface-raised)_0%,var(--luxury-night)_58%,var(--luxury-surface)_100%)] px-4 py-3.5 pr-14 shadow-[0_0_20px_rgba(213,166,78,0.11),0_16px_40px_rgba(0,0,0,0.28)] sm:px-5 sm:py-4 sm:pr-20">
+                <div
+                  aria-hidden="true"
+                  className="absolute -right-8 top-0 h-full w-44 bg-[radial-gradient(circle_at_center,color-mix(in_srgb,var(--luxury-gold)_18%,transparent),transparent_62%)] opacity-50"
+                />
 
-            <div className="relative flex items-start gap-4 sm:gap-5">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-luxury-champagne/80 bg-[linear-gradient(145deg,var(--luxury-gold),var(--luxury-gold-deep))] text-luxury-ivory shadow-[0_0_24px_rgba(213,166,78,0.38)] sm:h-14 sm:w-14">
-                <Activity className="h-6 w-6" />
-              </span>
-              <div>
-                <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-luxury-gold">
-                  Comunidade VIP
-                </p>
-                <h1 className="mt-1 font-serif text-3xl font-semibold text-luxury-champagne sm:text-4xl">
-                  Perfis com Boost ativo
-                </h1>
-                <div className="mt-2 max-w-3xl text-sm font-medium leading-6 text-luxury-muted">
-                  <p>
-                    Descubra os perfis em destaque com Boost na comunidade
-                    SugarMimo. São pessoas que aumentaram sua visibilidade para
-                    conhecer novas conexões e encontrar alguém especial.
-                  </p>
+                <div className="relative flex items-center gap-3 sm:gap-4">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-luxury-champagne/80 bg-[linear-gradient(145deg,var(--luxury-gold),var(--luxury-gold-deep))] text-luxury-ivory shadow-[0_0_18px_rgba(213,166,78,0.32)] sm:h-11 sm:w-11">
+                    <Activity className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <h1
+                      id="boost-title"
+                      className="mt-0.5 font-serif text-2xl font-semibold leading-tight text-luxury-champagne sm:text-3xl"
+                    >
+                      Perfis com Boost ativo
+                    </h1>
+                    <div className="mt-1 max-w-4xl text-xs font-medium leading-5 text-luxury-muted sm:text-sm">
+                      <p>
+                        Descubra os perfis em destaque com Boost na comunidade
+                        SugarMimo e conheça novas conexões.
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </header>
+              <ProfileSymbolsMenu />
             </div>
-          </header>
-          <ProfileSymbolsMenu />
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            aria-label="Boosts anteriores"
-            aria-controls="boost-rail"
-            disabled={loading || page === 1}
-            onClick={() => navigate(page - 1)}
-            className="rounded-full border border-luxury-gold/60 p-2 text-luxury-champagne disabled:opacity-30"
-          >
-            <ChevronLeft />
-          </button>
-          <button
-            type="button"
-            aria-label="Próximos Boosts"
-            aria-controls="boost-rail"
-            disabled={loading || !!error || !result?.hasMore}
-            onClick={() => navigate(page + 1)}
-            className="rounded-full border border-luxury-gold/60 p-2 text-luxury-champagne disabled:opacity-30"
-          >
-            <ChevronRight />
-          </button>
-        </div>
-      </div>
-      <div aria-live="polite" aria-busy={loading}>
-        {loading ? (
-          <p className="flex min-h-24 items-center gap-2 text-luxury-muted">
-            <Loader2 className="h-5 w-5 animate-spin" /> Carregando Boosts...
-          </p>
-        ) : error ? (
-          <div className="py-5">
-            <p>{error}</p>
-            <button
-              type="button"
-              className="mt-2 underline"
-              onClick={() => {
-                setLoading(true);
-                setError("");
-                setAttempt((value) => value + 1);
-              }}
-            >
-              Tentar novamente
-            </button>
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                aria-label="Boosts anteriores"
+                aria-controls="boost-rail"
+                disabled={loading || page === 1}
+                onClick={() => navigate(page - 1)}
+                className="rounded-full border border-luxury-gold/60 p-1.5 text-luxury-champagne transition hover:bg-luxury-gold/10 disabled:opacity-30"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                aria-label="Próximos Boosts"
+                aria-controls="boost-rail"
+                disabled={loading || !!error || !result?.hasMore}
+                onClick={() => navigate(page + 1)}
+                className="rounded-full border border-luxury-gold/60 p-1.5 text-luxury-champagne transition hover:bg-luxury-gold/10 disabled:opacity-30"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
           </div>
-        ) : result?.items.length ? (
-          <div
-            id="boost-rail"
-            ref={rail}
-            tabIndex={0}
-            aria-label={`Boosts, página ${page}. Deslize para ver os perfis.`}
-            className="grid snap-x snap-mandatory auto-cols-[100%] grid-flow-col gap-4 overflow-x-auto pb-3 sm:auto-cols-[calc((100%_-_1rem)/2)] md:auto-cols-[calc((100%_-_2rem)/3)] lg:auto-cols-[calc((100%_-_4rem)/5)]"
-          >
-            {result.items.map((profile) => (
-              <div key={profile.id} className="min-w-full snap-start">
-                <ProfileCard profile={profile} eager />
+          <div aria-live="polite" aria-busy={loading}>
+            {loading ? (
+              <p className="flex min-h-24 items-center gap-2 text-luxury-muted">
+                <Loader2 className="h-5 w-5 animate-spin" /> Carregando
+                Boosts...
+              </p>
+            ) : error ? (
+              <div className="py-5">
+                <p>{error}</p>
+                <button
+                  type="button"
+                  className="mt-2 underline"
+                  onClick={() => {
+                    setLoading(true);
+                    setError("");
+                    setAttempt((value) => value + 1);
+                  }}
+                >
+                  Tentar novamente
+                </button>
               </div>
-            ))}
+            ) : result?.items.length ? (
+              <div
+                id="boost-rail"
+                ref={rail}
+                tabIndex={0}
+                aria-label={`Boosts, página ${page}. Deslize para ver os perfis.`}
+                className="grid snap-x snap-mandatory auto-cols-[88%] grid-flow-col gap-4 overflow-x-auto pb-3 sm:auto-cols-[calc((100%_-_1rem)/2)] lg:auto-cols-[calc((100%_-_3rem)/4)]"
+              >
+                {result.items.map((profile) => (
+                  <div key={profile.id} className="min-w-full snap-start">
+                    <ProfileCard profile={profile} eager />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="py-5 text-sm text-luxury-muted">
+                Nenhum perfil com Boost ativo no momento.
+              </p>
+            )}
           </div>
-        ) : (
-          <p className="py-5 text-sm text-luxury-muted">
-            Nenhum perfil com Boost ativo no momento.
-          </p>
-        )}
-      </div>
-    </section>
+        </section>
+      ) : null}
+    </>
   );
 }

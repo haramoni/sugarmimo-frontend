@@ -4,7 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "./components/AuthProvider";
 import { CookieConsentBanner } from "./components/CookieConsentBanner";
-import { AgeConfirmationDialog } from "./components/AgeConfirmationDialog";
+import { SiteMetrics } from "./components/SiteMetrics";
 import { site } from "@/lib/site";
 import { publicRobots } from "@/lib/seo";
 import { futura, hessGothic, zingRust } from "./fonts";
@@ -78,6 +78,7 @@ export default function RootLayout({
         <AuthProvider>{children}</AuthProvider>
         {/* <AgeConfirmationDialog /> */}
         <CookieConsentBanner />
+        <SiteMetrics />
       </body>
     </html>
   );
