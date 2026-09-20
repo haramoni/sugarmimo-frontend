@@ -163,7 +163,7 @@ export function Navbar() {
           />
         </Link>
 
-        <div className="text-2xl order-3 col-span-2 flex w-full justify-center gap-1 overflow-x-auto rounded-full border border-[#b98a38]/60 bg-[#050504]/96 p-1 font-bold text-[#aaa39a] shadow-[0_16px_42px_rgba(0,0,0,0.3),inset_0_0_0_1px_rgba(225,189,138,0.03)] backdrop-blur-2xl sm:justify-center sm:gap-1.5 sm:p-1.5 sm:text-sm xl:order-none xl:col-span-1 xl:w-auto">
+        <div className="text-xs order-3 col-span-2 flex w-full justify-center gap-1 overflow-x-auto rounded-full border border-[#b98a38]/60 bg-[#050504]/96 p-1 font-bold text-[#aaa39a] shadow-[0_16px_42px_rgba(0,0,0,0.3),inset_0_0_0_1px_rgba(225,189,138,0.03)] backdrop-blur-2xl sm:justify-center sm:gap-1.5 sm:p-1.5 sm:text-sm xl:order-none xl:col-span-1 xl:w-auto">
           {loggedMenuItems.map((item) => {
             const active = isActivePath(pathname, item.href);
             const isPlansCallout = item.href === "/planos";
