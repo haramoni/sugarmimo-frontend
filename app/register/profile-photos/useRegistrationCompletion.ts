@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 import {
   PENDING_APPROVAL_ROUTE,
@@ -27,6 +28,14 @@ export function useRegistrationCompletion() {
 
       if (isRegistrationUser(result?.user)) {
         saveAuthUser(result.user);
+
+        await Swal.fire({
+          icon: "success",
+          title: "Cadastrado com sucesso!",
+          text: "Seu cadastro foi concluído.",
+          confirmButtonText: "Continuar",
+          confirmButtonColor: "#006c58",
+        });
 
         if (result?.requiresApproval || isSugarBabyUser(result.user)) {
           window.location.replace(PENDING_APPROVAL_ROUTE);

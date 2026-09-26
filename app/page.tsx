@@ -5,6 +5,7 @@ import {
   BadgeCheck,
   EyeOff,
   Flag,
+  Heart,
   LockKeyhole,
   MessageCircleMore,
   ShieldCheck,
@@ -251,7 +252,7 @@ export default function Home() {
       <LandingMotion />
       <NavBarMenu />
 
-      <aside
+      {/* <aside
         aria-label="Novo Instagram oficial da SugarMimo"
         className="absolute inset-x-0 z-40 border-b border-[#f5d5a3]/25 bg-[linear-gradient(90deg,rgba(83,23,62,0.97),rgba(151,36,85,0.97),rgba(111,45,90,0.97))] px-4 py-2.5 text-white shadow-[0_12px_35px_rgba(0,0,0,0.28)] backdrop-blur-xl"
       >
@@ -278,7 +279,7 @@ export default function Home() {
             </span>
           </a>
         </div>
-      </aside>
+      </aside> */}
 
       <section
         id="topo"
@@ -354,13 +355,9 @@ export default function Home() {
             <div className="mt-10 space-y-7">
               {principles.map((principle) => (
                 <article key={principle.title} className="flex gap-5">
-                  <Image
-                    src="/brand/heart.webp"
-                    alt=""
-                    aria-hidden
-                    width={16}
-                    height={16}
-                    className="mt-1 h-4 w-4 shrink-0 object-contain"
+                  <Heart
+                    aria-hidden="true"
+                    className="mt-1 h-4 w-4 shrink-0 fill-current text-[#e1bd8a]"
                   />
                   <div>
                     <h3 className="font-serif text-xl text-[#e1bd8a]">
@@ -558,13 +555,9 @@ export default function Home() {
         />
         <div className="absolute inset-0 -z-10 bg-[#080808]/82" />
         <div className="mx-auto max-w-3xl px-6 text-center">
-          <Image
-            src="/brand/heart.webp"
-            alt=""
-            aria-hidden
-            width={24}
-            height={24}
-            className="mx-auto h-6 w-6 object-contain"
+          <Heart
+            aria-hidden="true"
+            className="mx-auto h-6 w-6 fill-current text-[#e1bd8a]"
           />
           <Eyebrow>
             <span className="mt-6 block">Área reservada</span>

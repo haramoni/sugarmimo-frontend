@@ -26,6 +26,13 @@ export async function POST(request: Request) {
   });
 }
 
+export async function DELETE() {
+  return forwardMembershipPayment(
+    `${API_URL}/payments/membership/subscription`,
+    { method: "DELETE" },
+  );
+}
+
 async function forwardMembershipPayment(url: string, init: RequestInit) {
   const token = await getSessionToken();
   if (!token) {

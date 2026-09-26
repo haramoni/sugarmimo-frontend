@@ -65,6 +65,7 @@ import { PhotoZoom } from "../components/ui/PhotoZoom";
 import premiereStyles from "../buscar/components/ProfileCard.module.css";
 import { PremiereOfferDialog } from "./PremiereOfferDialog";
 import { BoostControl, type BoostStatus } from "./BoostControl";
+import { MembershipRenewalControl } from "./MembershipRenewalControl";
 import { relationshipIntentOptions } from "../lib/relationship-intent";
 import { getProviderProfilePlaceholder } from "../lib/profileIdentity";
 import {
@@ -1588,10 +1589,12 @@ export function ProfilePageContent({
                               )}
                             </p>
                             <p className="mt-1 text-xs leading-5 text-white/70">
-                              Ativo até{" "}
-                              {formatMembershipExpiry(user.membershipUntil)}. O
-                              acesso é encerrado automaticamente ao vencer.
+                              Período atual válido até{" "}
+                              {formatMembershipExpiry(user.membershipUntil)}.
                             </p>
+                            <MembershipRenewalControl
+                              membershipUntil={user.membershipUntil}
+                            />
                           </div>
                         </div>
                       </div>

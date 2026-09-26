@@ -13,12 +13,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
-import {
-  type FormEvent,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { type FormEvent, useCallback, useEffect, useState } from "react";
 
 import { useAuth } from "@/app/components/AuthProvider";
 
@@ -37,6 +32,10 @@ type PaymentState = {
   bankSlipUrl?: string | null;
   identificationField?: string | null;
   membershipUntil?: string | null;
+  automaticRenewal?: boolean;
+  recurringStatus?: string | null;
+  canCancelAutomaticRenewal?: boolean;
+  checkoutUrl?: string | null;
   qrCodeImage?: string;
   pixCopyPaste?: string;
   expirationDate?: string;
@@ -53,7 +52,8 @@ const paymentMethods: Array<{
     id: "credit-card",
     name: "Cartão de crédito",
     description: "Pagamento protegido e confirmação rápida.",
-    detail: "Os dados do cartão serão informados no ambiente seguro do Asaas.",
+    detail:
+      "Os dados do cartão serão informados no ambiente seguro do Asaas. Renovação automática opcional.",
     icon: CreditCard,
   },
   {
@@ -92,13 +92,14 @@ export function PaymentOptions({
     useState<PaymentMethod>("credit-card");
   const [fullName, setFullName] = useState("");
   const [cpfCnpj, setCpfCnpj] = useState("");
+  const [autoRenew, setAutoRenew] = useState(true);
   const [payment, setPayment] = useState<PaymentState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState("");
-  const [copyStatus, setCopyStatus] = useState<
-    "idle" | "copied" | "error"
-  >("idle");
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
+    "idle",
+  );
 
   const loadPayment = useCallback(
     async (includeQr: boolean) => {
@@ -186,6 +187,7 @@ export function PaymentOptions({
           plan: planId,
           cycle: cycleId,
           method: selectedMethod,
+          autoRenew: selectedMethod === "credit-card" && autoRenew,
         }),
       });
       const result = (await response.json().catch(() => null)) as
@@ -286,9 +288,8 @@ export function PaymentOptions({
           <div className={styles.integrationNotice}>
             <LockKeyhole aria-hidden="true" />
             <span>
-              <strong>Pagamento protegido pelo Asaas</strong>
-              A assinatura só é ativada após a confirmação financeira enviada
-              ao SugarMimo.
+              <strong>Pagamento protegido pelo Asaas</strong>A assinatura só é
+              ativada após a confirmação financeira enviada ao SugarMimo.
             </span>
           </div>
 
@@ -412,6 +413,7 @@ export function PaymentOptions({
                   onChange={(event) => setFullName(event.target.value)}
                   autoComplete="name"
                   maxLength={120}
+                  placeholder="Seu nome"
                   required
                 />
               </label>
@@ -425,6 +427,21 @@ export function PaymentOptions({
                   required
                 />
               </label>
+              {selectedMethod === "credit-card" ? (
+                <label className={styles.autoRenewOption}>
+                  <input
+                    type="checkbox"
+                    checked={autoRenew}
+                    onChange={(event) => setAutoRenew(event.target.checked)}
+                  />
+                  <span>
+                    <strong>Renovar automaticamente</strong>
+                    Autorizo a cobrança automática de R$ {total} no cartão a
+                    cada {renewalPeriod(cycleId)}, até que eu cancele. Posso
+                    cancelar quando quiser no meu perfil.
+                  </span>
+                </label>
+              ) : null}
               <button
                 type="submit"
                 className={styles.generateButton}
@@ -441,7 +458,7 @@ export function PaymentOptions({
                 )}
                 {isGenerating
                   ? "Gerando pagamento..."
-                  : actionLabel(selectedMethod)}
+                  : actionLabel(selectedMethod, autoRenew)}
               </button>
               {!isAuthenticated ? (
                 <p className={styles.loginHint}>
@@ -491,10 +508,16 @@ export function PaymentOptions({
   );
 }
 
-function actionLabel(method: PaymentMethod) {
+function actionLabel(method: PaymentMethod, autoRenew: boolean) {
   if (method === "pix") return "Gerar QR Code Pix";
   if (method === "boleto") return "Gerar boleto";
-  return "Pagar com cartão";
+  return autoRenew ? "Assinar com renovação automática" : "Pagar com cartão";
+}
+
+function renewalPeriod(cycle: "monthly" | "quarterly" | "semiannual") {
+  if (cycle === "quarterly") return "3 meses";
+  if (cycle === "semiannual") return "6 meses";
+  return "mês";
 }
 
 function methodFromBillingType(type: NonNullable<PaymentState["billingType"]>) {

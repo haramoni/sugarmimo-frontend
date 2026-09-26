@@ -301,15 +301,11 @@ export default function AdminBoostsPage() {
               <Rocket className="h-6 w-6 text-[var(--gold)]" />
               Gerenciar Boosts
             </h1>
-            <p className="max-w-2xl text-sm text-black/60">
-              Forneça créditos de Boost ou ative manualmente o destaque de uma
-              Sugar Baby por 24 horas.
-            </p>
           </div>
           <span className="text-sm font-bold text-[var(--gold)]">
             {isLoading
               ? "Carregando..."
-              : `${totalItems} ${manualActivation ? "Sugar Baby(s)" : "usuário(s)"}`}
+              : `${totalItems} ${manualActivation ? "Baby(s) / Daddy(s)" : "usuário(s)"}`}
           </span>
         </div>
 
@@ -338,11 +334,6 @@ export default function AdminBoostsPage() {
         </Tabs.List>
 
         <Tabs.Content value={tab} className="space-y-5">
-          <p className="text-sm text-black/60">
-            {manualActivation
-              ? "Selecione uma Sugar Baby para aparecer nos perfis com Boost ativo por 24 horas, sem consumir créditos. Apenas perfis aprovados, ativos e sem suspensão aparecem aqui."
-              : "Forneça Boosts para Sugar Babies, Sugar Daddies e Sugar Mommies. O usuário poderá ativá-los no próprio perfil; cada ativação consome um crédito e dura 24 horas."}
-          </p>
           <div
             className={`grid gap-3 ${manualActivation ? "" : "lg:grid-cols-[minmax(0,1fr)_220px]"}`}
           >
@@ -431,7 +422,7 @@ export default function AdminBoostsPage() {
           ) : profiles.length === 0 && !error ? (
             <div className="border border-[var(--platinum)] bg-white p-6 text-sm font-bold">
               {manualActivation
-                ? "Nenhuma Sugar Baby aprovada e ativa encontrada."
+                ? "Nenhuma Sugar Baby ou Sugar Daddy aprovado e ativo encontrado."
                 : "Nenhum usuário encontrado."}
             </div>
           ) : (

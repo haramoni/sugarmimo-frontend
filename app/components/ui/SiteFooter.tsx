@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, Phone } from "lucide-react";
+import { Heart, Mail, Phone } from "lucide-react";
 import { site } from "@/lib/site";
 import { InstagramIcon } from "./InstagramIcon";
 
@@ -56,13 +56,9 @@ export function SiteFooter() {
             </p>
             <p className="mt-6 flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.26em] text-[#e1bd8a]/80">
               Maior de 18 anos
-              <Image
-                src="/brand/heart.webp"
-                alt=""
-                aria-hidden
-                width={12}
-                height={12}
-                className="h-3 w-3 object-contain"
+              <Heart
+                aria-hidden="true"
+                className="h-3 w-3 fill-current"
               />
               Conteúdo adulto
             </p>
