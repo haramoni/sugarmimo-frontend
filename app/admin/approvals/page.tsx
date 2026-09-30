@@ -23,6 +23,7 @@ import {
   Star,
   Trash2,
   TriangleAlert,
+  UsersRound,
   X,
   Zap,
 } from "lucide-react";
@@ -35,6 +36,12 @@ import { Input } from "@/components/ui/input";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PhotoZoom } from "@/app/components/ui/PhotoZoom";
 import { adminPhotoUrl } from "@/app/lib/photo-delivery";
+import {
+  getRelationshipIntentLabel,
+  normalizeRelationshipIntent,
+  relationshipIntentOptions,
+  type RelationshipIntent,
+} from "@/app/lib/relationship-intent";
 
 type PendingPhoto = {
   id: string;
@@ -51,6 +58,7 @@ type PendingProfile = {
   role: string | null;
   gender: string | null;
   lookingFor: string | null;
+  relationshipIntent: string;
   birthDate: string | null;
   country: string | null;
   state: string | null;
@@ -108,6 +116,9 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [reviewingId, setReviewingId] = useState("");
+  const [approvalIntents, setApprovalIntents] = useState<
+    Record<string, RelationshipIntent>
+  >({});
   const [prioritizingId, setPrioritizingId] = useState("");
   const [deletingPhotoId, setDeletingPhotoId] = useState("");
   const [searchDraft, setSearchDraft] = useState("");
@@ -150,6 +161,15 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
         }
 
         setProfiles(result.items);
+        setApprovalIntents((currentIntents) =>
+          Object.fromEntries(
+            result.items.map((profile: PendingProfile) => [
+              profile.id,
+              currentIntents[profile.id] ??
+                normalizeRelationshipIntent(profile.relationshipIntent),
+            ]),
+          ),
+        );
         setPagination(result.pagination);
 
         if (
@@ -190,16 +210,16 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
     let rejectionReason = "";
     if (action === "reject") {
       const confirmation = await Swal.fire({
-        title: "Rejeitar este cadastro?",
+        title: "Cancelar este cadastro?",
         text: "A justificativa será exibida para a pessoa quando ela tentar entrar.",
         icon: "warning",
         input: "textarea",
-        inputLabel: "Motivo da não aprovação",
+        inputLabel: "Motivo do cancelamento",
         inputPlaceholder:
           "Explique o que precisa ser corrigido ou qual regra não foi atendida...",
         inputAttributes: { maxlength: "1000" },
         showCancelButton: true,
-        confirmButtonText: "Confirmar rejeição",
+        confirmButtonText: "Confirmar cancelamento",
         cancelButtonText: "Cancelar",
         confirmButtonColor: "var(--ruby)",
         preConfirm: (value) => {
@@ -226,12 +246,19 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
     try {
       const response = await fetch(`/api/admin/profiles/${id}/${action}`, {
         method: "PATCH",
-        ...(action === "reject"
+        ...(action === "approve"
           ? {
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ reason: rejectionReason }),
+              body: JSON.stringify({
+                relationshipIntent: approvalIntents[id] ?? "SUGAR",
+              }),
             }
-          : {}),
+          : action === "reject"
+            ? {
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ reason: rejectionReason }),
+              }
+            : {}),
       });
 
       const result = await response.json().catch(() => null);
@@ -242,11 +269,30 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
         );
       }
 
-      if (profiles?.length === 1 && page > 1) {
+      const scrollPosition = window.scrollY;
+
+      if (profiles.length === 1 && page > 1) {
         setPage((currentPage) => currentPage - 1);
       } else {
-        await loadProfiles(page);
+        setProfiles((currentProfiles) =>
+          currentProfiles.filter((profile) => profile.id !== id),
+        );
+        setPagination((currentPagination) => {
+          const totalItems = Math.max(0, currentPagination.totalItems - 1);
+          const totalPages = Math.ceil(totalItems / currentPagination.pageSize);
+
+          return {
+            ...currentPagination,
+            totalItems,
+            totalPages,
+            hasNextPage: currentPagination.page < totalPages,
+          };
+        });
       }
+
+      window.requestAnimationFrame(() =>
+        window.scrollTo({ top: scrollPosition, behavior: "auto" }),
+      );
     } catch (reviewError) {
       setError(
         reviewError instanceof Error
@@ -491,7 +537,7 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
       </header>
 
       <section className="mx-auto max-w-6xl space-y-5 px-5 py-8">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold">
               {isWaitingQueue ? "Aguardando" : "Aprovar Babies"}
@@ -502,10 +548,21 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
                 : "Perfis aguardando avaliação manual."}
             </p>
           </div>
-          <span className="text-sm font-bold text-[var(--gold)]">
-            {pagination?.totalItems}{" "}
-            {isWaitingQueue ? "aguardando" : "pendente(s)"}
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm font-bold text-[var(--gold)]">
+              {pagination?.totalItems}{" "}
+              {isWaitingQueue ? "aguardando" : "pendente(s)"}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/admin/profiles?approvedBabies=1")}
+              className="h-10 rounded-sm border-[var(--gold)]/45 bg-white font-bold text-[var(--black)] hover:bg-[var(--gold)]/10"
+            >
+              <UsersRound className="h-4 w-4 text-[var(--gold)]" />
+              Editar modalidades das aprovadas
+            </Button>
+          </div>
         </div>
 
         <form
@@ -549,7 +606,7 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
           </p>
         )}
 
-        {isLoading ? (
+        {isLoading && profiles.length === 0 ? (
           <div className="border border-[var(--platinum)] bg-white">
             <LoadingSpinner label="Carregando perfis..." />
           </div>
@@ -686,6 +743,12 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
                     <ProfileField label="Perfil" value={profile.gender} />
                     <ProfileField label="Busca" value={profile.lookingFor} />
                     <ProfileField
+                      label="Modalidade solicitada"
+                      value={getRelationshipIntentLabel(
+                        profile.relationshipIntent,
+                      )}
+                    />
+                    <ProfileField
                       label="Nascimento"
                       value={formatDate(profile.birthDate)}
                     />
@@ -752,6 +815,37 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
                     </section>
                   ) : null}
 
+                  <div className="rounded-sm border border-[var(--platinum)] bg-[var(--surface)] p-3">
+                    <label
+                      htmlFor={`approval-intent-${profile.id}`}
+                      className="mb-2 block text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--gold)]"
+                    >
+                      Modalidade após aprovação
+                    </label>
+                    <select
+                      id={`approval-intent-${profile.id}`}
+                      value={
+                        approvalIntents[profile.id] ??
+                        normalizeRelationshipIntent(profile.relationshipIntent)
+                      }
+                      disabled={reviewingId === profile.id}
+                      onChange={(event) =>
+                        setApprovalIntents((currentIntents) => ({
+                          ...currentIntents,
+                          [profile.id]: event.target
+                            .value as RelationshipIntent,
+                        }))
+                      }
+                      className="h-11 w-full rounded-sm border border-[var(--platinum)] bg-white px-3 text-sm font-bold text-[var(--black)] outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[color:color-mix(in_srgb,var(--gold)_24%,transparent)]"
+                    >
+                      {relationshipIntentOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.shortLabel}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div
                     className={`grid gap-3 ${
                       isWaitingQueue ? "sm:grid-cols-2" : "sm:grid-cols-3"
@@ -767,7 +861,7 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
                       className="h-11 rounded-sm bg-[var(--ruby)] font-bold text-white hover:bg-[color-mix(in_srgb,var(--ruby)_86%,var(--black))]"
                     >
                       <X className="mr-2 h-4 w-4" />
-                      Rejeitar
+                      Cancelar cadastro
                     </Button>
                     {!isWaitingQueue ? (
                       <Button
@@ -793,7 +887,11 @@ function AdminReviewQueue({ queue }: { queue: "pending" | "waiting" }) {
                       className="h-11 rounded-sm bg-[var(--emerald)] font-bold text-white hover:bg-[color-mix(in_srgb,var(--emerald)_86%,var(--black))]"
                     >
                       <Check className="mr-2 h-4 w-4" />
-                      Aprovar
+                      Aprovar em{" "}
+                      {getRelationshipIntentLabel(
+                        approvalIntents[profile.id] ??
+                          profile.relationshipIntent,
+                      )}
                     </Button>
                   </div>
                 </div>

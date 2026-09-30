@@ -13,6 +13,7 @@ export async function PATCH(
       "approve",
       "reject",
       "wait",
+      "relationship-intent",
       "priority",
       "standard-priority",
       "ban",
@@ -24,7 +25,13 @@ export async function PATCH(
     return NextResponse.json({ message: "Ação inválida." }, { status: 400 });
   }
 
-  const body = ["ban", "reject", "watch"].includes(action)
+  const body = [
+    "approve",
+    "ban",
+    "reject",
+    "relationship-intent",
+    "watch",
+  ].includes(action)
     ? await request.text()
     : undefined;
 

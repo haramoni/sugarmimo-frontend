@@ -39,6 +39,12 @@ import { PhotoZoom } from "@/app/components/ui/PhotoZoom";
 import { adminPhotoUrl } from "@/app/lib/photo-delivery";
 import { profileIdentityLabel } from "@/app/lib/profileIdentity";
 import {
+  getRelationshipIntentLabel,
+  normalizeRelationshipIntent,
+  relationshipIntentOptions,
+  type RelationshipIntent,
+} from "@/app/lib/relationship-intent";
+import {
   formatMembershipExpiry,
   MEMBERSHIP_DETAILS,
   membershipDaysRemaining,
@@ -65,6 +71,7 @@ type AdminProfile = {
   accountPhone: string | null;
   role: string | null;
   gender: string | null;
+  relationshipIntent: string;
   age: number | null;
   city: string | null;
   state: string | null;
@@ -164,6 +171,9 @@ export default function AdminProfilesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [busyId, setBusyId] = useState("");
+  const [relationshipSelections, setRelationshipSelections] = useState<
+    Record<string, RelationshipIntent>
+  >({});
   const [deletingPhotoId, setDeletingPhotoId] = useState("");
   const [error, setError] = useState("");
   const [canManageWatch, setCanManageWatch] = useState(false);
@@ -233,11 +243,15 @@ export default function AdminProfilesPage() {
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
-      const requestedWatchStatus = new URLSearchParams(window.location.search)
-        .get("watchStatus")
-        ?.toUpperCase();
+      const params = new URLSearchParams(window.location.search);
+      const requestedWatchStatus = params.get("watchStatus")?.toUpperCase();
       if (["WATCHING", "ALERT"].includes(requestedWatchStatus ?? "")) {
         setWatchStatus(requestedWatchStatus ?? "");
+        setPage(1);
+      }
+      if (params.get("approvedBabies") === "1") {
+        setRole("SUGAR_BABY");
+        setApprovalStatus("APPROVED");
         setPage(1);
       }
     }, 0);
@@ -578,6 +592,12 @@ export default function AdminProfilesPage() {
         `/api/admin/profiles/${encodeURIComponent(profile.id)}/approve`,
         {
           method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            relationshipIntent: normalizeRelationshipIntent(
+              profile.relationshipIntent,
+            ),
+          }),
         },
       );
       const result = await response.json().catch(() => null);
@@ -591,6 +611,49 @@ export default function AdminProfilesPage() {
         actionError instanceof Error
           ? actionError.message
           : "Não foi possível aprovar o perfil.",
+      );
+    } finally {
+      setBusyId("");
+    }
+  }
+
+  async function updateRelationshipIntent(profile: AdminProfile) {
+    const relationshipIntent =
+      relationshipSelections[profile.id] ??
+      normalizeRelationshipIntent(profile.relationshipIntent);
+
+    if (relationshipIntent === profile.relationshipIntent) return;
+
+    setBusyId(profile.id);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/admin/profiles/${encodeURIComponent(profile.id)}/relationship-intent`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ relationshipIntent }),
+        },
+      );
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(
+          result?.message ?? "Não foi possível alterar a modalidade.",
+        );
+      }
+
+      setProfiles((currentProfiles) =>
+        currentProfiles.map((currentProfile) =>
+          currentProfile.id === profile.id
+            ? { ...currentProfile, relationshipIntent }
+            : currentProfile,
+        ),
+      );
+    } catch (actionError) {
+      setError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Não foi possível alterar a modalidade.",
       );
     } finally {
       setBusyId("");
@@ -1093,6 +1156,12 @@ export default function AdminProfilesPage() {
                       label="Aprovação"
                       value={approvalLabel(profile.approvalStatus)}
                     />
+                    <Info
+                      label="Modalidade"
+                      value={getRelationshipIntentLabel(
+                        profile.relationshipIntent,
+                      )}
+                    />
                     <Info label="Fotos" value={String(profile.photos.length)} />
                     <Info
                       label="Cadastro"
@@ -1198,6 +1267,57 @@ export default function AdminProfilesPage() {
                           seja a mesma pessoa.
                         </p>
                       </div>
+                    </div>
+                  ) : null}
+
+                  {profile.role === "SUGAR_BABY" &&
+                  profile.approvalStatus === "APPROVED" ? (
+                    <div className="grid gap-2 rounded-lg border border-[var(--gold)]/25 bg-[var(--gold)]/6 p-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                      <label>
+                        <span className="mb-1.5 block text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--gold)]">
+                          Mover para modalidade
+                        </span>
+                        <select
+                          value={
+                            relationshipSelections[profile.id] ??
+                            normalizeRelationshipIntent(
+                              profile.relationshipIntent,
+                            )
+                          }
+                          disabled={busyId === profile.id}
+                          onChange={(event) =>
+                            setRelationshipSelections((currentSelections) => ({
+                              ...currentSelections,
+                              [profile.id]: event.target
+                                .value as RelationshipIntent,
+                            }))
+                          }
+                          className="h-10 w-full rounded-lg border border-black/10 bg-white px-3 text-sm font-bold outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/15"
+                        >
+                          {relationshipIntentOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.shortLabel}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <Button
+                        type="button"
+                        disabled={
+                          busyId === profile.id ||
+                          (relationshipSelections[profile.id] ??
+                            normalizeRelationshipIntent(
+                              profile.relationshipIntent,
+                            )) === profile.relationshipIntent
+                        }
+                        onClick={() => void updateRelationshipIntent(profile)}
+                        className="h-10 rounded-lg bg-[var(--gold)] font-bold text-white hover:bg-[var(--cognac)]"
+                      >
+                        {busyId === profile.id ? (
+                          <LoaderCircle className="h-4 w-4 animate-spin" />
+                        ) : null}
+                        Salvar modalidade
+                      </Button>
                     </div>
                   ) : null}
 
