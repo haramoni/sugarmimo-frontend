@@ -367,7 +367,7 @@ export default function InicioPage() {
             />
           ) : (
             <div className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5">
                 {profiles.map((profile, index) => (
                   <div
                     key={profile.id}
@@ -376,7 +376,7 @@ export default function InicioPage() {
                     <ProfileCard
                       profile={profile}
                       variant="active"
-                      eager={index < 5}
+                      eager={index < 6}
                       onNavigate={() => {
                         navigationAnchorRef.current = getProfileAnchor(
                           profile.id,

@@ -602,8 +602,15 @@ export function ChatClient() {
   }
 
   return (
-    <main className="chat-luxury-page min-h-screen text-[var(--black)]">
-      <Navbar />
+    <main
+      className={[
+        "chat-luxury-page min-h-screen text-[var(--black)]",
+        selectedId ? "chat-conversation-open" : "",
+      ].join(" ")}
+    >
+      <div className="chat-mobile-navbar">
+        <Navbar />
+      </div>
       <section className="chat-luxury-stage mx-auto h-[calc(100dvh-92px)] min-h-[38rem] max-w-[1400px] px-3 py-4 sm:px-6">
         <div className="chat-luxury-shell grid h-full overflow-hidden rounded-3xl border backdrop-blur-xl md:grid-cols-[340px_1fr]">
           <aside
@@ -713,7 +720,7 @@ export function ChatClient() {
               </div>
             ) : (
               <>
-                <header className="chat-conversation-header flex min-h-20 items-center gap-3 border-b px-4 backdrop-blur md:px-6">
+                <header className="chat-conversation-header flex min-h-20 shrink-0 items-center gap-3 border-b px-4 backdrop-blur md:px-6">
                   <button
                     type="button"
                     onClick={() => setSelectedId(null)}
@@ -833,7 +840,7 @@ export function ChatClient() {
                   </div>
                 </header>
 
-                <details className="chat-security-strip group border-b">
+                <details className="chat-security-strip group shrink-0 border-b">
                   <summary className="flex min-h-10 cursor-pointer list-none items-center justify-center gap-2 px-4 py-2 text-center text-[0.7rem] font-semibold marker:hidden hover:bg-[var(--emerald)]/[0.025]">
                     <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[var(--emerald)]" />
                     <span>Mensagens protegidas · histórico de até 60 dias</span>
@@ -850,7 +857,7 @@ export function ChatClient() {
                   </div>
                 </details>
 
-                <div className="chat-message-scroll min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-8">
+                <div className="chat-message-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-8">
                   {nextCursor ? (
                     <button
                       type="button"
@@ -884,7 +891,7 @@ export function ChatClient() {
 
                 <form
                   onSubmit={sendMessage}
-                  className="chat-composer border-t p-3 sm:p-4"
+                  className="chat-composer shrink-0 border-t p-3 sm:p-4"
                 >
                   {error ? (
                     <div className="mb-2 flex items-start justify-between rounded-xl bg-[var(--ruby)]/8 px-3 py-2 text-xs font-semibold text-[var(--ruby)]">

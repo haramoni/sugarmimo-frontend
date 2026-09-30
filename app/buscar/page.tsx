@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown, Loader2, Search, ShieldCheck } from "lucide-react";
+import { ChevronDown, Crown, Loader2, Search, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   type FormEvent,
@@ -147,6 +147,7 @@ export default function BuscarPage() {
     useState<LocationStatus>("checking");
   const [hasRestoredState, setHasRestoredState] = useState(false);
   const [isScrollRestored, setIsScrollRestored] = useState(false);
+  const [areFiltersOpen, setAreFiltersOpen] = useState(false);
   const [scrollToRestore, setScrollToRestore] = useState<number | null>(null);
   const [anchorToRestore, setAnchorToRestore] = useState<{
     profileId: string;
@@ -544,6 +545,7 @@ export default function BuscarPage() {
     setGender(compatibleGenderDraft);
     setAdvancedFilters({ ...advancedDraft });
     setLocationFilter({ ...locationDraft });
+    setAreFiltersOpen(false);
   }
 
   const loadMore = useCallback(async () => {
@@ -663,9 +665,26 @@ export default function BuscarPage() {
                     {targetLabel}
                   </p>
                 </div>
+                <button
+                  type="button"
+                  aria-controls="search-filters"
+                  aria-expanded={areFiltersOpen}
+                  onClick={() => setAreFiltersOpen((current) => !current)}
+                  className="ml-auto inline-flex h-10 items-center gap-2 rounded-full border border-luxury-gold/45 bg-luxury-black/65 px-3 text-xs font-extrabold text-luxury-champagne transition hover:border-luxury-champagne hover:bg-luxury-gold/12 min-[900px]:hidden"
+                >
+                  Filtros
+                  <ChevronDown
+                    aria-hidden="true"
+                    className={`h-4 w-4 transition-transform ${areFiltersOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
               </div>
 
-              <form className="mt-5 space-y-3" onSubmit={handleSubmit}>
+              <form
+                id="search-filters"
+                className={`${areFiltersOpen ? "block" : "hidden"} mt-5 space-y-3 min-[900px]:block`}
+                onSubmit={handleSubmit}
+              >
                 <div className="space-y-2">
                   <label className="block text-sm font-bold text-luxury-ivory">
                     Procurar:
@@ -847,12 +866,12 @@ export default function BuscarPage() {
                 />
               ) : (
                 <div className="space-y-5">
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
                     {profiles.map((profile, index) => (
                       <ProfileCard
                         key={profile.id}
                         profile={profile}
-                        eager={index < 3}
+                        eager={index < 6}
                         viewerRole={user.role}
                         viewerIsPremium={Boolean(user.isPremium)}
                         variant="searchDark"
