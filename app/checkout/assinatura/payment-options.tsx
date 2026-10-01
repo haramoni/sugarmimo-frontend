@@ -200,7 +200,7 @@ export function PaymentOptions({
       setPayment(nextPayment);
       if (
         nextPayment.billingType === "CREDIT_CARD" &&
-        isTrustedAsaasUrl(nextPayment.invoiceUrl)
+        isTrustedPaymentUrl(nextPayment.invoiceUrl)
       ) {
         window.location.assign(nextPayment.invoiceUrl);
       }
@@ -353,7 +353,7 @@ export function PaymentOptions({
               <h3>Seu boleto está pronto</h3>
               <p>Vencimento em {formatDate(payment.dueDate)}.</p>
               <div className={styles.boletoCode}>
-                {payment.identificationField ?? "Linha digitável indisponível"}
+                {payment.identificationField || "Emita o boleto no checkout abaixo"}
               </div>
               <div className={styles.resultActions}>
                 <button
@@ -369,7 +369,7 @@ export function PaymentOptions({
                     ? "Linha copiada!"
                     : "Copiar linha digitável"}
                 </button>
-                {isTrustedAsaasUrl(payment.bankSlipUrl) ? (
+                {isTrustedPaymentUrl(payment.bankSlipUrl) ? (
                   <a
                     href={payment.bankSlipUrl}
                     target="_blank"
@@ -388,7 +388,7 @@ export function PaymentOptions({
                 Informe os dados do cartão diretamente na página protegida do
                 Asaas.
               </p>
-              {isTrustedAsaasUrl(payment.invoiceUrl) ? (
+              {isTrustedPaymentUrl(payment.invoiceUrl) ? (
                 <a
                   href={payment.invoiceUrl}
                   className={styles.primaryPaymentAction}
@@ -536,13 +536,14 @@ function paymentErrorMessage(result: unknown) {
     : (message ?? "Não foi possível gerar o pagamento.");
 }
 
-function isTrustedAsaasUrl(value?: string | null): value is string {
+function isTrustedPaymentUrl(value?: string | null): value is string {
   if (!value) return false;
   try {
     const url = new URL(value);
     return (
       url.protocol === "https:" &&
-      (url.hostname === "asaas.com" || url.hostname.endsWith(".asaas.com"))
+      (
+        ["checkout.stripe.com", "invoice.stripe.com", "payments.stripe.com"].includes(url.hostname))
     );
   } catch {
     return false;
