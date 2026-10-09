@@ -1,8 +1,8 @@
 .wrapper {
   border: 1px solid color-mix(in srgb, var(--luxury-gold) 38%, transparent);
-  border-radius: 0.45rem;
+  border-radius: 0.65rem;
   background: color-mix(in srgb, var(--luxury-surface-raised) 88%, transparent);
-  padding: 0.75rem 0.8rem 0.65rem;
+  padding: 0.65rem 0.8rem 0.45rem;
 }
 
 .values {
@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: space-between;
   color: var(--luxury-champagne);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 800;
 }
 
@@ -66,8 +66,8 @@
 }
 
 .rangeInput::-webkit-slider-thumb {
-  width: 1.15rem;
-  height: 1.15rem;
+  width: 1.2rem;
+  height: 1.2rem;
   appearance: none;
   border: 2px solid var(--luxury-champagne);
   border-radius: 50%;

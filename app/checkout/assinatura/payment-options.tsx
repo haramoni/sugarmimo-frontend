@@ -53,7 +53,7 @@ const paymentMethods: Array<{
     name: "Cartão de crédito",
     description: "Pagamento protegido e confirmação rápida.",
     detail:
-      "Os dados do cartão serão informados no ambiente seguro do Asaas. Renovação automática opcional.",
+      "Os dados do cartão serão informados no ambiente seguro da Stripe. Renovação automática opcional.",
     icon: CreditCard,
   },
   {
@@ -288,7 +288,7 @@ export function PaymentOptions({
           <div className={styles.integrationNotice}>
             <LockKeyhole aria-hidden="true" />
             <span>
-              <strong>Pagamento protegido pelo Asaas</strong>A assinatura só é
+              <strong>Pagamento protegido pela Stripe</strong>A assinatura só é
               ativada após a confirmação financeira enviada ao SugarMimo.
             </span>
           </div>
@@ -322,7 +322,7 @@ export function PaymentOptions({
               {payment.qrCodeImage ? (
                 <div className={styles.pixGrid}>
                   <div className={styles.qrCodeWrap}>
-                    {/* The authenticated Asaas API returns a trusted base64 PNG. */}
+                    {/* The authenticated Stripe API returns a trusted base64 PNG. */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`data:image/png;base64,${payment.qrCodeImage}`}
@@ -386,14 +386,14 @@ export function PaymentOptions({
               <h3>Pagamento com cartão</h3>
               <p>
                 Informe os dados do cartão diretamente na página protegida do
-                Asaas.
+                Stripe.
               </p>
               {isTrustedPaymentUrl(payment.invoiceUrl) ? (
                 <a
                   href={payment.invoiceUrl}
                   className={styles.primaryPaymentAction}
                 >
-                  <CreditCard /> Continuar no Asaas <ExternalLink />
+                  <CreditCard /> Continuar na Stripe <ExternalLink />
                 </a>
               ) : null}
             </div>
@@ -498,7 +498,7 @@ export function PaymentOptions({
           <div className={styles.securitySeal}>
             <ShieldCheck aria-hidden="true" />
             <span>
-              Cartão processado no Asaas. O SugarMimo não armazena os dados do
+              Cartão processado na Stripe. O SugarMimo não armazena os dados do
               seu cartão.
             </span>
           </div>

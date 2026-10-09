@@ -388,7 +388,7 @@ export default function PendingApprovalPage() {
                   />
                 </div>
                 <p className="registration-helper">
-                  O documento é enviado à Asaas para gerar a cobrança e não é
+                  O documento é enviado à Stripe para gerar a cobrança e não é
                   armazenado pela SugarMimo.
                 </p>
               </div>

@@ -76,13 +76,13 @@ export default function AdvancedProfileFilters({
   }
 
   return (
-    <div className="rounded-lg border border-luxury-gold/30 bg-luxury-black/35">
+    <div className="rounded-xl border border-luxury-gold/30 bg-luxury-black/35">
       <button
         type="button"
         aria-expanded={isOpen}
         aria-controls="advanced-profile-filters"
         onClick={() => setIsOpen((current) => !current)}
-        className="flex w-full items-center gap-2 rounded-lg px-3 py-3 text-left text-sm font-extrabold text-luxury-champagne transition hover:bg-luxury-gold/10"
+        className="flex w-full items-center gap-2 min-h-11 rounded-xl px-3 py-2.5 text-left text-xs font-extrabold text-luxury-champagne transition hover:bg-luxury-gold/10"
       >
         <SlidersHorizontal className="h-4 w-4 shrink-0" />
         <span className="flex-1">

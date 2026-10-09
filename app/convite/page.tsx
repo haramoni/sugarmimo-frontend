@@ -18,7 +18,7 @@ import styles from "./convite.module.css";
 export const metadata: Metadata = {
   ...publicMetadata(
     "Seu próximo encontro começa aqui | SugarMimo",
-    "Um convite para homens que valorizam boas conexões. Conheça a SugarMimo, crie seu perfil de Sugar Daddy e comece com até 50 mensagens em 10 dias.",
+    "Um convite para homens que valorizam boas conexões. Conheça a SugarMimo, crie seu perfil de Sugar Daddy e escolha uma assinatura para conversar.",
     "/convite",
     "/brand/hero-trio-hq-4k.webp",
   ),
@@ -69,14 +69,14 @@ const faqs = [
       "Para homens maiores de 18 anos que desejam participar da SugarMimo como Sugar Daddy e conhecer mulheres adultas interessadas em conexões sugar. Respeito, consentimento e expectativas claras fazem parte de cada encontro.",
   },
   {
-    question: "Como funciona o período gratuito?",
+    question: "O cadastro e as mensagens são gratuitos?",
     answer:
-      "O cadastro é gratuito. Contas Sugar Daddy sem assinatura podem enviar até 50 mensagens nos primeiros 10 dias, contados a partir da criação da conta. O período termina quando os 10 dias acabam ou as 50 mensagens são utilizadas, o que acontecer primeiro. O acesso à comunidade depende da aprovação do cadastro.",
+      "O cadastro é gratuito. Sugar Daddies e Sugar Mommies precisam de uma assinatura ativa para enviar ou responder mensagens. O acesso à comunidade depende da aprovação do cadastro.",
   },
   {
     question: "Preciso cadastrar um cartão para começar?",
     answer:
-      "Não. Você pode criar sua conta e usar a franquia inicial de mensagens sem cadastrar um cartão. Depois do período gratuito, é necessário contratar um plano para continuar enviando mensagens. Você escolhe se deseja assinar.",
+      "Não. Você pode criar sua conta sem cadastrar um cartão. Para enviar ou responder mensagens, é necessário contratar uma assinatura. Você escolhe se deseja assinar.",
   },
   {
     question: "Quem pode ver minhas fotos?",
@@ -194,30 +194,21 @@ export default async function InvitationPage({
               <Crown size={25} strokeWidth={1.3} aria-hidden="true" />
               <div>
                 <p className={styles.eyebrow}>SEU PRIMEIRO PASSO</p>
-                <h2 id="trial-title">Conheça antes de decidir.</h2>
+                <h2 id="trial-title">Cadastre-se e escolha seu plano.</h2>
               </div>
             </div>
             <div className={styles.trialNumber}>
-              <strong>10</strong>
-              <span>
-                dias para
-                <br />
-                experimentar
-              </span>
+              <strong><Check size={34} aria-hidden="true" /></strong>
+              <span>cadastro<br />gratuito</span>
             </div>
             <div className={styles.trialNumber}>
-              <strong>50</strong>
-              <span>
-                mensagens
-                <br />
-                gratuitas, no máximo
-              </span>
+              <strong><MessageCircle size={34} aria-hidden="true" /></strong>
+              <span>envio de mensagens<br />com assinatura</span>
             </div>
           </div>
           <p className={`${styles.container} ${styles.trialTerms}`}>
-            Para contas Sugar Daddy sem assinatura. Válido por 10 dias a partir
-            da criação da conta ou até o envio de 50 mensagens, o que ocorrer
-            primeiro. Cadastro sujeito à aprovação.
+            Sugar Daddies e Sugar Mommies precisam de uma assinatura ativa para
+            enviar ou responder mensagens. Cadastro sujeito à aprovação.
           </p>
         </section>
 

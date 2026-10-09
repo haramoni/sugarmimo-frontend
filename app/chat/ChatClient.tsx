@@ -50,7 +50,6 @@ import {
 import type { ChatMessage, Conversation } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.sugarmimo.com";
-const DEFAULT_FREE_MESSAGE_LIMIT = 50;
 const CHAT_MONITORING_NOTICE_TEXT =
   "Mensagens e interações poderão ser analisadas por mecanismos automatizados e/ou pessoas autorizadas para apuração de denúncias e cumprimento legal, conforme a Política de Privacidade.";
 
@@ -67,14 +66,6 @@ const reportCategories = [
 
 type MessageAccess = {
   canSend: boolean;
-  isTrial: boolean;
-  trialDaysLimit: number | null;
-  trialDaysRemaining: number | null;
-  trialEndsAt: string | null;
-  trialExpired: boolean;
-  freeMessagesLimit: number | null;
-  freeMessagesUsed: number | null;
-  freeMessagesRemaining: number | null;
   requiresUpgrade: boolean;
 };
 
@@ -99,6 +90,8 @@ export function ChatClient() {
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
   const [loadingConversations, setLoadingConversations] = useState(true);
+  const [openingConversation, setOpeningConversation] = useState(false);
+  const [openAttempt, setOpenAttempt] = useState(0);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -121,6 +114,7 @@ export function ChatClient() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const selectedIdRef = useRef<string | null>(null);
   const conversationMenuRef = useRef<HTMLDivElement | null>(null);
+  const conversationLoadRef = useRef(0);
 
   const selected = conversations.find(({ id }) => id === selectedId) ?? null;
   const isStandardDaddy =
@@ -138,19 +132,23 @@ export function ChatClient() {
   }, [conversations, search]);
 
   const loadConversations = useCallback(async () => {
+    const requestId = ++conversationLoadRef.current;
     const response = await fetch("/api/chat/conversations", {
       cache: "no-store",
     }).catch(() => null);
+    if (requestId !== conversationLoadRef.current) return null;
     if (!response?.ok) {
       const result = await response?.json().catch(() => null);
       setError(result?.message ?? "Não foi possível carregar as conversas.");
       setLoadingConversations(false);
-      return;
+      return null;
     }
     const result = (await response.json()) as Conversation[];
+    if (requestId !== conversationLoadRef.current) return null;
     const sorted = sortConversationsByLatestMessage(result);
     setConversations(sorted);
     setLoadingConversations(false);
+    return sorted;
   }, []);
 
   const loadMessageAccess = useCallback(async () => {
@@ -204,31 +202,52 @@ export function ChatClient() {
     }
 
     const timeoutId = window.setTimeout(() => {
-      void loadConversations();
+      if (!openWithUserId) void loadConversations();
       void loadMessageAccess();
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [isAuthLoading, loadConversations, loadMessageAccess, router, user]);
+  }, [isAuthLoading, loadConversations, loadMessageAccess, openWithUserId, router, user]);
 
   useEffect(() => {
     if (isAuthLoading || !user || !openWithUserId) {
       return;
     }
-    void (async () => {
+    let active = true;
+    const conversationLoad = conversationLoadRef;
+    const timeoutId = window.setTimeout(() => void (async () => {
+      setOpeningConversation(true);
+      setError("");
       const response = await fetch(
         `/api/chat/conversations/with/${encodeURIComponent(openWithUserId)}`,
         { method: "POST" },
       ).catch(() => null);
+      if (!active) return;
       if (!response?.ok) {
         const result = await response?.json().catch(() => null);
+        if (!active) return;
+        await loadConversations();
+        if (!active) return;
         setError(result?.message ?? "Não foi possível abrir esta conversa.");
+        setOpeningConversation(false);
         return;
       }
       const result = (await response.json()) as { id: string };
-      await loadConversations();
-      setSelectedId(result.id);
-    })();
-  }, [isAuthLoading, loadConversations, openWithUserId, user]);
+      if (!active) return;
+      const loaded = await loadConversations();
+      if (!active) return;
+      if (loaded?.some(({ id }) => id === result.id)) {
+        setSelectedId(result.id);
+      } else if (loaded) {
+        setError("Não foi possível abrir esta conversa. Tente novamente.");
+      }
+      setOpeningConversation(false);
+    })(), 0);
+    return () => {
+      active = false;
+      window.clearTimeout(timeoutId);
+      ++conversationLoad.current;
+    };
+  }, [isAuthLoading, loadConversations, openAttempt, openWithUserId, user]);
 
   const loadMessages = useCallback(
     async (conversationId: string, cursor?: string, prepend = false) => {
@@ -443,31 +462,8 @@ export function ChatClient() {
         await loadMonitoringNotice(selectedId);
       }
     } else {
-      const message = (await response.json()) as ChatMessage & {
-        freeMessagesRemaining?: number | null;
-      };
+      const message = (await response.json()) as ChatMessage;
       setMessages((current) => deduplicateMessages([...current, message]));
-      if (typeof message.freeMessagesRemaining === "number") {
-        const remaining = message.freeMessagesRemaining;
-        setMessageAccess((current) => ({
-          canSend: remaining > 0 && !current?.trialExpired,
-          isTrial: true,
-          trialDaysLimit: current?.trialDaysLimit ?? 10,
-          trialDaysRemaining: current?.trialDaysRemaining ?? 0,
-          trialEndsAt: current?.trialEndsAt ?? null,
-          trialExpired: current?.trialExpired ?? false,
-          freeMessagesLimit:
-            current?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT,
-          freeMessagesUsed:
-            (current?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT) -
-            remaining,
-          freeMessagesRemaining: remaining,
-          requiresUpgrade: remaining === 0 || Boolean(current?.trialExpired),
-        }));
-        if (remaining === 0) {
-          setUpgradeAlertOpen(true);
-        }
-      }
       await loadConversations();
       window.setTimeout(
         () => bottomRef.current?.scrollIntoView({ behavior: "smooth" }),
@@ -645,7 +641,17 @@ export function ChatClient() {
               </label>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-2">
-              {loadingConversations ? (
+              {!selected && error ? (
+                <div role="alert" className="rounded-xl border border-red-400/40 p-4 text-sm text-red-400">
+                  <p>{error}</p>
+                  {openWithUserId ? (
+                    <button type="button" disabled={openingConversation} onClick={() => setOpenAttempt((attempt) => attempt + 1)} className="mt-3 underline disabled:opacity-50">
+                      Tentar novamente
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
+              {loadingConversations || openingConversation ? (
                 <StateMessage>Carregando suas conversas…</StateMessage>
               ) : filteredConversations.length === 0 ? (
                 <StateMessage>
@@ -710,7 +716,7 @@ export function ChatClient() {
                     <LockKeyhole className="h-7 w-7" />
                   </span>
                   <h2 className="mt-4 font-serif text-2xl font-semibold">
-                    Conversas privadas
+                    {openingConversation ? "Abrindo conversa…" : "Conversas privadas"}
                   </h2>
                   <p className="mt-2 max-w-sm text-sm leading-6 text-black/55">
                     Selecione uma conversa. As mensagens são protegidas e
@@ -905,56 +911,6 @@ export function ChatClient() {
                       </button>
                     </div>
                   ) : null}
-                  {messageAccess?.isTrial ? (
-                    <div className="mb-2 rounded-xl border border-[var(--gold)]/25 bg-[var(--gold-soft)]/15 px-3 py-2 text-center text-xs font-semibold text-black/58">
-                      <div>
-                        {messageAccess.trialExpired ? (
-                          "Seu período de teste de 10 dias terminou."
-                        ) : (
-                          <>
-                            Período de teste: restam{" "}
-                            {messageAccess.trialDaysRemaining ?? 0}{" "}
-                            {(messageAccess.trialDaysRemaining ?? 0) === 1
-                              ? "dia"
-                              : "dias"}
-                            .
-                          </>
-                        )}{" "}
-                        Você ainda tem{" "}
-                        {messageAccess.freeMessagesRemaining ?? 0} de{" "}
-                        {messageAccess.freeMessagesLimit ??
-                          DEFAULT_FREE_MESSAGE_LIMIT}{" "}
-                        mensagens gratuitas.
-                      </div>
-                      <div
-                        role="progressbar"
-                        aria-label="Mensagens gratuitas restantes"
-                        aria-valuemin={0}
-                        aria-valuemax={
-                          messageAccess.freeMessagesLimit ??
-                          DEFAULT_FREE_MESSAGE_LIMIT
-                        }
-                        aria-valuenow={messageAccess.freeMessagesRemaining ?? 0}
-                        className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/10"
-                      >
-                        <div
-                          className="h-full rounded-full bg-[var(--gold)] transition-[width]"
-                          style={{
-                            width: `${Math.max(
-                              0,
-                              Math.min(
-                                100,
-                                ((messageAccess.freeMessagesRemaining ?? 0) /
-                                  (messageAccess.freeMessagesLimit ??
-                                    DEFAULT_FREE_MESSAGE_LIMIT)) *
-                                  100,
-                              ),
-                            )}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ) : null}
                   {selected.blocked ? (
                     <div className="rounded-2xl bg-black/5 px-4 py-3 text-center text-sm font-semibold text-black/50">
                       Esta conversa está bloqueada.
@@ -999,13 +955,9 @@ export function ChatClient() {
                     <div className="rounded-2xl border border-[var(--gold)]/25 bg-[var(--gold-soft)]/20 px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-2 text-sm font-semibold text-black/60">
                         <LockKeyhole className="h-4 w-4 shrink-0 text-[var(--gold)]" />
-                        {isStandardDaddy && !messageAccess
-                          ? "Carregando suas mensagens gratuitas…"
-                          : messageAccess?.trialExpired
-                            ? "Seu período de teste de 10 dias terminou. Assine para continuar conversando e acessar contatos."
-                            : `Você já enviou as ${messageAccess?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT} mensagens gratuitas. Assine para continuar conversando e acessar contatos.`}
+                        Sugar Daddies e Sugar Mommies precisam de uma assinatura ativa para enviar ou responder mensagens.
                       </div>
-                      {messageAccess?.requiresUpgrade ? (
+                      {isStandardDaddy || messageAccess?.requiresUpgrade ? (
                         <Link
                           href="/planos?source=chat-limit"
                           className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl bg-[var(--gold)] px-5 py-2 text-xs font-extrabold text-white transition hover:brightness-105"
@@ -1070,21 +1022,17 @@ export function ChatClient() {
       {upgradeAlertOpen ? (
         <ModalShell
           onClose={() => setUpgradeAlertOpen(false)}
-          ariaLabel="Limite de mensagens"
+          ariaLabel="Assinatura necessária"
         >
           <div className="text-center">
             <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[var(--gold-soft)]/30 text-[var(--gold)]">
               <LockKeyhole className="h-6 w-6" />
             </span>
             <h2 className="mt-4 font-serif text-2xl font-semibold">
-              {messageAccess?.trialExpired
-                ? "Período de teste encerrado"
-                : "Mensagens gratuitas utilizadas"}
+              Assine para conversar
             </h2>
             <p className="mt-2 text-sm leading-6 text-black/55">
-              {messageAccess?.trialExpired
-                ? "Seus 10 dias gratuitos terminaram. Para enviar novas mensagens e voltar a acessar contatos liberados, ative uma assinatura."
-                : `Você já enviou suas ${messageAccess?.freeMessagesLimit ?? DEFAULT_FREE_MESSAGE_LIMIT} mensagens gratuitas. Para enviar novas mensagens e voltar a acessar contatos liberados, ative uma assinatura.`}
+              Para enviar ou responder mensagens como Sugar Daddy ou Sugar Mommy, ative uma assinatura. Você pode continuar lendo suas conversas.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <button

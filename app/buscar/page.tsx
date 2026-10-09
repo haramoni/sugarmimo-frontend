@@ -1,6 +1,15 @@
 "use client";
 
-import { ChevronDown, Crown, Loader2, Search, ShieldCheck } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Crown,
+  Heart,
+  Loader2,
+  MapPin,
+  Search,
+  ShieldCheck,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   type FormEvent,
@@ -39,7 +48,6 @@ import AdvancedProfileFilters, {
 } from "./components/AdvancedProfileFilters";
 import type { PublicProfile, PublicProfilePage } from "./types";
 import {
-  getRelationshipIntentLabel,
   normalizeRelationshipIntent,
   type RelationshipMode,
 } from "../lib/relationship-intent";
@@ -118,8 +126,15 @@ export default function BuscarPage() {
   const [minAge, setMinAge] = useState("18");
   const [maxAge, setMaxAge] = useState("80");
   const [gender, setGender] = useState("");
-  const [relationshipMode, setRelationshipMode] =
-    useState<RelationshipMode>("COMPATIBLE");
+  const [selectedRelationshipMode, setRelationshipMode] =
+    useState<RelationshipMode>("SUGAR");
+  const userIntent = normalizeRelationshipIntent(user?.relationshipIntent);
+  const relationshipMode: RelationshipMode =
+    userIntent === "BOTH"
+      ? selectedRelationshipMode === "TRADITIONAL"
+        ? "TRADITIONAL"
+        : "SUGAR"
+      : userIntent;
   const [advancedDraft, setAdvancedDraft] =
     useState<AdvancedProfileFilterValue>({
       ...EMPTY_ADVANCED_PROFILE_FILTERS,
@@ -147,7 +162,7 @@ export default function BuscarPage() {
     useState<LocationStatus>("checking");
   const [hasRestoredState, setHasRestoredState] = useState(false);
   const [isScrollRestored, setIsScrollRestored] = useState(false);
-  const [areFiltersOpen, setAreFiltersOpen] = useState(false);
+  const [areFiltersOpen, setAreFiltersOpen] = useState(true);
   const [scrollToRestore, setScrollToRestore] = useState<number | null>(null);
   const [anchorToRestore, setAnchorToRestore] = useState<{
     profileId: string;
@@ -650,11 +665,11 @@ export default function BuscarPage() {
           className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_18%_10%,color-mix(in_srgb,var(--luxury-gold)_11%,transparent),transparent_25%),radial-gradient(circle_at_92%_46%,color-mix(in_srgb,var(--luxury-gold-deep)_10%,transparent),transparent_24%),radial-gradient(circle_at_4%_82%,color-mix(in_srgb,var(--luxury-gold)_7%,transparent),transparent_22%)]"
         />
 
-        <section className="relative z-10 mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
-          <div className="grid items-start gap-5 min-[900px]:grid-cols-[15.25rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
-            <aside className="h-fit rounded-xl border border-luxury-gold/55 bg-[linear-gradient(145deg,var(--luxury-surface-raised),var(--luxury-night))] p-4 text-luxury-ivory shadow-[0_0_22px_rgba(213,166,78,0.11),0_22px_58px_rgba(0,0,0,0.3)] backdrop-blur sm:p-5 min-[900px]:sticky min-[900px]:top-40 xl:top-24">
+        <section className="relative z-10 mx-auto max-w-7xl px-3 py-3 sm:px-5 sm:py-5 lg:px-6">
+          <div className="grid items-start gap-4 min-[900px]:grid-cols-[17.5rem_minmax(0,1fr)] xl:grid-cols-[18.5rem_minmax(0,1fr)]">
+            <aside className="h-fit rounded-2xl border border-luxury-gold/55 bg-[linear-gradient(145deg,var(--luxury-surface-raised),var(--luxury-night))] p-4 text-luxury-ivory shadow-[0_0_22px_rgba(213,166,78,0.11),0_22px_58px_rgba(0,0,0,0.3)] backdrop-blur sm:p-4 min-[900px]:sticky min-[900px]:top-40 xl:top-24">
               <div className="flex items-center gap-3">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-luxury-champagne/75 bg-luxury-black text-luxury-champagne shadow-[0_0_18px_rgba(213,166,78,0.28)]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-luxury-champagne/75 bg-luxury-black text-luxury-champagne shadow-[0_0_18px_rgba(213,166,78,0.28)]">
                   <Crown className="h-5 w-5" />
                 </span>
                 <div className="min-w-0">
@@ -662,7 +677,7 @@ export default function BuscarPage() {
                     Buscar
                   </h1>
                   <p className="text-xs font-semibold text-luxury-muted">
-                    {targetLabel}
+                    Perfis compatíveis
                   </p>
                 </div>
                 <button
@@ -682,86 +697,100 @@ export default function BuscarPage() {
 
               <form
                 id="search-filters"
-                className={`${areFiltersOpen ? "block" : "hidden"} mt-5 space-y-3 min-[900px]:block`}
+                className={`${areFiltersOpen ? "block" : "hidden"} mt-4 space-y-3 min-[900px]:block`}
                 onSubmit={handleSubmit}
               >
+                <div
+                  role="group"
+                  aria-label="Tipo de conexão"
+                  className="grid grid-cols-2 gap-2"
+                >
+                  {(
+                    [
+                      {
+                        value: "SUGAR",
+                        label: "Sugar",
+                        description: "Conexões sugar",
+                        icon: Crown,
+                      },
+                      {
+                        value: "TRADITIONAL",
+                        label: "Tradicional",
+                        description: "Encontros tradicionais",
+                        icon: Heart,
+                      },
+                    ] as const
+                  ).map(({ value, label, description, icon: Icon }) => {
+                    const selected = relationshipMode === value;
+                    const available =
+                      userIntent === "BOTH" || userIntent === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-pressed={selected}
+                        disabled={!available}
+                        title={
+                          !available
+                            ? "Esta modalidade não está incluída no seu cadastro"
+                            : undefined
+                        }
+                        onClick={() => {
+                          if (selected) return;
+                          setRelationshipMode(value);
+                          setIsLoading(true);
+                          setProfiles([]);
+                          setPage(1);
+                          restoredPageRef.current = 1;
+                        }}
+                        className={`relative flex min-h-24 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-3 text-center transition focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-luxury-champagne disabled:cursor-not-allowed disabled:opacity-45 ${selected ? "border-luxury-champagne bg-[linear-gradient(145deg,rgba(213,166,78,0.22),rgba(213,166,78,0.04))] shadow-[inset_0_0_20px_rgba(213,166,78,0.18),0_0_18px_rgba(213,166,78,0.2)]" : "border-luxury-gold/25 bg-luxury-black/50 hover:border-luxury-gold/70"}`}
+                      >
+                        {selected ? (
+                          <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-luxury-gold text-luxury-ink">
+                            <Check className="h-3.5 w-3.5" />
+                          </span>
+                        ) : null}
+                        <Icon
+                          aria-hidden="true"
+                          className={`mb-1 h-6 w-6 ${selected ? "text-luxury-champagne" : "text-luxury-muted"}`}
+                        />
+                        <span className="text-sm font-semibold">{label}</span>
+                        <span className="text-[11px] leading-tight text-luxury-muted">
+                          {description}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-luxury-ivory">
-                    Procurar:
+                  <label
+                    htmlFor="search-query"
+                    className="block text-sm font-bold text-luxury-ivory"
+                  >
+                    Procurar
                   </label>
-                  <div className="flex min-w-0 gap-2">
+                  <div className="flex min-w-0 items-center rounded-xl border border-luxury-gold/40 bg-luxury-black/72 px-3 focus-within:border-luxury-champagne">
+                    <MapPin
+                      aria-hidden="true"
+                      className="h-5 w-5 shrink-0 text-luxury-champagne"
+                    />
                     <Input
+                      id="search-query"
                       value={searchDraft}
                       onChange={(event) => setSearchDraft(event.target.value)}
-                      placeholder="Ex: Sao Paulo"
-                      className="h-11 min-w-0 rounded-md border-luxury-gold/40 bg-luxury-black/72 text-luxury-ivory placeholder:text-luxury-muted/65 focus-visible:border-luxury-champagne focus-visible:ring-luxury-gold/20"
+                      placeholder="Ex: São Paulo"
+                      className="h-11 min-w-0 border-0 bg-transparent shadow-none focus-visible:ring-0 text-luxury-ivory placeholder:text-luxury-muted/65 focus-visible:border-luxury-champagne focus-visible:ring-luxury-gold/20"
                     />
                     <Button
                       type="submit"
                       size="icon"
                       disabled={!isLocationDraftValid}
                       aria-label="Buscar perfis"
-                      className="h-11 w-11 shrink-0 rounded-md border border-luxury-gold/60 bg-luxury-black text-luxury-champagne hover:bg-luxury-gold hover:text-luxury-ink"
+                      className="h-8 w-10 shrink-0 rounded-none border-l border-luxury-gold/30 bg-transparent text-luxury-champagne hover:bg-luxury-gold hover:text-luxury-ink"
                     >
                       <Search className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <label
-                    htmlFor="relationship-mode"
-                    className="block text-sm font-bold text-luxury-ivory"
-                  >
-                    Tipo de conexão
-                  </label>
-                  {normalizeRelationshipIntent(user?.relationshipIntent) ===
-                  "BOTH" ? (
-                    <Select
-                      value={relationshipMode}
-                      onValueChange={(value) => {
-                        setRelationshipMode(value as RelationshipMode);
-                        setIsLoading(true);
-                        setProfiles([]);
-                        setPage(1);
-                        restoredPageRef.current = 1;
-                      }}
-                    >
-                      <SelectTrigger
-                        id="relationship-mode"
-                        className="h-11 w-full rounded-md border-luxury-gold/40 bg-luxury-black/72 px-3 text-sm font-semibold text-luxury-ivory focus-visible:border-luxury-champagne focus-visible:ring-luxury-gold/20 [&_svg]:text-luxury-champagne"
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent
-                        position="popper"
-                        align="start"
-                        className="premium-select-content rounded-lg border border-luxury-gold/45 bg-luxury-surface-raised p-1 text-luxury-ivory shadow-[0_22px_48px_rgba(0,0,0,0.48)]"
-                      >
-                        <SelectItem
-                          value="COMPATIBLE"
-                          className="rounded-md text-luxury-ivory focus:bg-luxury-gold/18 focus:text-luxury-champagne data-[state=checked]:text-luxury-champagne"
-                        >
-                          Sugar e Tradicional
-                        </SelectItem>
-                        <SelectItem
-                          value="SUGAR"
-                          className="rounded-md text-luxury-ivory focus:bg-luxury-gold/18 focus:text-luxury-champagne data-[state=checked]:text-luxury-champagne"
-                        >
-                          Somente Sugar
-                        </SelectItem>
-                        <SelectItem
-                          value="TRADITIONAL"
-                          className="rounded-md text-luxury-ivory focus:bg-luxury-gold/18 focus:text-luxury-champagne data-[state=checked]:text-luxury-champagne"
-                        >
-                          Somente Tradicional
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="rounded-md border border-luxury-gold/40 bg-luxury-black/72 px-3 py-2.5 text-sm font-extrabold text-luxury-champagne">
-                      {getRelationshipIntentLabel(user?.relationshipIntent)}
-                    </div>
-                  )}
                 </div>
                 {isDaddy ? (
                   <div className="space-y-2">
@@ -779,7 +808,7 @@ export default function BuscarPage() {
                     >
                       <SelectTrigger
                         id="gender-filter"
-                        className="h-11 w-full rounded-md border-luxury-gold/40 bg-luxury-black/72 px-3 text-sm font-semibold text-luxury-ivory focus-visible:border-luxury-champagne focus-visible:ring-luxury-gold/20 [&_svg]:text-luxury-champagne"
+                        className="h-11 w-full rounded-lg border-luxury-gold/40 bg-luxury-black/72 px-3 text-sm font-semibold text-luxury-ivory focus-visible:border-luxury-champagne focus-visible:ring-luxury-gold/20 [&_svg]:text-luxury-champagne"
                       >
                         <SelectValue />
                       </SelectTrigger>
@@ -831,7 +860,7 @@ export default function BuscarPage() {
                 <Button
                   type="submit"
                   disabled={!isLocationDraftValid}
-                  className="h-11 w-full rounded-md border border-luxury-champagne/70 bg-luxury-gold font-extrabold text-luxury-ink shadow-[0_8px_22px_rgba(213,166,78,0.2)] hover:bg-luxury-champagne"
+                  className="h-11 w-full rounded-xl border border-luxury-champagne/70 bg-[linear-gradient(110deg,var(--luxury-gold),var(--luxury-champagne),var(--luxury-gold))] text-sm font-extrabold text-luxury-ink shadow-[0_8px_22px_rgba(213,166,78,0.2)] hover:bg-luxury-champagne"
                 >
                   <Search className="h-4 w-4" />
                   Aplicar filtros

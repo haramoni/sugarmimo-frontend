@@ -321,7 +321,7 @@ export function PremiereOfferDialog({
                 <DialogDescription className="mx-auto max-w-lg text-sm font-medium leading-6 text-[#5f503d] sm:text-base">
                   Gere sua cobrança de R$ 149,00 e conclua o PIX. A confirmação
                   é automática: Premiere vitalício e Premium por um mês serão
-                  ativados assim que o Asaas confirmar o recebimento.
+                  ativados assim que a Stripe confirmar o recebimento.
                 </DialogDescription>
               </DialogHeader>
 
@@ -357,7 +357,7 @@ export function PremiereOfferDialog({
                   <div className={styles.pixPaymentGrid}>
                     <div className={styles.qrColumn}>
                       <div className={styles.qrCodeWrap}>
-                        {/* Asaas returns a trusted base64 PNG for this authenticated charge. */}
+                        {/* Stripe returns a trusted base64 PNG for this authenticated charge. */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={`data:image/png;base64,${payment.qrCodeImage}`}

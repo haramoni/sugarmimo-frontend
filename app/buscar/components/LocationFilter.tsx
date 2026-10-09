@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe2, Loader2, LocateFixed, MapPinned } from "lucide-react";
+import { MapPin, Loader2, LocateFixed, MapPinned } from "lucide-react";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 
 import styles from "./LocationFilter.module.css";
@@ -161,38 +161,38 @@ export default function LocationFilter({
   const rangeProgress = `${((value.radiusKm - 25) / (500 - 25)) * 100}%`;
 
   return (
-    <fieldset className="space-y-3 border-t border-luxury-gold/20 pt-4">
-      <legend className="mb-3 text-sm font-bold text-luxury-ivory">
+    <fieldset className="space-y-1">
+      <legend className="mb-1 text-sm font-bold text-luxury-ivory">
         Localização
       </legend>
 
-      <label className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-luxury-muted has-[:checked]:text-luxury-ivory">
+      <label className="flex min-h-9 cursor-pointer items-center gap-2.5 text-sm font-semibold text-luxury-muted has-[:checked]:text-luxury-ivory">
         <input
           type="radio"
           name="location-mode"
           value="ALL"
           checked={value.mode === "ALL"}
           onChange={() => onChange({ ...value, mode: "ALL" })}
-          className="h-4 w-4 accent-[var(--luxury-gold)]"
+          className="h-5 w-5 accent-[var(--luxury-gold)]"
         />
-        <Globe2 className="h-4 w-4 text-luxury-gold" />
+        <MapPin className="h-4 w-4 text-luxury-gold" />
         Todas as localidades
       </label>
 
-      <label className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-luxury-muted has-[:checked]:text-luxury-ivory">
+      <label className="flex min-h-9 cursor-pointer items-center gap-2.5 text-sm font-semibold text-luxury-muted has-[:checked]:text-luxury-ivory">
         <input
           type="radio"
           name="location-mode"
           value="NEARBY"
           checked={value.mode === "NEARBY"}
           onChange={() => onChange({ ...value, mode: "NEARBY" })}
-          className="h-4 w-4 accent-[var(--luxury-gold)]"
+          className="h-5 w-5 accent-[var(--luxury-gold)]"
         />
         <LocateFixed className="h-4 w-4 text-luxury-gold" />
         Perfis próximos a você
       </label>
 
-      <label className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-luxury-muted has-[:checked]:text-luxury-ivory">
+      <label className="flex min-h-9 cursor-pointer items-center gap-2.5 text-sm font-semibold text-luxury-muted has-[:checked]:text-luxury-ivory">
         <input
           type="radio"
           name="location-mode"
@@ -202,7 +202,7 @@ export default function LocationFilter({
             setLocationOptionsError("");
             onChange({ ...value, mode: "OTHER" });
           }}
-          className="h-4 w-4 accent-[var(--luxury-gold)]"
+          className="h-5 w-5 accent-[var(--luxury-gold)]"
         />
         <MapPinned className="h-4 w-4 text-luxury-gold" />
         Outra localidade

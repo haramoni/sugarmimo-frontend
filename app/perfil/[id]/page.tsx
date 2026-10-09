@@ -727,9 +727,7 @@ function ProfileMessageButton({
       <Button asChild className={className}>
         <Link href={`/chat?with=${encodeURIComponent(profileId)}`}>
           <MessageCircle className="h-4 w-4" />
-          {isDaddyViewingBaby && !viewerIsPremium
-            ? "Enviar mensagem grátis"
-            : "Enviar mensagem"}
+          Enviar mensagem
         </Link>
       </Button>
     );
