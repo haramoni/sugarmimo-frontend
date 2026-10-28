@@ -161,7 +161,7 @@ export default function WhatsappBubble() {
           ? { left: position.x, top: position.y }
           : { right: 20, bottom: 20 }
       }
-      className={`group fixed z-[60] flex h-16 w-16 touch-none select-none items-center justify-center rounded-full border border-white/30 bg-[#25D366] text-white shadow-[0_14px_40px_rgb(37_211_102/0.38)] transition-[background-color,box-shadow,transform] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[#25D366] sm:h-17 sm:w-17 ${
+      className={`group fixed z-[50] flex h-16 w-16 touch-none select-none items-center justify-center rounded-full border border-white/30 bg-[#25D366] text-white shadow-[0_14px_40px_rgb(37_211_102/0.38)] transition-[background-color,box-shadow,transform] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[#25D366] sm:h-17 sm:w-17 ${
         isDragging
           ? "cursor-grabbing scale-105 shadow-[0_20px_48px_rgb(37_211_102/0.48)]"
           : "cursor-pointer hover:-translate-y-1 hover:bg-[#1ebe5d] hover:shadow-[0_18px_46px_rgb(37_211_102/0.5)]"
